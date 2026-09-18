@@ -25,7 +25,7 @@ export const broeker: Domain = {
         {
           kind: 'rule',
           title: 'Brøkens to tal',
-          math: '\\frac{3}{4} \;\\longleftarrow\; \\text{tæller} \;/\; \\text{nævner}',
+          math: '\\frac{\\text{tæller}}{\\text{nævner}} \\quad\\text{fx}\\quad \\frac{3}{4}',
           body: 'Tælleren står øverst — den tæller stykkerne. Nævneren står nederst — den nævner hvor store de er.',
         },
         {

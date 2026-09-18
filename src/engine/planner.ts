@@ -1,5 +1,5 @@
 import type { DomainId, LearnerProfile, MisconceptionState, Skill, SkillState } from '../types';
-import { ALL_SKILLS, DOMAINS, getSkill, skillsOf } from '../content';
+import { ALL_SKILLS, DOMAINS, domainName, getSkill, skillsOf } from '../content';
 import { retention } from './srs';
 import { activeMisconceptions } from './diagnosis';
 import { skillStatus } from './mastery';
@@ -80,7 +80,7 @@ export function buildPlan(ctx: PlanContext, limit = 6): PlanItem[] {
     items.push({
       kind: 'fejlklinik',
       skillId,
-      title: `Ryd op i: ${def.name.toLowerCase()}`,
+      title: def.name,
       reason: `Du har lavet den her fejl ${state.count} gange. Lad os tage den, før vi går videre.`,
       priority: 900 + state.count * 10,
       estimatedMinutes: 6,
@@ -96,7 +96,7 @@ export function buildPlan(ctx: PlanContext, limit = 6): PlanItem[] {
     items.push({
       kind: 'repetition',
       skillId: state.skillId,
-      title: `Genopfrisk ${skill.name.toLowerCase()}`,
+      title: skill.name,
       reason: r < 0.6
         ? 'Det er et stykke tid siden — lad os se om det stadig sidder fast.'
         : 'Kort genopfriskning, så det bliver siddende.',
@@ -113,7 +113,7 @@ export function buildPlan(ctx: PlanContext, limit = 6): PlanItem[] {
     items.push({
       kind: 'fortsaet',
       skillId: state.skillId,
-      title: `Fortsæt ${skill.name.toLowerCase()}`,
+      title: skill.name,
       reason: `Du er i gang — du mangler ${Math.max(0, Math.round((1 - state.pKnown) * 100))}% for at have den sikkert inde.`,
       priority: 500 + Math.round(state.pKnown * 100),
       estimatedMinutes: 8,
@@ -129,10 +129,11 @@ export function buildPlan(ctx: PlanContext, limit = 6): PlanItem[] {
     items.push({
       kind: 'nyt',
       skillId: skill.id,
-      title: `Lær ${skill.name.toLowerCase()}`,
-      reason: domainRank >= 0
-        ? `Vi anbefalede ${skill.domainId} ud fra din niveautest.`
-        : skill.goal,
+      title: skill.name,
+      reason:
+        domainRank >= 0
+          ? `${domainName(skill.domainId)} er et af de emner din niveautest pegede på.`
+          : skill.goal,
       // Anbefalede emner først, og inden for dem de letteste færdigheder.
       priority: 300 + (domainRank >= 0 ? 60 - domainRank * 10 : 0) + (100 - diagnosticScore) / 4 - skill.tier * 5,
       estimatedMinutes: 12,
