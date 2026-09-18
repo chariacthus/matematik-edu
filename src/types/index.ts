@@ -1,3 +1,5 @@
+import type { IconName } from '../components/Icon';
+
 /**
  * Kernetyper for MatematikAI.
  *
@@ -97,7 +99,6 @@ export interface Domain {
   category: CategoryId;
   /** Færdigheds- og vidensområdet i Fælles Mål som emnet hører under. */
   area: AreaId;
-  icon: string;
   blurb: string;
   skills: Skill[];
 }
@@ -494,7 +495,8 @@ export interface AchievementDef {
   id: string;
   name: string;
   description: string;
-  icon: string;
+  /** Navn fra ikonsættet - aldrig en emoji. */
+  icon: IconName;
   /** Returnerer true når betingelsen er opfyldt. */
   check: (s: AchievementContext) => boolean;
 }

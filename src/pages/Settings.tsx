@@ -5,6 +5,7 @@ import { exportAll } from '../lib/storage';
 import { navigate } from '../lib/router';
 import { Card, Chip, Modal, PageHeader, SectionTitle } from '../components/ui';
 import { MODELS, costOfUsageDkk, costPerQuestionDkk, formatDkk, getModel } from '../tutor/models';
+import { Icon } from '../components/Icon';
 
 /** Indstillinger, dataeksport og nulstilling. */
 export function SettingsPage() {
@@ -44,13 +45,14 @@ export function SettingsPage() {
                   key={t}
                   onClick={() => update({ theme: t })}
                   className={clsx(
-                    'flex-1 whitespace-nowrap rounded-xl border-2 px-3 py-2 text-sm font-semibold transition-colors',
+                    'flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border-2 px-3 py-2 text-sm font-semibold transition-colors',
                     settings.theme === t
                       ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-200'
                       : 'border-ink-200 dark:border-ink-700',
                   )}
                   aria-pressed={settings.theme === t}
                 >
+                  <Icon name={{ light: 'sun', dark: 'moon', system: 'monitor' }[t] as 'sun'} size={15} />
                   {{ light: 'Lyst', dark: 'Mørkt', system: 'System' }[t]}
                 </button>
               ))}
@@ -72,7 +74,7 @@ export function SettingsPage() {
         <Card className="space-y-4">
           <div className="rounded-xl border border-good-200 bg-good-100 p-3.5 dark:border-good-900 dark:bg-good-900/25">
             <p className="flex items-center gap-2 text-sm font-bold text-good-900 dark:text-good-100">
-              <span aria-hidden>✓</span> Den indbyggede AI-lærer er gratis
+              <Icon name="check" size={16} /> Den indbyggede AI-lærer er gratis
             </p>
             <p className="mt-1 text-sm leading-relaxed text-good-900/90 dark:text-good-100/90">
               Den kører i din browser uden internet og uden nøgle, og koster ingenting — hverken nu eller senere. Den

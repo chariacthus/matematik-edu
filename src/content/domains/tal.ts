@@ -7,7 +7,6 @@ export const tal: Domain = {
   name: 'Tal og regning',
   category: 'tal-algebra',
   area: 'tal',
-  icon: '123',
   blurb: 'Fundamentet: de fire regningsarter, rækkefølgen de skal bruges i, negative tal og overslag.',
   skills: [
     /* ---------------------------------------------------------------- */

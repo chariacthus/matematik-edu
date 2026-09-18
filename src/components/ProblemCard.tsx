@@ -3,9 +3,10 @@ import clsx from 'clsx';
 import type { Misconception, Problem, Skill, SkillState } from '../types';
 import { checkAnswer, emptyResponse, findTrap, isBlank, answerToString, type Response } from '../lib/answer';
 import { MathBlock, MathText } from './MathText';
+import { Icon } from './Icon';
 import { Visual } from './visuals/Visual';
 import { AnswerInput, InputHint, type Verdict } from './AnswerInput';
-import { Callout, Chip, Disclosure, LevelDots, Modal } from './ui';
+import { Callout, Chip, Disclosure, LevelDots, Modal, XpPop } from './ui';
 import { TutorPanel } from './TutorPanel';
 import { feedbackForWrongAnswer } from '../tutor/tutor';
 import { getMisconception } from '../content/misconceptions';
@@ -33,6 +34,7 @@ export function ProblemCard({
   state,
   onSubmit,
   onNext,
+  xpOnCorrect,
   nextLabel = 'Næste',
   showConfidence,
   allowHints = true,
@@ -45,6 +47,8 @@ export function ProblemCard({
   state?: SkillState;
   onSubmit: (info: SubmitInfo) => void;
   onNext: () => void;
+  /** XP der skal flyve op når svaret er rigtigt. */
+  xpOnCorrect?: number;
   nextLabel?: string;
   showConfidence?: boolean;
   allowHints?: boolean;
@@ -62,6 +66,7 @@ export function ProblemCard({
   const [feedback, setFeedback] = useState<{ headline: string; body: string; tip?: string; misconception: Misconception | null } | null>(null);
   const [confidence, setConfidence] = useState<1 | 2 | 3 | undefined>();
   const [showSolution, setShowSolution] = useState(false);
+  const [xpPop, setXpPop] = useState(false);
   const startedAt = useRef(Date.now());
 
   // Ny opgave: nulstil alt, inklusive uret.
@@ -74,6 +79,7 @@ export function ProblemCard({
     setFeedback(null);
     setConfidence(undefined);
     setShowSolution(false);
+    setXpPop(false);
     startedAt.current = Date.now();
   }, [problem.id]);
 
@@ -89,6 +95,7 @@ export function ProblemCard({
       setVerdict('correct');
       setSettled(true);
       setFeedback(null);
+      if (xpOnCorrect) setXpPop(true);
       onSubmit({ correct: true, hints: hintsShown, tries: nextTries, seconds: elapsed(), confidence });
       if (autoAdvance) setTimeout(onNext, 1100);
       return;
@@ -125,9 +132,16 @@ export function ProblemCard({
   const facit = useMemo(() => answerToString(problem.answer, problem.choices), [problem]);
 
   return (
-    <article className="card overflow-hidden">
+    <article
+      className={clsx(
+        'card relative overflow-visible transition-colors duration-300',
+        verdict === 'correct' && 'border-xp-400 dark:border-xp-500/50',
+        verdict === 'wrong' && 'border-bad-400 dark:border-bad-500/50',
+      )}
+    >
+      {xpPop && xpOnCorrect ? <XpPop amount={xpOnCorrect} onDone={() => setXpPop(false)} /> : null}
       {/* Hoved */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-ink-200 px-5 py-3 dark:border-ink-800">
+      <div className="flex flex-wrap items-center gap-2 rounded-t-2xl border-b border-ink-200 px-5 py-2.5 dark:border-white/[0.07]">
         <Chip tone="neutral">{skill.name}</Chip>
         <LevelDots level={problem.level} />
         <span className="ml-auto flex items-center gap-2">{headerRight}</span>
@@ -191,7 +205,7 @@ export function ProblemCard({
         {hintsShown > 0 ? (
           <div className="mt-4 space-y-2">
             {problem.hints.slice(0, hintsShown).map((h, i) => (
-              <Callout key={i} tone="warn" icon={<span aria-hidden>💡</span>}>
+              <Callout key={i} tone="warn" icon="bulb">
                 <MathText>{h}</MathText>
               </Callout>
             ))}
@@ -249,23 +263,23 @@ export function ProblemCard({
         <div className="mt-5 flex flex-wrap items-center gap-2">
           {!settled ? (
             <button onClick={submit} disabled={isBlank(response)} className="btn-primary">
-              Tjek svar
+              <Icon name="check" size={16} /> Tjek svar
             </button>
           ) : (
             <button onClick={onNext} className="btn-primary">
-              {nextLabel}
+              {nextLabel} <Icon name="arrow-right" size={16} />
             </button>
           )}
 
           {hintsAvailable && !settled ? (
             <button onClick={() => setHintsShown((h) => h + 1)} className="btn-secondary">
-              {hintsShown === 0 ? 'Giv mig et hint' : 'Et hint mere'}
+              <Icon name="bulb" size={16} /> {hintsShown === 0 ? 'Hint' : 'Et hint mere'}
             </button>
           ) : null}
 
           {allowTutor ? (
-            <button onClick={() => setTutorOpen(true)} className="btn-accent ml-auto">
-              <span aria-hidden>✦</span> Spørg AI-lærer
+            <button onClick={() => setTutorOpen(true)} className="btn-secondary ml-auto">
+              <Icon name="sparkle" size={16} /> AI-lærer
             </button>
           ) : null}
 

@@ -7,7 +7,6 @@ export const broeker: Domain = {
   name: 'Brøker',
   category: 'tal-algebra',
   area: 'tal',
-  icon: '1/2',
   blurb: 'Fra at forstå hvad en brøk er, til at regne med dem uden at tænke over det.',
   skills: [
     /* ---------------------------------------------------------------- */

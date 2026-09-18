@@ -7,7 +7,6 @@ export const problemloesning: Domain = {
   name: 'Problemløsning',
   category: 'kompetencer',
   area: 'problembehandling',
-  icon: '🧩',
   blurb: 'Tekstopgaver i flere trin, baglæns tænkning og talmønstre.',
   skills: [
     {

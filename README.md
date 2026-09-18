@@ -225,6 +225,26 @@ Generatorerne er parametriserede og deterministiske: hver opgave kan
 genskabes 1:1 fra sit seed, hvilket både gør dem testbare og gør det
 muligt at vende tilbage til præcis samme opgave.
 
+## Design
+
+Grænsefladen er bygget mørk-først som et HUD frem for et dashboard.
+
+- **Ét ikonsæt.** Alle ikoner er stregtegnet på det samme 24×24-gitter og
+  arver farven fra teksten. Der er ingen emoji i brugerfladen: de ser
+  forskellige ud på hver platform, kan ikke farves, og de afslører at
+  ingen har taget stilling.
+- **Én farve der må lyse.** Indigo til handling, lime til XP og fremgang.
+  Resten er neutrale flader med 1px-kanter frem for tunge skygger.
+- **Færdighedskort frem for liste.** Emnernes forudsætninger er tegnet
+  som forbindelser, så man kan se hvor man er, hvad der er åbnet, og hvad
+  der venter. Kortet vender med skærmen: vandret på en stor skærm, lodret
+  på en telefon — et vandret kort på en telefon kræver sidescrolling, og
+  så bruger man det ikke.
+- **Bevægelse med mening.** XP flyver op når svaret er rigtigt, tal
+  tæller op i stedet for at skifte, en kombotæller vokser ved flere
+  rigtige i træk, og et forkert svar ryster feltet. `prefers-reduced-motion`
+  slår det hele fra.
+
 ## Tilgængelighed
 
 Brugerfladen fungerer med tastatur, bruger rigtige roller på knapper,

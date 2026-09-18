@@ -16,7 +16,8 @@ import { CATEGORIES } from '../content';
 import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, Chip, LabelledBar, PageHeader, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
+import { Callout, Card, Chip, IconTile, LabelledBar, PageHeader, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
+import { Icon } from '../components/Icon';
 
 /**
  * FP9-prøvetræning.
@@ -126,15 +127,7 @@ function ExamPicker({ onStart }: { onStart: (part: ExamPart) => void }) {
           const c = EXAM_PARTS[part];
           return (
             <Card key={part} pad="lg" className="flex flex-col">
-              <span
-                className={clsx(
-                  'mb-3 flex h-10 w-10 items-center justify-center rounded-xl text-lg',
-                  part === 'uden' ? 'bg-brand-100 dark:bg-brand-950' : 'bg-accent-100 dark:bg-accent-900/40',
-                )}
-                aria-hidden
-              >
-                {part === 'uden' ? '✎' : '🖩'}
-              </span>
+              <IconTile name={part === 'uden' ? 'pencil' : 'calculator'} tone={part === 'uden' ? 'brand' : 'accent'} size="lg" className="mb-3" />
               <h2 className="text-lg font-extrabold">{c.title}</h2>
               <p className="mt-1.5 flex-1 text-sm leading-relaxed text-ink-600 dark:text-ink-300">{c.description}</p>
               <div className="mt-3 flex gap-1.5">
@@ -150,7 +143,7 @@ function ExamPicker({ onStart }: { onStart: (part: ExamPart) => void }) {
       </div>
 
       <div className="mt-4">
-        <Callout tone="neutral" icon={<span aria-hidden>ℹ️</span>}>
+        <Callout tone="neutral" icon="info">
           Opgaverne er appens egne og følger Fælles Mål og prøvens opbygning. Det er ikke officielle prøvesæt — dem
           finder du hos Styrelsen for Undervisning og Kvalitet.
         </Callout>
@@ -191,7 +184,7 @@ function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: (
         ))}
       </div>
 
-      <Callout tone="neutral" icon={<span aria-hidden>ℹ️</span>}>
+      <Callout tone="neutral" icon="info">
         Karakteren er en grov indikation ud fra hvor mange opgaver du fik rigtige. Den rigtige prøve bedømmes af en
         censor efter flere kriterier end det.
       </Callout>
@@ -225,7 +218,7 @@ function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: (
                 >
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold">{w.name}</span>
                   <Chip tone="warn">{w.wrong} forkert</Chip>
-                  <span className="text-ink-400" aria-hidden>›</span>
+                  <Icon name="chevron" size={16} className="text-ink-400" />
                 </button>
               </Card>
             ))}

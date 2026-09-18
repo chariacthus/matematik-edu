@@ -7,7 +7,6 @@ export const algebra: Domain = {
   name: 'Algebra',
   category: 'tal-algebra',
   area: 'formler',
-  icon: 'x',
   blurb: 'Bogstavregning: udtryk, reducering, parenteser og kvadratsætninger.',
   skills: [
     {

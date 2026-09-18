@@ -12,7 +12,6 @@ export const tegning: Domain = {
   name: 'Geometrisk tegning',
   category: 'geometri-maaling',
   area: 'geometrisk-tegning',
-  icon: '📐',
   blurb: 'Konstruktion, målfast tegning og de tegneformer man bruger til hvad.',
   skills: [
     {

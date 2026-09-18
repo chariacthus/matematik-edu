@@ -4,21 +4,24 @@ import { useStore } from '../state/store';
 import { buildPlan, domainProgress, overallProgress, type PlanItem } from '../engine/planner';
 import { activeMisconceptions, readBehaviour } from '../engine/diagnosis';
 import { dueSkills } from '../engine/srs';
-import { levelProgress } from '../engine/gamification';
+import { levelProgress, levelTitle } from '../engine/gamification';
 import { CATEGORIES, getSkill } from '../content';
 import { navigate } from '../lib/router';
-import { relativeDays } from '../lib/dates';
-import { Callout, Card, Chip, EmptyState, PageHeader, ProgressBar, ProgressRing, SectionTitle, StatRow, Tabs } from '../components/ui';
+import { DAY_MS, dayKey, relativeDays } from '../lib/dates';
+import { Icon, type IconName } from '../components/Icon';
+import {
+  Callout, Card, Chip, CountUp, EmptyState, IconTile, LevelBadge,
+  ProgressBar, ProgressRing, SectionTitle, Segmented, StreakStrip,
+} from '../components/ui';
 
 type Tab = 'plan' | 'repetition' | 'fejl';
 
 /**
- * Forsiden.
+ * Forsiden er elevens HUD.
  *
- * Den var tidligere en stak af syv sektioner under hinanden. Nu er der
- * fire blokke: status, ét anbefalet næste skridt, faneblade til resten
- * og et emneoverblik. Kun én fane vises ad gangen, så siden kan læses
- * uden at scrolle forbi ting man ikke skal bruge.
+ * Øverst står status: niveau, XP og stribe. Derunder ét stort mål man
+ * kan trykke på. Resten ligger bag en vælger, så siden har ét
+ * fokuspunkt frem for otte konkurrerende kasser.
  */
 export function DashboardPage() {
   const profile = useStore((s) => s.profile);
@@ -35,6 +38,16 @@ export function DashboardPage() {
   const behaviour = useMemo(() => readBehaviour(attempts, 10), [attempts]);
   const level = levelProgress(gamification.xp);
 
+  // De seneste syv dage. Vi tæller både registrerede forsøg og dagens
+  // optjente XP med - ellers kan striben sige 1 dag mens kalenderen står
+  // tom, hvilket ser ud som en fejl.
+  const week = useMemo(() => {
+    const active = new Set(attempts.map((a) => dayKey(a.ts)));
+    if (gamification.todayXp > 0 && gamification.today) active.add(gamification.today);
+    if (gamification.lastActiveDay) active.add(gamification.lastActiveDay);
+    return Array.from({ length: 7 }, (_, i) => active.has(dayKey(Date.now() - (6 - i) * DAY_MS)));
+  }, [attempts, gamification.todayXp, gamification.today, gamification.lastActiveDay]);
+
   const [tab, setTab] = useState<Tab>('plan');
   const first = plan[0];
   const rest = plan.filter((p) => p !== first && p.kind !== 'repetition' && p.kind !== 'fejlklinik');
@@ -42,71 +55,92 @@ export function DashboardPage() {
   const hour = new Date().getHours();
 
   return (
-    <div>
-      <PageHeader
-        title={`${hour < 10 ? 'Godmorgen' : hour < 17 ? 'Hej' : 'Godaften'}${profile.name ? `, ${profile.name}` : ''}`}
-        subtitle={`Niveau ${level.level} · ${overall.mastered} af ${overall.total} færdigheder mestret`}
-        right={<ProgressRing value={overall.percent} size={56} />}
-      />
-
-      {/* Status i én række i stedet for tre kort */}
-      <div className="mb-4">
-        <StatRow
-          stats={[
-            { label: 'Dage i træk', value: String(gamification.streakDays), tone: gamification.streakDays > 0 ? 'warn' : undefined },
-            { label: 'XP i dag', value: `${gamification.todayXp}/${gamification.dailyGoalXp}`, tone: goalPct >= 100 ? 'good' : 'accent' },
-            { label: 'Mestret', value: String(overall.mastered), tone: 'brand' },
-          ]}
-        />
-        <div className="mt-2">
-          <ProgressBar value={goalPct} tone={goalPct >= 100 ? 'good' : 'accent'} size="sm" label="Dagens mål" />
+    <div className="animate-fade-in">
+      {/* HUD */}
+      <section className="mb-5">
+        <div className="mb-3 flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            <p className="eyebrow mb-1">{hour < 10 ? 'Godmorgen' : hour < 17 ? 'Eftermiddag' : 'Godaften'}</p>
+            <h1 className="truncate text-[28px] font-extrabold leading-[1.1]">{profile.name || 'Kom i gang'}</h1>
+          </div>
+          <button
+            onClick={() => navigate({ name: 'profile' })}
+            className="flex shrink-0 items-center gap-2 rounded-xl px-1 py-1 transition-colors hover:bg-ink-100 dark:hover:bg-white/[0.06]"
+            title={levelTitle(level.level)}
+          >
+            <LevelBadge level={level.level} size="lg" />
+          </button>
         </div>
-      </div>
 
-      {/* Én besked om arbejdsvaner ad gangen, ikke flere */}
+        <Card pad="md" className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="min-w-0">
+              <span className="block text-[11px] font-bold uppercase tracking-wide text-ink-400 dark:text-ink-500">
+                {levelTitle(level.level)}
+              </span>
+              <span className="block text-sm font-bold tabular-nums">
+                <CountUp value={level.into} /> / {level.needed} XP
+              </span>
+            </span>
+            <ProgressRing value={overall.percent} size={44} stroke={5} />
+          </div>
+          <ProgressBar value={(level.into / level.needed) * 100} tone="xp" size="lg" label="Fremgang mod næste niveau" />
+
+          <div className="flex items-center justify-between gap-3 border-t border-ink-100 pt-3 dark:border-white/[0.07]">
+            <StreakStrip days={week} active={gamification.streakDays} />
+            <span className="shrink-0 text-right">
+              <span className="block text-[10px] font-bold uppercase tracking-wide text-ink-400">I dag</span>
+              <span className={clsx('block text-sm font-extrabold tabular-nums', goalPct >= 100 && 'text-xp-600 dark:text-xp-400')}>
+                {gamification.todayXp}/{gamification.dailyGoalXp}
+              </span>
+            </span>
+          </div>
+        </Card>
+      </section>
+
       {behaviour.rushing ? (
         <div className="mb-4">
-          <Callout tone="warn" icon={<span aria-hidden>⏱️</span>}>
-            Du svarer hurtigere end opgaverne kan læses — og de fleste bliver forkerte. Læs opgaven færdig først.
+          <Callout tone="warn" icon="clock">
+            Du svarer hurtigere end opgaverne kan læses, og de fleste bliver forkerte. Læs opgaven færdig først.
           </Callout>
         </div>
       ) : behaviour.hintDependent ? (
         <div className="mb-4">
-          <Callout tone="brand" icon={<span aria-hidden>💡</span>}>
-            Prøv at skrive første skridt ned selv, før du åbner et hint. Det er dér læringen sker.
+          <Callout tone="brand" icon="bulb">
+            Skriv første skridt ned selv, før du åbner et hint. Det er dér læringen sker.
           </Callout>
         </div>
       ) : null}
 
-      {/* Ét tydeligt næste skridt */}
+      {/* Dagens mål */}
       {first ? (
         <section className="mb-6">
-          <SectionTitle>Næste skridt</SectionTitle>
-          <PlanCard item={first} primary />
+          <SectionTitle>Dit næste mål</SectionTitle>
+          <MissionCard item={first} />
         </section>
       ) : null}
 
-      {/* Resten bag faneblade */}
+      {/* Resten */}
       <section className="mb-6">
-        <Tabs
+        <Segmented
           value={tab}
           onChange={setTab}
-          tabs={[
-            { id: 'plan', label: 'Plan', count: rest.length || undefined },
-            { id: 'repetition', label: 'Repetition', count: due.length || undefined },
-            { id: 'fejl', label: 'Fejl', count: errors.length || undefined },
+          options={[
+            { id: 'plan', label: 'Plan', icon: 'flag', count: rest.length || undefined },
+            { id: 'repetition', label: 'Repetition', icon: 'refresh', count: due.length || undefined },
+            { id: 'fejl', label: 'Fejl', icon: 'search', count: errors.length || undefined },
           ]}
         />
 
         {tab === 'plan' ? (
           rest.length ? (
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="stagger grid gap-2 sm:grid-cols-2">
               {rest.slice(0, 4).map((item) => (
                 <PlanCard key={`${item.kind}-${item.skillId}`} item={item} />
               ))}
             </div>
           ) : (
-            <EmptyState icon="✅" title="Planen er tom" body="Du har taget alt det vi anbefalede. Vælg selv et emne i biblioteket." />
+            <EmptyState icon="check" title="Planen er tom" body="Du har taget alt det vi anbefalede. Vælg selv et emne på kortet." />
           )
         ) : null}
 
@@ -116,7 +150,7 @@ export function DashboardPage() {
               <p className="mb-3 text-sm text-ink-600 dark:text-ink-300">
                 De her emner er ved at falde ud igen. Fem minutter nu sparer en genindlæring senere.
               </p>
-              <ul className="mb-3 divide-y divide-ink-100 dark:divide-ink-800">
+              <ul className="mb-3 divide-y divide-ink-100 dark:divide-white/[0.07]">
                 {due.slice(0, 5).map((s) => (
                   <li key={s.skillId} className="flex items-center justify-between gap-3 py-2 text-sm">
                     <span className="truncate font-semibold">{getSkill(s.skillId)?.name ?? s.skillId}</span>
@@ -125,25 +159,25 @@ export function DashboardPage() {
                 ))}
               </ul>
               <button onClick={() => navigate({ name: 'review' })} className="btn-primary w-full">
-                Start repetition ({due.length})
+                <Icon name="refresh" size={16} /> Start repetition ({due.length})
               </button>
             </Card>
           ) : (
-            <EmptyState icon="🌱" title="Intet at repetere" body="Alt du har mestret, sidder stadig fast. Vi giver besked når noget skal op igen." />
+            <EmptyState icon="seedling" title="Intet at repetere" body="Alt du har mestret sidder stadig fast. Vi giver besked når noget skal op igen." />
           )
         ) : null}
 
         {tab === 'fejl' ? (
           errors.length ? (
-            <ul className="space-y-2">
+            <ul className="stagger space-y-2">
               {errors.slice(0, 5).map(({ state, def }) => (
                 <Card key={def.id} as="li" pad="md">
                   <div className="flex items-start gap-3">
-                    <span className="mt-0.5 text-base" aria-hidden>🔍</span>
+                    <IconTile name="search" tone="warn" size="sm" />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-bold">{def.name}</p>
                       <p className="mt-0.5 text-sm text-ink-600 dark:text-ink-300">{def.correction}</p>
-                      <p className="mt-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300">{def.tip}</p>
+                      <p className="mt-1.5 text-xs font-semibold text-brand-600 dark:text-brand-300">{def.tip}</p>
                     </div>
                     <Chip tone="warn">{state.count}×</Chip>
                   </div>
@@ -151,21 +185,21 @@ export function DashboardPage() {
               ))}
             </ul>
           ) : (
-            <EmptyState icon="👌" title="Ingen fejl der går igen" body="Når den samme fejl dukker op to gange, stopper vi op og forklarer den her." />
+            <EmptyState icon="check" title="Ingen fejl der går igen" body="Når den samme fejl dukker op to gange, stopper vi op og forklarer den her." />
           )
         ) : null}
       </section>
 
-      {/* Emneoverblik, grupperet som i Fælles Mål */}
-      <section>
+      {/* Kompetenceområder */}
+      <section className="mb-6">
         <SectionTitle
           action={
-            <a href="#/bibliotek" className="text-xs font-semibold text-brand-600 dark:text-brand-300">
-              Se alle
-            </a>
+            <button onClick={() => navigate({ name: 'library' })} className="text-xs font-bold text-brand-600 dark:text-brand-300">
+              Se kortet
+            </button>
           }
         >
-          Dine kompetenceområder
+          Kompetenceområder
         </SectionTitle>
         <div className="grid gap-2 sm:grid-cols-2">
           {CATEGORIES.map((cat) => {
@@ -174,18 +208,22 @@ export function DashboardPage() {
             const pct = Math.round(inCat.reduce((n, d) => n + d.percent, 0) / inCat.length);
             const mastered = inCat.reduce((n, d) => n + d.mastered, 0);
             const total = inCat.reduce((n, d) => n + d.total, 0);
+            const icon: IconName = { 'tal-algebra': 'sigma', 'geometri-maaling': 'shapes', 'statistik-sandsynlighed': 'chart', kompetencer: 'brain' }[cat.id] as IconName;
             return (
               <button
                 key={cat.id}
                 onClick={() => navigate({ name: 'library' })}
-                className="card flex items-center gap-3 p-3 text-left transition-shadow hover:shadow-lift"
+                className="card group flex items-center gap-3 p-3 text-left transition-all duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-lift"
               >
-                <ProgressRing value={pct} size={44} stroke={5} />
+                <IconTile name={icon} tone="brand" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-bold">{cat.name}</span>
-                  <span className="block text-xs text-ink-500 dark:text-ink-400">
-                    {mastered}/{total} færdigheder
+                  <span className="mt-1 block">
+                    <ProgressBar value={pct} size="sm" tone={pct >= 70 ? 'xp' : 'brand'} label={cat.name} />
                   </span>
+                </span>
+                <span className="shrink-0 text-xs font-extrabold tabular-nums text-ink-400">
+                  {mastered}/{total}
                 </span>
               </button>
             );
@@ -194,22 +232,20 @@ export function DashboardPage() {
       </section>
 
       {/* FP9 */}
-      <section className="mt-6">
+      <section>
         <SectionTitle>Prøvetræning</SectionTitle>
         <button
           onClick={() => navigate({ name: 'exam' })}
-          className="card flex w-full items-center gap-3 p-4 text-left transition-shadow hover:shadow-lift"
+          className="card group flex w-full items-center gap-3 p-4 text-left transition-all duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-lift"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink-900 text-lg text-white dark:bg-ink-100 dark:text-ink-900" aria-hidden>
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink-900 text-[11px] font-extrabold tracking-tight text-white dark:bg-white dark:text-ink-950">
             FP9
           </span>
           <span className="min-w-0 flex-1">
             <span className="block font-bold">Træn til prøven</span>
-            <span className="block text-sm text-ink-600 dark:text-ink-300">
-              Begge prøvedele — med og uden hjælpemidler — på tid.
-            </span>
+            <span className="block text-sm text-ink-500 dark:text-ink-400">Begge prøvedele, på tid.</span>
           </span>
-          <span className="shrink-0 text-ink-400" aria-hidden>›</span>
+          <Icon name="chevron" size={18} className="shrink-0 text-ink-400 transition-transform group-hover:translate-x-0.5" />
         </button>
       </section>
     </div>
@@ -218,52 +254,59 @@ export function DashboardPage() {
 
 /* ------------------------------------------------------------------ */
 
-const KIND_STYLE: Record<PlanItem['kind'], { icon: string; label: string; tone: 'warn' | 'brand' | 'accent' | 'good' }> = {
-  fejlklinik: { icon: '🔍', label: 'Ryd op i en fejl', tone: 'warn' },
-  repetition: { icon: '🔁', label: 'Repetition', tone: 'accent' },
-  fortsaet: { icon: '▶', label: 'Fortsæt', tone: 'brand' },
-  nyt: { icon: '✦', label: 'Nyt emne', tone: 'good' },
-  diagnose: { icon: '🗺️', label: 'Niveautest', tone: 'brand' },
+const KIND: Record<PlanItem['kind'], { icon: IconName; label: string; tone: 'warn' | 'brand' | 'accent' | 'xp' }> = {
+  fejlklinik: { icon: 'search', label: 'Ryd op i en fejl', tone: 'warn' },
+  repetition: { icon: 'refresh', label: 'Repetition', tone: 'accent' },
+  fortsaet: { icon: 'play', label: 'Fortsæt', tone: 'brand' },
+  nyt: { icon: 'sparkle', label: 'Nyt emne', tone: 'xp' },
+  diagnose: { icon: 'map', label: 'Niveautest', tone: 'brand' },
 };
 
-function PlanCard({ item, primary }: { item: PlanItem; primary?: boolean }) {
-  const style = KIND_STYLE[item.kind];
-  const go = () =>
-    item.kind === 'diagnose' ? navigate({ name: 'diagnose' }) : navigate({ name: 'lesson', skillId: item.skillId });
+const go = (item: PlanItem) =>
+  item.kind === 'diagnose' ? navigate({ name: 'diagnose' }) : navigate({ name: 'lesson', skillId: item.skillId });
 
+/** Det store, trykbare mål. Det skal se ud som en knap man vil trykke på. */
+function MissionCard({ item }: { item: PlanItem }) {
+  const style = KIND[item.kind];
   return (
     <button
-      onClick={go}
-      className={clsx(
-        'card w-full text-left transition-shadow hover:shadow-lift',
-        primary ? 'border-brand-300 p-5 dark:border-brand-800' : 'p-4',
-      )}
+      onClick={() => go(item)}
+      className="group relative w-full overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-600 to-brand-700 p-5 text-left text-white shadow-glow transition-all duration-200 ease-spring hover:-translate-y-0.5 dark:border-brand-400/30"
     >
-      <div className="flex items-start gap-3">
-        <span
-          className={clsx(
-            'flex shrink-0 items-center justify-center rounded-xl',
-            primary ? 'h-11 w-11 text-xl' : 'h-9 w-9 text-base',
-            {
-              warn: 'bg-warn-100 dark:bg-warn-900/40',
-              brand: 'bg-brand-100 dark:bg-brand-950',
-              accent: 'bg-accent-100 dark:bg-accent-900/40',
-              good: 'bg-good-100 dark:bg-good-900/40',
-            }[style.tone],
-          )}
-          aria-hidden
-        >
-          {style.icon}
+      {/* Diskret lysstribe, så fladen ikke er helt død */}
+      <span className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" aria-hidden />
+      <span className="relative flex items-start gap-3.5">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
+          <Icon name={style.icon} size={22} filled={style.icon === 'play'} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">
-            {style.label}
+          <span className="block text-[11px] font-bold uppercase tracking-[0.12em] text-white/70">{style.label}</span>
+          <span className="mt-0.5 block text-xl font-extrabold leading-tight">{item.title}</span>
+          <span className="mt-1.5 block text-sm leading-snug text-white/80">{item.reason}</span>
+          <span className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-2 py-1 text-[11px] font-bold">
+            <Icon name="clock" size={12} />
+            {item.estimatedMinutes} min
           </span>
-          <span className={clsx('block font-bold leading-snug', primary ? 'text-lg' : 'text-sm')}>{item.title}</span>
-          <span className="mt-1 block text-sm leading-snug text-ink-600 dark:text-ink-300">{item.reason}</span>
         </span>
-        {primary ? <Chip tone="neutral" className="shrink-0">{item.estimatedMinutes} min</Chip> : null}
-      </div>
+        <Icon name="chevron" size={20} className="mt-1 shrink-0 text-white/60 transition-transform group-hover:translate-x-1" />
+      </span>
+    </button>
+  );
+}
+
+function PlanCard({ item }: { item: PlanItem }) {
+  const style = KIND[item.kind];
+  return (
+    <button
+      onClick={() => go(item)}
+      className="card group flex w-full items-start gap-3 p-4 text-left transition-all duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-lift"
+    >
+      <IconTile name={style.icon} tone={style.tone} size="sm" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">{style.label}</span>
+        <span className="block text-sm font-bold leading-snug">{item.title}</span>
+        <span className="mt-1 block text-xs leading-snug text-ink-500 dark:text-ink-400">{item.reason}</span>
+      </span>
     </button>
   );
 }

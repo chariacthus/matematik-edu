@@ -7,7 +7,6 @@ export const decimaler: Domain = {
   name: 'Decimaltal',
   category: 'tal-algebra',
   area: 'tal',
-  icon: '0,5',
   blurb: 'Pladsværdi, regning med kommatal og de omregninger du bruger hele tiden.',
   skills: [
     {

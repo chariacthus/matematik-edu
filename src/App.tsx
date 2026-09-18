@@ -20,7 +20,7 @@ function BadgeToast({ id, onDone }: { id: string | undefined; onDone: () => void
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-20 z-40 flex justify-center px-4 sm:bottom-6">
       <button onClick={onDone} className="pointer-events-auto max-w-sm" aria-label="Luk besked">
-        <Toast key={id} message={`${badge.icon}  ${badge.name}`} onDone={onDone} />
+        <Toast key={id} message={badge.name} icon={badge.icon} onDone={onDone} />
       </button>
     </div>
   );

@@ -7,7 +7,6 @@ export const statistik: Domain = {
   name: 'Statistik',
   category: 'statistik-sandsynlighed',
   area: 'statistik',
-  icon: '📊',
   blurb: 'Beskriv et datasæt med de rigtige tal — og vælg det der fortæller sandheden.',
   skills: [
     {

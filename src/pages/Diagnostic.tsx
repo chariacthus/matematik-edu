@@ -14,6 +14,7 @@ import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
 import { Callout, Card, LabelledBar, ProgressBar, ProgressRing } from '../components/ui';
+import { Icon } from '../components/Icon';
 
 /**
  * Niveautesten.
@@ -73,7 +74,7 @@ export function DiagnosticPage() {
         <ProgressBar value={progress} label="Fremgang i niveautesten" />
       </header>
 
-      <Callout tone="neutral" icon={<span aria-hidden>ℹ️</span>}>
+      <Callout tone="neutral" icon="info">
         Det gør ikke noget at svare forkert — testen skal netop finde ud af hvad du endnu ikke kan. Gæt hellere end at
         springe over.
       </Callout>
@@ -123,7 +124,6 @@ function DiagnosticResult({
   const rows = DOMAINS.map((d) => ({
     id: d.id,
     name: d.name,
-    icon: d.icon,
     percent: outcome.scores[d.id] ?? 0,
     tested: !outcome.untested.includes(d.id),
   })).sort((a, b) => a.percent - b.percent);
@@ -139,8 +139,8 @@ function DiagnosticResult({
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <header className="text-center">
-        <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-3xl bg-brand-600 text-3xl text-white animate-pop" aria-hidden>
-          🗺️
+        <div className="mx-auto mb-3 flex h-16 w-16 animate-pop items-center justify-center rounded-3xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-glow">
+          <Icon name="map" size={30} />
         </div>
         <h1 className="text-2xl font-extrabold tracking-tight">Dit nuværende niveau</h1>
         <p className="mt-1.5 text-sm text-ink-500 dark:text-ink-400">
@@ -149,7 +149,7 @@ function DiagnosticResult({
       </header>
 
       {recommended.length ? (
-        <Callout tone="brand" title="Vi anbefaler at du starter her" icon={<span aria-hidden>🎯</span>}>
+        <Callout tone="brand" title="Vi anbefaler at du starter her" icon="target">
           <p className="mb-2">
             {recommended.map((r) => r.name.toLowerCase()).join(', ')} — det er dér, du får mest ud af tiden lige nu.
           </p>
@@ -183,7 +183,7 @@ function DiagnosticResult({
       </Card>
 
       {outcome.untested.length ? (
-        <Callout tone="neutral" icon={<span aria-hidden>ℹ️</span>}>
+        <Callout tone="neutral" icon="info">
           {outcome.untested.length} emner blev ikke testet, fordi du afsluttede testen tidligt. De får et foreløbigt
           niveau ud fra det du selv svarede i starten, og bliver justeret så snart du træner dem.
         </Callout>

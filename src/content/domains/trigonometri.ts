@@ -7,7 +7,6 @@ export const trigonometri: Domain = {
   name: 'Trigonometri',
   category: 'geometri-maaling',
   area: 'geometriske-egenskaber',
-  icon: 'sin',
   blurb: 'Sinus, cosinus og tangens — sådan finder du sider og vinkler i retvinklede trekanter.',
   skills: [
     {

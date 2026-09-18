@@ -4,7 +4,8 @@ import type { DomainId } from '../types';
 import { DOMAINS } from '../content';
 import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
-import { Card } from '../components/ui';
+import { Card, IconTile } from '../components/ui';
+import { Icon } from '../components/Icon';
 
 /**
  * Onboarding.
@@ -38,25 +39,25 @@ export function OnboardingPage() {
   const steps = [
     /* 0 — velkomst */
     <div key="0" className="space-y-5 text-center">
-      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-brand-600 font-serif text-4xl text-white animate-pop" aria-hidden>
-        π
+      <div className="mx-auto flex h-20 w-20 animate-pop items-center justify-center rounded-3xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-glow">
+        <Icon name="sigma" size={38} />
       </div>
       <div>
         <h1 className="text-3xl font-extrabold tracking-tight">MatematikAI</h1>
-        <p className="mt-2 text-ink-600 dark:text-ink-300">Din personlige matematiklærer til 9. klasse.</p>
+        <p className="mt-2 text-ink-500 dark:text-ink-400">Din personlige matematiklærer til 9. klasse — bygget efter Fælles Mål og FP9.</p>
       </div>
       <Card className="text-left">
         <p className="mb-3 text-sm font-bold">Sådan virker det</p>
         <ul className="space-y-2.5 text-sm text-ink-600 dark:text-ink-300">
-          {[
-            ['📋', 'Du starter med en kort niveautest — så ved vi hvor du står i 19 forskellige emner.'],
-            ['🎯', 'Opgaverne tilpasser sig dig. Går det let, bliver de sværere. Går det galt, går vi et trin tilbage.'],
-            ['🔍', 'Laver du den samme fejl flere gange, stopper vi op og forklarer præcis den fejl.'],
-            ['✦', 'AI-læreren hjælper dig videre — men den giver dig ikke svaret.'],
-          ].map(([icon, text]) => (
-            <li key={text} className="flex gap-3">
-              <span className="text-base" aria-hidden>{icon}</span>
-              <span>{text}</span>
+          {([
+            ['map', 'En kort niveautest viser hvor du står i 21 emner.'],
+            ['target', 'Opgaverne følger dit niveau. Går det let, bliver de sværere.'],
+            ['search', 'Samme fejl to gange? Så stopper vi op og forklarer præcis den.'],
+            ['sparkle', 'AI-læreren hjælper dig videre — men giver dig ikke svaret.'],
+          ] as const).map(([icon, text]) => (
+            <li key={text} className="flex items-start gap-3">
+              <IconTile name={icon} tone="brand" size="sm" />
+              <span className="pt-1.5">{text}</span>
             </li>
           ))}
         </ul>

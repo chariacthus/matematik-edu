@@ -2,15 +2,16 @@ import { type ReactNode, useEffect } from 'react';
 import clsx from 'clsx';
 import { hrefFor, navigate, type Route } from '../lib/router';
 import { useStore } from '../state/store';
-import { levelProgress, levelTitle } from '../engine/gamification';
+import { levelProgress } from '../engine/gamification';
+import { Icon, type IconName } from './Icon';
 import { ProgressBar } from './ui';
 
-const NAV: { route: Route; label: string; icon: string }[] = [
-  { route: { name: 'dashboard' }, label: 'I dag', icon: '◎' },
-  { route: { name: 'library' }, label: 'Bibliotek', icon: '☰' },
-  { route: { name: 'practice' }, label: 'Træn', icon: '✎' },
-  { route: { name: 'exam' }, label: 'Prøve', icon: '◳' },
-  { route: { name: 'profile' }, label: 'Profil', icon: '◈' },
+const NAV: { route: Route; label: string; icon: IconName }[] = [
+  { route: { name: 'dashboard' }, label: 'I dag', icon: 'home' },
+  { route: { name: 'library' }, label: 'Kort', icon: 'map' },
+  { route: { name: 'practice' }, label: 'Træn', icon: 'pencil' },
+  { route: { name: 'exam' }, label: 'Prøve', icon: 'exam' },
+  { route: { name: 'profile' }, label: 'Profil', icon: 'user' },
 ];
 
 export function Layout({ route, children }: { route: Route; children: ReactNode }) {
@@ -39,50 +40,55 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="sticky top-0 z-30 border-b border-ink-200/80 bg-ink-50/85 backdrop-blur-md dark:border-ink-800 dark:bg-ink-950/85">
+      <header className="sticky top-0 z-30 border-b border-ink-200/70 bg-ink-50/80 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/80">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-2.5">
           <a href={hrefFor({ name: 'dashboard' })} className="flex shrink-0 items-center gap-2 font-extrabold tracking-tight">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-600 font-serif text-lg text-white" aria-hidden>
-              π
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-inset">
+              <Icon name="sigma" size={17} />
             </span>
-            <span className="hidden sm:inline">MatematikAI</span>
+            <span className="hidden text-[15px] sm:inline">MatematikAI</span>
           </a>
 
-          <nav className="ml-auto hidden items-center gap-1 sm:flex" aria-label="Hovedmenu">
+          <nav className="ml-auto hidden items-center gap-0.5 sm:flex" aria-label="Hovedmenu">
             {NAV.map((item) => (
               <a
                 key={item.label}
                 href={hrefFor(item.route)}
                 className={clsx(
-                  'rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
+                  'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-semibold transition-colors',
                   isActive(item.route)
-                    ? 'bg-brand-600 text-white'
-                    : 'text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800',
+                    ? 'bg-ink-900 text-white dark:bg-white dark:text-ink-950'
+                    : 'text-ink-500 hover:bg-ink-100 hover:text-ink-900 dark:text-ink-400 dark:hover:bg-white/[0.06] dark:hover:text-white',
                 )}
                 aria-current={isActive(item.route) ? 'page' : undefined}
               >
+                <Icon name={item.icon} size={15} />
                 {item.label}
               </a>
             ))}
           </nav>
 
           {profile.onboarded ? (
-            <div className="ml-auto flex items-center gap-3 sm:ml-2">
+            <div className="ml-auto flex items-center gap-2.5 sm:ml-3">
               {gamification.streakDays > 0 ? (
-                <span className="chip bg-warn-100 text-warn-700 dark:bg-warn-900/40 dark:text-warn-200" title={`${gamification.streakDays} dage i træk`}>
-                  🔥 {gamification.streakDays}
+                <span
+                  className="flex items-center gap-1 rounded-lg bg-warn-100 px-2 py-1 text-xs font-extrabold tabular-nums text-warn-700 dark:bg-warn-500/15 dark:text-warn-300"
+                  title={`${gamification.streakDays} dage i træk`}
+                >
+                  <Icon name="flame" size={13} filled />
+                  {gamification.streakDays}
                 </span>
               ) : null}
               <button
                 onClick={() => navigate({ name: 'profile' })}
-                className="flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-ink-100 dark:hover:bg-ink-800"
-                title={`${levelTitle(progress.level)} — ${gamification.xp} XP`}
+                className="flex items-center gap-2 rounded-xl p-1 transition-colors hover:bg-ink-100 dark:hover:bg-white/[0.06]"
+                title={`Niveau ${progress.level} — ${gamification.xp} XP`}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-600 text-xs font-extrabold text-white">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 text-xs font-extrabold text-white shadow-inset">
                   {progress.level}
                 </span>
-                <span className="hidden w-20 md:block">
-                  <ProgressBar value={progress.percent} size="sm" tone="accent" label="Fremgang mod næste niveau" />
+                <span className="hidden w-16 md:block">
+                  <ProgressBar value={progress.percent} size="sm" tone="xp" label="Fremgang mod næste niveau" />
                 </span>
               </button>
             </div>
@@ -95,24 +101,35 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
       {/* Mobilnavigation i bunden — tommelfingervenlig */}
       {profile.onboarded ? (
         <nav
-          className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-ink-200 bg-white/95 backdrop-blur-md dark:border-ink-800 dark:bg-ink-900/95 sm:hidden"
+          className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-ink-200 bg-white/90 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/90 sm:hidden"
           aria-label="Hovedmenu"
         >
           <div className="mx-auto flex max-w-lg">
-            {NAV.map((item) => (
-              <a
-                key={item.label}
-                href={hrefFor(item.route)}
-                className={clsx(
-                  'flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold',
-                  isActive(item.route) ? 'text-brand-600 dark:text-brand-300' : 'text-ink-500 dark:text-ink-400',
-                )}
-                aria-current={isActive(item.route) ? 'page' : undefined}
-              >
-                <span className="text-lg leading-none" aria-hidden>{item.icon}</span>
-                {item.label}
-              </a>
-            ))}
+            {NAV.map((item) => {
+              const on = isActive(item.route);
+              return (
+                <a
+                  key={item.label}
+                  href={hrefFor(item.route)}
+                  className="flex flex-1 flex-col items-center gap-1 pb-1.5 pt-2"
+                  aria-current={on ? 'page' : undefined}
+                >
+                  {/* Den aktive fane får en fyldt pille bag ikonet - tydeligere
+                      end farve alene, især i mørkt tema. */}
+                  <span
+                    className={clsx(
+                      'flex h-7 w-12 items-center justify-center rounded-lg transition-all duration-200 ease-spring',
+                      on ? 'bg-brand-500/15 text-brand-600 dark:text-brand-300' : 'text-ink-400 dark:text-ink-500',
+                    )}
+                  >
+                    <Icon name={item.icon} size={19} />
+                  </span>
+                  <span className={clsx('text-[10px] font-bold', on ? 'text-ink-900 dark:text-white' : 'text-ink-400 dark:text-ink-500')}>
+                    {item.label}
+                  </span>
+                </a>
+              );
+            })}
           </div>
         </nav>
       ) : null}

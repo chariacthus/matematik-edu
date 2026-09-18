@@ -7,7 +7,6 @@ export const potenser: Domain = {
   name: 'Potenser',
   category: 'tal-algebra',
   area: 'tal',
-  icon: 'x²',
   blurb: 'Kort skrivemåde for gentagen multiplikation — og reglerne der gør den nem at regne med.',
   skills: [
     {

@@ -5,103 +5,117 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    color-scheme: light;
-  }
-  html.dark {
-    color-scheme: dark;
-  }
+  :root { color-scheme: light; }
+  html.dark { color-scheme: dark; }
 
-  html,
-  body,
-  #root {
-    @apply h-full;
-  }
+  html, body, #root { @apply h-full; }
 
   body {
     @apply bg-ink-50 text-ink-900 antialiased dark:bg-ink-950 dark:text-ink-100;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01', 'tnum' 0;
     -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
   }
 
-  /* Never let long expressions blow out the phone layout. */
-  .katex-display {
-    @apply my-2 overflow-x-auto overflow-y-hidden py-1;
-  }
-  .katex {
-    font-size: 1.04em;
-  }
+  /* Overskrifter strammes ind — det er halvdelen af at se moderne ud. */
+  h1, h2, h3 { letter-spacing: -0.021em; }
 
-  ::selection {
-    @apply bg-brand-200 text-brand-950;
-  }
+  /* Tal skal ikke hoppe når de tæller op. */
+  .tabular, .tabular-nums { font-variant-numeric: tabular-nums; }
+
+  .katex-display { @apply my-2 overflow-x-auto overflow-y-hidden py-1; }
+  .katex { font-size: 1.05em; }
+
+  ::selection { @apply bg-brand-500/25; }
 
   *:focus-visible {
     @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-ink-50 dark:ring-offset-ink-950;
   }
 
   input[type='number']::-webkit-outer-spin-button,
-  input[type='number']::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
+  input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  /* Diskrete rullepaneler */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { @apply rounded-full bg-ink-300/60 dark:bg-ink-700/70; }
+  ::-webkit-scrollbar-track { background: transparent; }
 }
 
 @layer components {
+  /**
+   * Flade kort med en fin kant frem for en tung skygge. Skygger på alt
+   * er det der får en grænseflade til at se opblødt og generisk ud.
+   */
   .card {
-    @apply rounded-2xl border border-ink-200/70 bg-white shadow-card dark:border-ink-800 dark:bg-ink-900;
+    @apply rounded-2xl border border-ink-200/80 bg-white shadow-card
+           dark:border-white/[0.07] dark:bg-ink-900 dark:shadow-none;
+  }
+  .card-raised {
+    @apply card dark:bg-ink-850;
   }
 
   .btn {
     @apply inline-flex select-none items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
-           transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40;
+           transition-all duration-150 ease-spring active:scale-[0.97]
+           disabled:pointer-events-none disabled:opacity-40;
   }
   .btn-primary {
-    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700;
+    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-500
+           dark:bg-brand-500 dark:hover:bg-brand-400 dark:shadow-inset;
   }
   .btn-secondary {
     @apply btn border border-ink-200 bg-white text-ink-700 hover:border-ink-300 hover:bg-ink-50
-           dark:border-ink-700 dark:bg-ink-800 dark:text-ink-100 dark:hover:bg-ink-700;
+           dark:border-white/10 dark:bg-white/[0.04] dark:text-ink-100 dark:hover:bg-white/[0.08];
   }
   .btn-ghost {
-    @apply btn text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800;
+    @apply btn text-ink-500 hover:bg-ink-100 hover:text-ink-800
+           dark:text-ink-400 dark:hover:bg-white/[0.06] dark:hover:text-ink-100;
   }
-  .btn-accent {
-    @apply btn bg-accent-600 text-white hover:bg-accent-700;
+  .btn-xp {
+    @apply btn bg-xp-500 text-ink-950 hover:bg-xp-400;
   }
 
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
+    @apply inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-[11px] font-semibold;
   }
 
   .field {
     @apply w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-base text-ink-900
-           placeholder:text-ink-400 focus:border-brand-500
-           dark:border-ink-700 dark:bg-ink-800 dark:text-ink-50 dark:placeholder:text-ink-500;
+           transition-colors placeholder:text-ink-400 focus:border-brand-500
+           dark:border-white/10 dark:bg-white/[0.04] dark:text-ink-50 dark:placeholder:text-ink-500
+           dark:focus:border-brand-400;
   }
 
-  .prose-math p {
-    @apply leading-relaxed;
+  /* Overskrift over en sektion — små versaler, aldrig i konkurrence med sidens titel. */
+  .eyebrow {
+    @apply text-[11px] font-bold uppercase tracking-[0.12em] text-ink-400 dark:text-ink-500;
+  }
+
+  /* Blank stribe der løber hen over et element mens noget indlæses. */
+  .shimmer {
+    background-image: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.14) 50%, transparent 100%);
+    background-size: 200% 100%;
+    @apply animate-shimmer;
   }
 }
 
 @layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .safe-bottom {
-    padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
-  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+  /* Forsinket indtoning, så en liste ruller ind frem for at blinke frem. */
+  .stagger > * { animation: fade-up .38s cubic-bezier(.16,1,.3,1) both; }
+  .stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger > *:nth-child(2) { animation-delay: 45ms; }
+  .stagger > *:nth-child(3) { animation-delay: 90ms; }
+  .stagger > *:nth-child(4) { animation-delay: 135ms; }
+  .stagger > *:nth-child(5) { animation-delay: 180ms; }
+  .stagger > *:nth-child(6) { animation-delay: 225ms; }
+  .stagger > *:nth-child(n + 7) { animation-delay: 270ms; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

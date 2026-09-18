@@ -7,7 +7,6 @@ export const funktioner: Domain = {
   name: 'Funktioner',
   category: 'tal-algebra',
   area: 'funktioner',
-  icon: 'f(x)',
   blurb: 'Lineære og eksponentielle sammenhænge — forskrift, graf og virkelighed.',
   skills: [
     {

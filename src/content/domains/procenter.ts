@@ -7,7 +7,6 @@ export const procenter: Domain = {
   name: 'Procenter',
   category: 'tal-algebra',
   area: 'tal',
-  icon: '%',
   blurb: 'Rabat, moms, renter og procentvis ændring — den matematik du møder uden for skolen.',
   skills: [
     {

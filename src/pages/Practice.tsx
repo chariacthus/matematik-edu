@@ -8,6 +8,7 @@ import { navigate } from '../lib/router';
 import { randomSeed } from '../lib/math';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
 import { Callout, Card, Chip, EmptyState, ProgressBar, SectionTitle } from '../components/ui';
+import { Icon } from '../components/Icon';
 
 /**
  * Fri træning.
@@ -127,7 +128,7 @@ export function PracticePage() {
           </div>
         </section>
       ) : (
-        <Callout tone="brand" icon={<span aria-hidden>ℹ️</span>}>
+        <Callout tone="brand" icon="info">
           Du har ikke trænet nogen færdigheder endnu. Vælg et emne herunder, eller start et forløb fra forsiden — så
           lærer appen dit niveau at kende.
         </Callout>
@@ -193,7 +194,7 @@ export function ReviewPage() {
   if (!queue.length) {
     return (
       <EmptyState
-        icon="✅"
+        icon="check"
         title="Ingenting at repetere lige nu"
         body="Alle dine mestrede emner sidder stadig fast. Kom tilbage når et af dem er klar igen — appen giver besked på forsiden."
         action={
@@ -209,8 +210,8 @@ export function ReviewPage() {
     const correct = results.filter((r) => r.correct).length;
     return (
       <div className="mx-auto max-w-lg space-y-5 py-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-accent-600 text-3xl text-white animate-pop" aria-hidden>
-          🔁
+        <div className="mx-auto flex h-16 w-16 animate-pop items-center justify-center rounded-3xl bg-gradient-to-br from-accent-400 to-accent-600 text-white shadow-glow">
+          <Icon name="refresh" size={30} />
         </div>
         <h1 className="text-2xl font-extrabold tracking-tight">Repetition gennemført</h1>
         <p className="text-ink-600 dark:text-ink-300">

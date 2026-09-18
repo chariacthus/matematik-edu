@@ -9,7 +9,6 @@ export const arealRumfang: Domain = {
   name: 'Areal og rumfang',
   category: 'geometri-maaling',
   area: 'maaling',
-  icon: '▦',
   blurb: 'Omkreds, areal, overflade og rumfang — og hvornår man bruger hvad.',
   skills: [
     {

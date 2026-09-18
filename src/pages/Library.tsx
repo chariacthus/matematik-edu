@@ -8,7 +8,9 @@ import { skillStatus } from '../engine/mastery';
 import { retention } from '../engine/srs';
 import { navigate } from '../lib/router';
 import { relativeDays } from '../lib/dates';
-import { Card, Chip, EmptyState, LevelDots, PageHeader, ProgressBar, ProgressRing } from '../components/ui';
+import { Card, Chip, EmptyState, IconTile, LevelDots, PageHeader, ProgressBar, ProgressRing, Segmented } from '../components/ui';
+import { SkillMap } from '../components/SkillMap';
+import { domainIcon } from '../components/Icon';
 import { MathText } from '../components/MathText';
 
 /** Biblioteket: hele pensum, grupperet i de fem hovedkategorier. */
@@ -64,22 +66,26 @@ export function LibraryPage() {
                   <button
                     key={d.id}
                     onClick={() => navigate({ name: 'domain', domainId: d.id })}
-                    className="card flex gap-3 p-4 text-left transition-shadow hover:shadow-lift"
+                    className="card flex items-start gap-3 p-3.5 text-left transition-all duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-lift"
                   >
-                    <ProgressRing value={p?.percent ?? 0} size={46} stroke={5} />
+                    <IconTile name={domainIcon(d.id)} tone={p && p.mastered === p.total ? 'xp' : 'brand'} />
                     <span className="min-w-0 flex-1">
-                      <span className="block font-bold">{d.name}</span>
-                      <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wide text-ink-400 dark:text-ink-500">
+                      <span className="flex items-baseline justify-between gap-2">
+                        <span className="truncate font-bold">{d.name}</span>
+                        <span className="shrink-0 text-[11px] font-extrabold tabular-nums text-ink-400">
+                          {p?.mastered ?? 0}/{p?.total ?? d.skills.length}
+                        </span>
+                      </span>
+                      <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-wide text-ink-400 dark:text-ink-500">
                         {areaName(d.area)}
                       </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-ink-500 dark:text-ink-400">{d.blurb}</span>
-                      <span className="mt-2 flex flex-wrap items-center gap-1.5">
-                        <Chip tone={p && p.mastered === p.total ? 'good' : 'neutral'}>
-                          {p?.mastered ?? 0}/{p?.total ?? d.skills.length} mestret
-                        </Chip>
-                        {p?.diagnostic !== null && p?.diagnostic !== undefined ? (
-                          <Chip tone="brand">test {p.diagnostic} %</Chip>
-                        ) : null}
+                      <span className="mt-1.5 block">
+                        <ProgressBar
+                          value={p?.percent ?? 0}
+                          size="sm"
+                          tone={(p?.percent ?? 0) >= 70 ? 'xp' : 'brand'}
+                          label={d.name}
+                        />
                       </span>
                     </span>
                   </button>
@@ -91,7 +97,7 @@ export function LibraryPage() {
       })}
 
       {q && !DOMAINS.some((d) => matches(d.id)) ? (
-        <EmptyState icon="🔎" title="Ingen træffere" body={`Der er ingen emner eller færdigheder der matcher "${query}".`} />
+        <EmptyState icon="search" title="Ingen træffere" body={`Der er ingen emner eller færdigheder der matcher "${query}".`} />
       ) : null}
     </div>
   );
@@ -105,11 +111,12 @@ export function DomainPage({ domainId }: { domainId: string }) {
   const domain = getDomain(domainId as DomainId);
   const skills = useStore((s) => s.skills);
   const profile = useStore((s) => s.profile);
+  const [view, setView] = useState<'kort' | 'liste'>('kort');
 
   if (!domain) {
     return (
       <EmptyState
-        icon="🧭"
+        icon="compass"
         title="Emnet findes ikke"
         body="Linket peger på et emne der ikke er i biblioteket."
         action={
@@ -127,27 +134,47 @@ export function DomainPage({ domainId }: { domainId: string }) {
   const diagnostic = profile.diagnostic[domain.id];
 
   return (
-    <div className="space-y-5">
+    <div>
       <PageHeader
         title={domain.name}
         subtitle={domain.blurb}
-        back={{ label: 'Bibliotek', onClick: () => navigate({ name: 'library' }) }}
-        right={<ProgressRing value={percent} size={60} />}
+        back={{ label: 'Kortet', onClick: () => navigate({ name: 'library' }) }}
+        right={<ProgressRing value={percent} size={56} />}
       />
 
-      <Card pad="sm" className="mb-4 flex flex-wrap items-center gap-1.5">
-        <Chip tone="neutral">{areaName(domain.area)}</Chip>
-        <Chip tone={mastered === list.length ? 'good' : 'neutral'}>
+      <div className="mb-4 flex flex-wrap items-center gap-1.5">
+        <Chip tone="neutral" icon={domainIcon(domain.id)}>{areaName(domain.area)}</Chip>
+        <Chip tone={mastered === list.length ? 'xp' : 'neutral'} icon="star">
           {mastered}/{list.length} mestret
         </Chip>
-        {diagnostic !== undefined ? <Chip tone="brand">niveautest {diagnostic} %</Chip> : null}
-      </Card>
+        {diagnostic !== undefined ? <Chip tone="brand" icon="target">niveautest {diagnostic} %</Chip> : null}
+      </div>
 
-      <ul className="space-y-2.5">
-        {list.map((skill) => (
-          <SkillRow key={skill.id} skill={skill} state={skills[skill.id]} allStates={skills} />
-        ))}
-      </ul>
+      <Segmented
+        value={view}
+        onChange={setView}
+        options={[
+          { id: 'kort', label: 'Kort', icon: 'map' },
+          { id: 'liste', label: 'Liste', icon: 'book' },
+        ]}
+      />
+
+      {view === 'kort' ? (
+        <Card pad="md">
+          <SkillMap
+            skills={list}
+            states={skills}
+            icon={domainIcon(domain.id)}
+            onPick={(id) => navigate({ name: 'lesson', skillId: id })}
+          />
+        </Card>
+      ) : (
+        <ul className="stagger space-y-2.5">
+          {list.map((skill) => (
+            <SkillRow key={skill.id} skill={skill} state={skills[skill.id]} allStates={skills} />
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

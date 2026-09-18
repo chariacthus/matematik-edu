@@ -7,7 +7,6 @@ export const uligheder: Domain = {
   name: 'Uligheder',
   category: 'tal-algebra',
   area: 'ligninger',
-  icon: '<',
   blurb: 'Når svaret ikke er ét tal, men et helt interval — og den ene regel du skal huske.',
   skills: [
     {

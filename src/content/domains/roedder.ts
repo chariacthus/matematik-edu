@@ -7,7 +7,6 @@ export const roedder: Domain = {
   name: 'Kvadratrødder',
   category: 'tal-algebra',
   area: 'tal',
-  icon: '√',
   blurb: 'Det omvendte af at kvadrere — og det værktøj Pythagoras hviler på.',
   skills: [
     {

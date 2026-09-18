@@ -11,7 +11,6 @@ export const flytninger: Domain = {
   name: 'Flytninger og symmetri',
   category: 'geometri-maaling',
   area: 'placeringer-flytninger',
-  icon: '⇄',
   blurb: 'Spejling, drejning, parallelforskydning og symmetri — i og uden for koordinatsystemet.',
   skills: [
     {

@@ -7,7 +7,6 @@ export const geometri: Domain = {
   name: 'Geometri',
   category: 'geometri-maaling',
   area: 'geometriske-egenskaber',
-  icon: '△',
   blurb: 'Vinkler, trekanter, firkanter, cirklen — og Pythagoras.',
   skills: [
     {

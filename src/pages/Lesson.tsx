@@ -14,7 +14,9 @@ import { randomSeed } from '../lib/math';
 import { MathBlock, MathText } from './../components/MathText';
 import { Visual } from '../components/visuals/Visual';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, Chip, EmptyState, ProgressBar } from '../components/ui';
+import { Callout, Card, Chip, ComboMeter, EmptyState, ProgressBar } from '../components/ui';
+import { Icon } from '../components/Icon';
+import { xpForAttempt } from '../engine/gamification';
 
 /**
  * Lektionsafspilleren: de syv trin fra forklaring til mestringstjek.
@@ -42,6 +44,8 @@ export function LessonPage({ skillId }: { skillId: string }) {
   const [levelNote, setLevelNote] = useState<string | null>(null);
   const [sessionCorrect, setSessionCorrect] = useState(0);
   const [sessionTotal, setSessionTotal] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [xpGained, setXpGained] = useState(0);
   const enteredAt = useRef(Date.now());
 
   useEffect(() => {
@@ -95,9 +99,15 @@ export function LessonPage({ skillId }: { skillId: string }) {
   const handleSubmit = (info: SubmitInfo) => {
     if (!problem) return;
     setSessionTotal((n) => n + 1);
-    if (info.correct) setSessionCorrect((n) => n + 1);
+    if (info.correct) {
+      setSessionCorrect((n) => n + 1);
+      setCombo((c) => c + 1);
+    } else {
+      setCombo(0);
+    }
 
     const result = recordAttempt({ problem, ...info, phase: state.phase });
+    setXpGained((x) => x + result.xp);
 
     if (result.mastered) setJustMastered(true);
     if (result.regressed) {
@@ -122,7 +132,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
   if (!skill) {
     return (
       <EmptyState
-        icon="🧭"
+        icon="compass"
         title="Emnet findes ikke"
         body="Linket peger på en færdighed der ikke er i biblioteket."
         action={
@@ -170,17 +180,33 @@ export function LessonPage({ skillId }: { skillId: string }) {
   return (
     <div className="space-y-5">
       <header>
-        <button onClick={() => navigate({ name: 'domain', domainId: skill.domainId })} className="btn-ghost -ml-2 mb-1 px-2 py-1 text-xs">
-          ← {domainName(skill.domainId)}
+        <button
+          onClick={() => navigate({ name: 'domain', domainId: skill.domainId })}
+          className="btn-ghost -ml-2 mb-1 gap-1 px-2 py-1 text-xs"
+        >
+          <Icon name="arrow-left" size={14} />
+          {domainName(skill.domainId)}
         </button>
-        <h1 className="text-2xl font-extrabold tracking-tight">{skill.name}</h1>
-        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{skill.goal}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-extrabold leading-tight">{skill.name}</h1>
+            <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{skill.goal}</p>
+          </div>
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <ComboMeter streak={combo} />
+            {xpGained > 0 ? (
+              <span className="flex items-center gap-1 text-xs font-extrabold tabular-nums text-xp-600 dark:text-xp-400">
+                <Icon name="bolt" size={12} filled />+{xpGained} XP
+              </span>
+            ) : null}
+          </div>
+        </div>
       </header>
 
       <PhaseTrack phase={state.phase} progress={state.phaseProgress} />
 
       {levelNote ? (
-        <Callout tone="brand" icon={<span aria-hidden>📈</span>}>
+        <Callout tone="brand" icon="chart">
           {levelNote}
         </Callout>
       ) : null}
@@ -213,6 +239,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
             nextLabel="Næste opgave"
             allowHints={state.phase !== 'mastery'}
             showConfidence={state.phase === 'mastery'}
+            xpOnCorrect={xpForAttempt({ correct: true, level: problem.level, hints: 0, tries: 1, phase: state.phase })}
             headerRight={
               <Chip tone="brand">
                 {state.phaseProgress}/{PHASE_TARGETS[state.phase]} i denne fase
@@ -260,7 +287,7 @@ function ExplainStep({ skill, onDone }: { skill: Skill; onDone: () => void }) {
             );
           case 'analogy':
             return (
-              <Callout key={i} tone="brand" title="Tænk på det sådan her" icon={<span aria-hidden>💭</span>}>
+              <Callout key={i} tone="brand" title="Tænk på det sådan her" icon="brain">
                 <MathText>{block.body}</MathText>
               </Callout>
             );
@@ -297,7 +324,7 @@ function ExplainStep({ skill, onDone }: { skill: Skill; onDone: () => void }) {
             );
           case 'warning':
             return (
-              <Callout key={i} tone="warn" title="Pas på her" icon={<span aria-hidden>⚠️</span>}>
+              <Callout key={i} tone="warn" title="Pas på her" icon="warning">
                 <MathText>{block.body}</MathText>
               </Callout>
             );
@@ -362,7 +389,7 @@ function ExampleStep({ skill, onDone, onBack }: { skill: Skill; onDone: () => vo
             Vis næste trin
           </button>
         ) : example.takeaway ? (
-          <Callout tone="good" title="Det du skal tage med dig" icon={<span aria-hidden>🎯</span>}>
+          <Callout tone="good" title="Det du skal tage med dig" icon="target">
             <MathText>{example.takeaway}</MathText>
           </Callout>
         ) : null}
@@ -442,8 +469,8 @@ function MisconceptionClinic({ misconception, onDone }: { misconception: Misconc
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-warn-500 text-xl text-white" aria-hidden>
-          🔍
+        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-warn-500 text-ink-950">
+          <Icon name="search" size={22} />
         </span>
         <div>
           <h1 className="text-xl font-extrabold tracking-tight">Lad os stoppe op et øjeblik</h1>
@@ -491,8 +518,8 @@ function MasteredScreen({
 }) {
   return (
     <div className="mx-auto max-w-lg space-y-5 py-6 text-center">
-      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-good-500 text-4xl text-white animate-pop" aria-hidden>
-        ⭐
+      <div className="mx-auto flex h-20 w-20 animate-pop items-center justify-center rounded-3xl bg-gradient-to-br from-xp-400 to-xp-600 text-ink-950 shadow-glow-xp">
+        <Icon name="star" size={40} filled />
       </div>
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight">{skill.name} er mestret</h1>

@@ -7,7 +7,6 @@ export const koordinatsystem: Domain = {
   name: 'Koordinatsystem',
   category: 'geometri-maaling',
   area: 'placeringer-flytninger',
-  icon: '⊹',
   blurb: 'Punkter, afstande og midtpunkter i koordinatsystemet.',
   skills: [
     {

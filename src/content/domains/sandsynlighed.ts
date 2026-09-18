@@ -7,7 +7,6 @@ export const sandsynlighed: Domain = {
   name: 'Sandsynlighed',
   category: 'statistik-sandsynlighed',
   area: 'sandsynlighed',
-  icon: '🎲',
   blurb: 'Fra ét terningkast til kombinerede forsøg med og uden tilbagelægning.',
   skills: [
     {

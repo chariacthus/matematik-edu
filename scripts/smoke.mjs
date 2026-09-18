@@ -84,6 +84,9 @@ const step = async (name, fn) => {
 
 const shots = [];
 const shot = async (name) => {
+  // Lad indtoninger og forsinkede liste-animationer falde til ro, ellers
+  // fanger billedet en halvgennemsigtig side.
+  await page.waitForTimeout(700);
   const p = `/tmp/claude-0/shot-${name}.png`;
   await page.screenshot({ path: p });
   shots.push(p);
@@ -124,7 +127,8 @@ try {
 
   await step('gemmer profilen og lander på forsiden', async () => {
     await page.getByRole('button', { name: /Kom i gang med min plan/ }).click();
-    await page.getByRole('heading', { name: /Hej, Freja|Godmorgen, Freja|Godaften, Freja/ }).waitFor({ timeout: 8000 });
+    await page.getByRole('heading', { name: 'Freja', exact: true }).waitFor({ timeout: 8000 });
+    await page.getByText('Dit næste mål').waitFor({ timeout: 5000 });
   });
   await shot('04-forside');
 
@@ -134,10 +138,17 @@ try {
   });
   await shot('05-bibliotek');
 
-  await step('åbner et emne', async () => {
+  await step('åbner et emne og viser færdighedskortet', async () => {
     await page.goto('http://127.0.0.1:4173/#/bibliotek/ligninger');
     await page.getByRole('heading', { name: 'Ligninger' }).waitFor({ timeout: 8000 });
+    await page.getByRole('group', { name: 'Færdighedskort' }).waitFor({ timeout: 5000 });
+    // Kortet skal kunne skiftes til liste og tilbage.
+    await page.getByRole('tab', { name: 'Liste' }).click();
+    await page.getByText('Ligninger i ét trin').first().waitFor({ timeout: 5000 });
+    await page.getByRole('tab', { name: 'Kort' }).click();
+    await page.getByRole('group', { name: 'Færdighedskort' }).waitFor({ timeout: 5000 });
   });
+  await shot('14-kort');
 
   await step('gennemgår forklaring og eksempel i en lektion', async () => {
     await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
@@ -165,7 +176,7 @@ try {
   await shot('07-feedback');
 
   await step('åbner AI-læreren og beder om svaret', async () => {
-    await page.getByRole('button', { name: /Spørg AI-lærer/ }).click();
+    await page.getByRole('button', { name: 'AI-lærer', exact: true }).click();
     await page.getByRole('dialog', { name: 'AI-lærer' }).waitFor({ timeout: 5000 });
     await page.getByLabel('Besked til AI-læreren').fill('hvad er svaret?');
     await page.getByRole('button', { name: 'Send' }).click();

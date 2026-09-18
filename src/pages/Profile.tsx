@@ -6,7 +6,7 @@ import { domainProgress, overallProgress } from '../engine/planner';
 import { activeMisconceptions } from '../engine/diagnosis';
 import { formatMinutes } from '../lib/dates';
 import { navigate } from '../lib/router';
-import { Card, Chip, LabelledBar, PageHeader, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
+import { Card, Chip, IconTile, LabelledBar, PageHeader, ProgressRing, SectionTitle, XpBar } from '../components/ui';
 
 /** Elevens profil: fremgang, styrker, svagheder og badges. */
 export function ProfilePage() {
@@ -39,11 +39,9 @@ export function ProfilePage() {
         }
       />
 
-      <Card pad="sm" className="-mt-1">
-        <ProgressBar value={level.percent} tone="accent" label="Fremgang mod næste niveau" />
-        <p className="mt-1.5 text-[11px] text-ink-500 dark:text-ink-400">
-          {level.into} / {level.needed} XP til niveau {level.level + 1} — i alt {gamification.xp} XP
-        </p>
+      <Card pad="md" className="-mt-1">
+        <XpBar level={level.level} into={level.into} needed={level.needed} />
+        <p className="mt-2 text-[11px] text-ink-400 dark:text-ink-500">I alt {gamification.xp} XP optjent</p>
       </Card>
 
       {/* Nøgletal */}
@@ -123,7 +121,7 @@ export function ProfilePage() {
             <ul className="space-y-3">
               {errors.slice(0, 6).map(({ state, def }) => (
                 <li key={def.id} className="flex items-start gap-3">
-                  <span className="mt-0.5" aria-hidden>{state.resolved ? '✅' : '🔍'}</span>
+                  <IconTile name={state.resolved ? 'check' : 'search'} tone={state.resolved ? 'good' : 'warn'} size="sm" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold">{def.name}</p>
                     <p className="text-xs text-ink-600 dark:text-ink-300">{def.tip}</p>
@@ -147,7 +145,7 @@ export function ProfilePage() {
                 key={a.id}
                 className={clsx('card flex items-start gap-2.5 p-3', !earned && 'opacity-45 grayscale')}
               >
-                <span className="text-xl" aria-hidden>{a.icon}</span>
+                <IconTile name={a.icon} tone={earned ? 'xp' : 'neutral'} size="sm" filled />
                 <span className="min-w-0">
                   <span className="block text-sm font-bold">{a.name}</span>
                   <span className="block text-[11px] leading-snug text-ink-500 dark:text-ink-400">{a.description}</span>

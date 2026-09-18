@@ -7,7 +7,6 @@ export const modeller: Domain = {
   name: 'Matematiske modeller',
   category: 'kompetencer',
   area: 'modellering',
-  icon: '📐',
   blurb: 'Oversæt virkeligheden til matematik — og husk at vurdere om modellen holder.',
   skills: [
     {
