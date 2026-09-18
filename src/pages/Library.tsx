@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import type { DomainId, Skill, SkillState } from '../types';
-import { CATEGORIES, DOMAINS, getDomain, skillsOf } from '../content';
+import { CATEGORIES, DOMAINS, areaName, getDomain, skillsOf } from '../content';
 import { useStore } from '../state/store';
 import { domainProgress, prerequisitesMet } from '../engine/planner';
 import { skillStatus } from '../engine/mastery';
 import { retention } from '../engine/srs';
 import { navigate } from '../lib/router';
 import { relativeDays } from '../lib/dates';
-import { Chip, EmptyState, LevelDots, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
+import { Card, Chip, EmptyState, LevelDots, PageHeader, ProgressBar, ProgressRing } from '../components/ui';
 import { MathText } from '../components/MathText';
 
 /** Biblioteket: hele pensum, grupperet i de fem hovedkategorier. */
@@ -34,12 +34,10 @@ export function LibraryPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-extrabold tracking-tight">Matematikbibliotek</h1>
-        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">
-          Hele pensum for 9. klasse — {DOMAINS.length} emner og {DOMAINS.reduce((n, d) => n + d.skills.length, 0)} færdigheder.
-        </p>
-      </header>
+      <PageHeader
+        title="Matematikbibliotek"
+        subtitle={`Pensum efter Fælles Mål — ${DOMAINS.length} emner, ${DOMAINS.reduce((n, d) => n + d.skills.length, 0)} færdigheder`}
+      />
 
       <input
         value={query}
@@ -55,7 +53,10 @@ export function LibraryPage() {
         if (!domains.length) return null;
         return (
           <section key={cat.id}>
-            <SectionTitle hint={cat.description}>{cat.name}</SectionTitle>
+            {/* Kompetenceområdets navn står alene, og Fælles Måls egen
+                formulering står under - ikke klemt ind ved siden af. */}
+            <h2 className="text-[11px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">{cat.name}</h2>
+            <p className="mb-3 mt-0.5 text-xs leading-relaxed text-ink-500 dark:text-ink-400">{cat.faellesMaal}</p>
             <div className="grid gap-2.5 sm:grid-cols-2">
               {domains.map((d) => {
                 const p = byId.get(d.id);
@@ -63,11 +64,14 @@ export function LibraryPage() {
                   <button
                     key={d.id}
                     onClick={() => navigate({ name: 'domain', domainId: d.id })}
-                    className="card flex gap-3 !p-4 text-left transition-shadow hover:shadow-lift"
+                    className="card flex gap-3 p-4 text-left transition-shadow hover:shadow-lift"
                   >
                     <ProgressRing value={p?.percent ?? 0} size={46} stroke={5} />
                     <span className="min-w-0 flex-1">
                       <span className="block font-bold">{d.name}</span>
+                      <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wide text-ink-400 dark:text-ink-500">
+                        {areaName(d.area)}
+                      </span>
                       <span className="mt-0.5 block text-xs leading-relaxed text-ink-500 dark:text-ink-400">{d.blurb}</span>
                       <span className="mt-2 flex flex-wrap items-center gap-1.5">
                         <Chip tone={p && p.mastered === p.total ? 'good' : 'neutral'}>
@@ -124,23 +128,20 @@ export function DomainPage({ domainId }: { domainId: string }) {
 
   return (
     <div className="space-y-5">
-      <button onClick={() => navigate({ name: 'library' })} className="btn-ghost -ml-2 px-2 py-1 text-xs">
-        ← Bibliotek
-      </button>
+      <PageHeader
+        title={domain.name}
+        subtitle={domain.blurb}
+        back={{ label: 'Bibliotek', onClick: () => navigate({ name: 'library' }) }}
+        right={<ProgressRing value={percent} size={60} />}
+      />
 
-      <header className="flex items-start gap-4">
-        <ProgressRing value={percent} size={64} />
-        <div className="min-w-0">
-          <h1 className="text-2xl font-extrabold tracking-tight">{domain.name}</h1>
-          <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{domain.blurb}</p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <Chip tone={mastered === list.length ? 'good' : 'neutral'}>
-              {mastered}/{list.length} mestret
-            </Chip>
-            {diagnostic !== undefined ? <Chip tone="brand">niveautest: {diagnostic} %</Chip> : null}
-          </div>
-        </div>
-      </header>
+      <Card pad="sm" className="mb-4 flex flex-wrap items-center gap-1.5">
+        <Chip tone="neutral">{areaName(domain.area)}</Chip>
+        <Chip tone={mastered === list.length ? 'good' : 'neutral'}>
+          {mastered}/{list.length} mestret
+        </Chip>
+        {diagnostic !== undefined ? <Chip tone="brand">niveautest {diagnostic} %</Chip> : null}
+      </Card>
 
       <ul className="space-y-2.5">
         {list.map((skill) => (
@@ -169,7 +170,7 @@ function SkillRow({ skill, state, allStates }: { skill: Skill; state?: SkillStat
     <li>
       <button
         onClick={() => navigate({ name: 'lesson', skillId: skill.id })}
-        className={clsx('card w-full !p-4 text-left transition-shadow hover:shadow-lift', status === 'locked' && 'opacity-70')}
+        className={clsx('card w-full p-4 text-left transition-shadow hover:shadow-lift', status === 'locked' && 'opacity-70')}
       >
         <div className="flex items-start gap-3">
           <span

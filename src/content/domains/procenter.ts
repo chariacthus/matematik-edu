@@ -6,6 +6,7 @@ export const procenter: Domain = {
   id: 'procenter',
   name: 'Procenter',
   category: 'tal-algebra',
+  area: 'tal',
   icon: '%',
   blurb: 'Rabat, moms, renter og procentvis ændring — den matematik du møder uden for skolen.',
   skills: [
@@ -172,6 +173,7 @@ export const procenter: Domain = {
       generators: [
         {
           id: 'find-procent',
+          aids: 'med',
           label: 'Del af helhed i procent',
           make: ({ rng, level }) => {
             const total = rng.pick(lv<number[]>(level, [[10, 20, 50, 100], [20, 25, 40, 50], [25, 40, 80, 200], [32, 60, 120, 250], [36, 64, 140, 320]]));
@@ -260,6 +262,7 @@ export const procenter: Domain = {
       generators: [
         {
           id: 'aendring-procent',
+          aids: 'med',
           label: 'Hvor mange procent er det ændret?',
           make: ({ rng, level }) => {
             const old = rng.int(2, lv(level, [10, 20, 30, 50, 80])) * 25;
@@ -327,6 +330,7 @@ export const procenter: Domain = {
 
     {
       id: 'procent-vaekstfaktor',
+      aids: 'med',
       domainId: 'procenter',
       name: 'Vækstfaktor og gentagne ændringer',
       goal: 'Du kan bruge vækstfaktor og regne på renter over flere år.',
@@ -382,6 +386,7 @@ export const procenter: Domain = {
         },
         {
           id: 'renters-rente',
+          aids: 'med',
           label: 'Renters rente',
           minLevel: 3,
           make: ({ rng, level }) => {

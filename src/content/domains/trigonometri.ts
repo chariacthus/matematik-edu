@@ -5,7 +5,8 @@ import { lv, mcq, numAns, s, trapIfDifferent } from '../helpers';
 export const trigonometri: Domain = {
   id: 'trigonometri',
   name: 'Trigonometri',
-  category: 'geometri',
+  category: 'geometri-maaling',
+  area: 'geometriske-egenskaber',
   icon: 'sin',
   blurb: 'Sinus, cosinus og tangens — sådan finder du sider og vinkler i retvinklede trekanter.',
   skills: [
@@ -92,6 +93,7 @@ export const trigonometri: Domain = {
 
     {
       id: 'trig-find-side',
+      aids: 'med',
       domainId: 'trigonometri',
       name: 'Find en side',
       goal: 'Du kan beregne en manglende side når du kender en vinkel og en side.',
@@ -183,6 +185,7 @@ export const trigonometri: Domain = {
 
     {
       id: 'trig-find-vinkel',
+      aids: 'med',
       domainId: 'trigonometri',
       name: 'Find en vinkel',
       goal: 'Du kan bruge de omvendte funktioner til at finde en vinkel ud fra to sider.',

@@ -5,7 +5,8 @@ import { lv, mcq, name, numAns, s, trapIfDifferent } from '../helpers';
 export const modeller: Domain = {
   id: 'modeller',
   name: 'Matematiske modeller',
-  category: 'anvendelse',
+  category: 'kompetencer',
+  area: 'modellering',
   icon: '📐',
   blurb: 'Oversæt virkeligheden til matematik — og husk at vurdere om modellen holder.',
   skills: [
@@ -101,6 +102,7 @@ export const modeller: Domain = {
 
     {
       id: 'model-vaelg',
+      aids: 'med',
       domainId: 'modeller',
       name: 'Vælg og vurdér modellen',
       goal: 'Du kan vælge mellem en lineær og en eksponentiel model og vurdere modellens rækkevidde.',

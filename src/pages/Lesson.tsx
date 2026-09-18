@@ -198,7 +198,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
         />
       ) : problem ? (
         <>
-          <Card className="!p-4">
+          <Card>
             <p className="text-sm">
               <span className="font-bold">{PHASE_LABELS[state.phase]}.</span>{' '}
               <span className="text-ink-600 dark:text-ink-300">{PHASE_HELP[state.phase]}</span>

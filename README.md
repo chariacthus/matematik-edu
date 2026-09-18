@@ -1,12 +1,11 @@
 # MatematikAI
 
-En adaptiv matematiktutor til 9. klasse. Appen tager en elev fra
-begynderniveau til et højt niveau ved at tilpasse sig elevens niveau,
-fejl, tempo og arbejdsvaner — ikke ved at give alle det samme materiale
-i den samme rækkefølge.
+En adaptiv matematiktutor til 9. klasse, bygget efter **Fælles Mål** og
+**FP9**. Appen tilpasser sig elevens niveau, fejl, tempo og arbejdsvaner
+— den giver ikke alle det samme materiale i den samme rækkefølge.
 
 Alt kører i browseren. Ingen server, ingen konto, ingen data der
-forlader maskinen.
+forlader maskinen — **og ingen løbende udgift.**
 
 ```bash
 npm install
@@ -16,6 +15,21 @@ npm run build    # statisk build til dist/
 ```
 
 ## Hvad appen gør
+
+**Pensum efter Fælles Mål.** Emnerne er inddelt i de fire
+kompetenceområder Undervisningsministeriet bruger — Tal og algebra,
+Geometri og måling, Statistik og sandsynlighed, Matematiske kompetencer
+— og hvert emne er mærket med sit færdigheds- og vidensområde. Det er de
+samme ord eleven møder i timerne.
+
+**FP9-prøvetræning.** Prøven består af to dele med vidt forskellige
+krav, og appen træner dem hver for sig: *uden hjælpemidler* (20 opgaver,
+1 time, ingen lommeregner) og *med hjælpemidler* (12 større opgaver, 90
+minutter). Hver enkelt opgavetype er mærket med hvilken prøvedel den
+hører til, så en lommeregneropgave aldrig dukker op i prøven hvor eleven
+ikke har en lommeregner — det håndhæves af en test. Bagefter får eleven
+en opdeling pr. kompetenceområde og et direkte link til at træne det der
+gik galt.
 
 **Niveautest først.** Eleven svarer på et par spørgsmål om sig selv og
 tager derefter en diagnostisk test, der kører en lille sværhedstrappe
@@ -53,6 +67,28 @@ trappes op for hver gang eleven spørger igen, og først på fjerde trin
 gennemgås hele løsningen — at holde eleven hen længere end det er
 stædighed, ikke undervisning.
 
+## Hvad AI'en koster
+
+**Ingenting, som udgangspunkt.** Den indbyggede AI-lærer er regelbaseret
+og kører i browseren uden internet og uden nøgle. Den bygger på
+opgavernes egne hints, løsningstrin og kendte fejl, så den ikke kan
+opfinde matematik — og den koster ikke noget, hverken nu eller senere.
+
+Vil man have mere frit formulerede forklaringer, kan man tilkoble Claude
+med sin egen API-nøgle. Så vises prisen direkte i appen, før man slår det
+til:
+
+| Model | Input $/mio. | Output $/mio. | Pr. spørgsmål |
+|---|---|---|---|
+| Haiku 4.5 (standard) | $1 | $5 | ca. 2 øre |
+| Sonnet 5 | $2 | $10 | ca. 3 øre |
+| Opus 5 | $5 | $25 | ca. 8 øre |
+
+Appen tæller det faktiske forbrug op undervejs og viser det i kroner
+under Indstillinger, så der ikke kommer overraskelser. Standardvalget er
+den billigste model, `max_tokens` er sat lavt (et socratisk svar er 3-4
+sætninger), og fejler kaldet, svarer den indbyggede tutor i stedet.
+
 ## Sådan hænger koden sammen
 
 ```
@@ -61,16 +97,20 @@ src/
                   sin trinvise løsning og de typiske fejl i den.
   lib/            Determinstisk RNG, eksakte brøker, dansk talformatering,
                   svarparsing og -kontrol, hash-router, localStorage.
-  content/        Pensum: 19 emner, 66 færdigheder, 170 opgavegeneratorer
-                  + kataloget over 57 typiske misforståelser.
+  content/        Pensum efter Fælles Mål: 21 emner, 70 færdigheder,
+                  179 opgavegeneratorer + kataloget over 57 typiske
+                  misforståelser.
   engine/         mastery (BKT + Elo) · adaptive (sværhed, faser) ·
                   srs (repetition) · diagnosis (fejlanalyse, adfærd) ·
-                  planner (dagens plan) · diagnostic · gamification
+                  planner (dagens plan) · diagnostic · exam (FP9) ·
+                  gamification
   tutor/          Regelbaseret socratisk tutor + valgfri Claude-adapter
+                  med prisberegning
   components/     Matematikrendering, 15 SVG-visualiseringer, svarfelter,
                   opgavekort, UI-primitiver
   pages/          Onboarding · Niveautest · Forside · Lektion · Bibliotek ·
-                  Træning · Repetition · Profil · Indstillinger
+                  Træning · Repetition · Prøvetræning · Profil ·
+                  Indstillinger
 ```
 
 Den centrale beslutning er, at **en opgave er et selvforklarende
@@ -160,19 +200,26 @@ privat browsing virker appen stadig, den husker bare ikke mellem besøg.
 
 ## Pensum
 
-19 emner, 66 færdigheder, 170 opgavegeneratorer:
+21 emner, 70 færdigheder, 179 opgavegeneratorer, inddelt efter Fælles
+Måls fire kompetenceområder:
 
-**Tal & algebra** — tal og regning, brøker, decimaltal, procenter,
+**Tal og algebra** — tal og regning, brøker, decimaltal, procenter,
 forhold og proportionalitet, potenser, kvadratrødder, algebra,
-ligninger, uligheder
+ligninger, uligheder, funktioner
 
-**Geometri** — geometri, areal og rumfang, trigonometri
+**Geometri og måling** — geometri, areal og rumfang, trigonometri,
+koordinatsystem, flytninger og symmetri, geometrisk tegning
 
-**Funktioner** — koordinatsystem, funktioner
+**Statistik og sandsynlighed** — statistik, sandsynlighed
 
-**Statistik & sandsynlighed** — statistik, sandsynlighed
+**Matematiske kompetencer** — problemløsning, matematiske modeller
 
-**Anvendelse** — problemløsning, matematiske modeller
+De tværgående kompetencer (kommunikation, ræsonnement, repræsentation og
+hjælpemidler) trænes gennem opgaverne i alle emner frem for som separate
+emner.
+
+151 af generatorerne kan bruges til prøven uden hjælpemidler; resten
+kræver lommeregner og hører derfor kun til prøven med hjælpemidler.
 
 Generatorerne er parametriserede og deterministiske: hver opgave kan
 genskabes 1:1 fra sit seed, hvilket både gør dem testbare og gør det
@@ -190,8 +237,15 @@ først.
 
 - Udtrykssammenligning ganger ikke parenteser ud; se afsnittet om
   retteren.
-- Diagnosen dækker 2 opgaver pr. emne. Det er et bevidst kompromis
-  mellem præcision og hvor længe en 15-årig gider sidde med en test.
+- Diagnosen dækker 2 opgaver pr. emne (42 i alt). Det er et bevidst
+  kompromis mellem præcision og hvor længe en 15-årig gider sidde med en
+  test; den kan afsluttes undervejs.
+- Prøvetræningen følger FP9's opbygning og Fælles Mål, men opgaverne er
+  appens egne. Det er ikke officielle prøvesæt — dem udgiver Styrelsen
+  for Undervisning og Kvalitet.
+- Karakterindikationen efter en prøve er beregnet ud fra andelen af
+  rigtige svar. Den rigtige prøve bedømmes af en censor efter flere
+  kriterier, og appen siger det samme til eleven.
 - `npm audit` melder to moderate sårbarheder i `@vitest/mocker`. De er
   begrænset til testafvikleren, som dette projekt ikke bruger mocking i,
   og de indgår ikke i produktionsbygget.

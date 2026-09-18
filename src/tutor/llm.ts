@@ -16,7 +16,6 @@ import { getMisconception } from '../content/misconceptions';
  */
 
 const API_URL = 'https://api.anthropic.com/v1/messages';
-const MODEL = 'claude-sonnet-5';
 
 export interface LlmTurn {
   role: 'user' | 'assistant';
@@ -76,6 +75,8 @@ export interface LlmResult {
   text: string;
   /** Sat når kaldet fejlede, så brugerfladen kan falde tilbage. */
   error?: string;
+  /** Faktisk forbrug, så appen kan vise eleven hvad det kostede. */
+  usage?: { input: number; output: number };
 }
 
 /**
@@ -85,6 +86,7 @@ export interface LlmResult {
  */
 export async function askClaude(opts: {
   apiKey: string;
+  model: string;
   system: string;
   turns: LlmTurn[];
   signal?: AbortSignal;
@@ -103,8 +105,10 @@ export async function askClaude(opts: {
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 700,
+        model: opts.model,
+        // Et socratisk svar er 3-4 sætninger. Et lavt loft holder
+        // omkostningen nede uden at klippe svarene over.
+        max_tokens: 400,
         system: opts.system,
         messages: opts.turns,
       }),
@@ -125,7 +129,10 @@ export async function askClaude(opts: {
       };
     }
 
-    const data = (await res.json()) as { content?: { type: string; text?: string }[] };
+    const data = (await res.json()) as {
+      content?: { type: string; text?: string }[];
+      usage?: { input_tokens?: number; output_tokens?: number };
+    };
     const text = (data.content ?? [])
       .filter((b) => b.type === 'text')
       .map((b) => b.text ?? '')
@@ -133,7 +140,11 @@ export async function askClaude(opts: {
       .trim();
 
     if (!text) return { ok: false, text: '', error: 'Tomt svar fra modellen.' };
-    return { ok: true, text };
+    return {
+      ok: true,
+      text,
+      usage: { input: data.usage?.input_tokens ?? 0, output: data.usage?.output_tokens ?? 0 },
+    };
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') {
       return { ok: false, text: '', error: 'Afbrudt.' };

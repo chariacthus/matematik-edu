@@ -29,10 +29,50 @@ export type DomainId =
   | 'statistik'
   | 'sandsynlighed'
   | 'trigonometri'
+  | 'flytninger'
+  | 'tegning'
   | 'problemloesning'
   | 'modeller';
 
-export type CategoryId = 'tal-algebra' | 'geometri' | 'funktioner' | 'data' | 'anvendelse';
+/**
+ * De fire kompetenceområder i Fælles Mål for matematik (7.-9. klasse).
+ * Det er den inddeling Undervisningsministeriet bruger, og den samme som
+ * FP9 er bygget op om.
+ */
+export type CategoryId = 'kompetencer' | 'tal-algebra' | 'geometri-maaling' | 'statistik-sandsynlighed';
+
+/**
+ * Færdigheds- og vidensområderne under hvert kompetenceområde. Dem bruger
+ * lærere til at tale om pensum, så eleven kan genkende ordene fra timerne.
+ */
+export type AreaId =
+  // Matematiske kompetencer
+  | 'problembehandling'
+  | 'modellering'
+  | 'raesonnement'
+  | 'repraesentation'
+  | 'kommunikation'
+  | 'hjaelpemidler'
+  // Tal og algebra
+  | 'tal'
+  | 'regnestrategier'
+  | 'ligninger'
+  | 'formler'
+  | 'funktioner'
+  // Geometri og måling
+  | 'geometriske-egenskaber'
+  | 'geometrisk-tegning'
+  | 'placeringer-flytninger'
+  | 'maaling'
+  // Statistik og sandsynlighed
+  | 'statistik'
+  | 'sandsynlighed';
+
+/**
+ * FP9 består af to prøver: én uden hjælpemidler og én med. En opgave der
+ * kræver lommeregner hører kun hjemme i den ene.
+ */
+export type Aids = 'uden' | 'med' | 'begge';
 
 /** 1 = helt begynder, 5 = udfordring på højt 9.-klasse-niveau. */
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
@@ -41,12 +81,22 @@ export interface Category {
   id: CategoryId;
   name: string;
   description: string;
+  /** Kort forklaring af hvad Fælles Mål siger om området. */
+  faellesMaal: string;
+}
+
+export interface Area {
+  id: AreaId;
+  category: CategoryId;
+  name: string;
 }
 
 export interface Domain {
   id: DomainId;
   name: string;
   category: CategoryId;
+  /** Færdigheds- og vidensområdet i Fælles Mål som emnet hører under. */
+  area: AreaId;
   icon: string;
   blurb: string;
   skills: Skill[];
@@ -62,6 +112,11 @@ export interface Skill {
   prerequisites: string[];
   /** Vejledende sværhedsgrad for færdigheden som helhed. */
   tier: Difficulty;
+  /**
+   * Hvilken FP9-prøve færdigheden hører til. Færdigheder der kræver
+   * lommeregner eller regneark kan kun trænes til prøven med hjælpemidler.
+   */
+  aids?: Aids;
   /** Trin 1: forklaringen. */
   explain: ExplainBlock[];
   /** Trin 2: gennemregnede eksempler. */
@@ -136,6 +191,8 @@ export interface Generator {
   label: string;
   /** Generatoren bruges først fra dette niveau. */
   minLevel?: Difficulty;
+  /** Overstyrer færdighedens aids, hvis netop denne opgavetype afviger. */
+  aids?: Aids;
   make(ctx: GenContext): ProblemDraft;
 }
 
@@ -427,6 +484,10 @@ export interface Settings {
   /** Valgfri Claude-nøgle; ligger kun i browseren. */
   apiKey: string;
   useLlmTutor: boolean;
+  /** Hvilken Claude-model der bruges, hvis den er slået til. */
+  llmModel: string;
+  /** Samlet forbrug, så eleven kan se hvad den valgfri AI har kostet. */
+  llmUsage: { input: number; output: number; calls: number };
 }
 
 export interface AchievementDef {

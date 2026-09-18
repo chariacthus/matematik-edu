@@ -3,7 +3,8 @@ import clsx from 'clsx';
 import { useStore } from '../state/store';
 import { exportAll } from '../lib/storage';
 import { navigate } from '../lib/router';
-import { Callout, Card, Modal, SectionTitle } from '../components/ui';
+import { Card, Chip, Modal, PageHeader, SectionTitle } from '../components/ui';
+import { MODELS, costOfUsageDkk, costPerQuestionDkk, formatDkk, getModel } from '../tutor/models';
 
 /** Indstillinger, dataeksport og nulstilling. */
 export function SettingsPage() {
@@ -29,12 +30,7 @@ export function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <header>
-        <button onClick={() => navigate({ name: 'profile' })} className="btn-ghost -ml-2 mb-1 px-2 py-1 text-xs">
-          ← Profil
-        </button>
-        <h1 className="text-2xl font-extrabold tracking-tight">Indstillinger</h1>
-      </header>
+      <PageHeader title="Indstillinger" back={{ label: 'Profil', onClick: () => navigate({ name: 'profile' }) }} />
 
       {/* Udseende */}
       <section>
@@ -48,14 +44,14 @@ export function SettingsPage() {
                   key={t}
                   onClick={() => update({ theme: t })}
                   className={clsx(
-                    'flex-1 rounded-xl border-2 px-3 py-2 text-sm font-semibold transition-colors',
+                    'flex-1 whitespace-nowrap rounded-xl border-2 px-3 py-2 text-sm font-semibold transition-colors',
                     settings.theme === t
                       ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-200'
                       : 'border-ink-200 dark:border-ink-700',
                   )}
                   aria-pressed={settings.theme === t}
                 >
-                  {{ light: 'Lyst', dark: 'Mørkt', system: 'Følg system' }[t]}
+                  {{ light: 'Lyst', dark: 'Mørkt', system: 'System' }[t]}
                 </button>
               ))}
             </div>
@@ -74,43 +70,103 @@ export function SettingsPage() {
       <section>
         <SectionTitle>AI-lærer</SectionTitle>
         <Card className="space-y-4">
-          <Callout tone="neutral" icon={<span aria-hidden>ℹ️</span>}>
-            Den indbyggede AI-lærer virker uden internet og uden nøgle. Den bygger på opgavernes egne hints og
-            løsningstrin, så den ikke kan finde på matematik der ikke passer.
-          </Callout>
+          <div className="rounded-xl border border-good-200 bg-good-100 p-3.5 dark:border-good-900 dark:bg-good-900/25">
+            <p className="flex items-center gap-2 text-sm font-bold text-good-900 dark:text-good-100">
+              <span aria-hidden>✓</span> Den indbyggede AI-lærer er gratis
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-good-900/90 dark:text-good-100/90">
+              Den kører i din browser uden internet og uden nøgle, og koster ingenting — hverken nu eller senere. Den
+              bruger opgavernes egne hints og løsningstrin, så den ikke kan finde på matematik der ikke passer.
+            </p>
+          </div>
 
           <Toggle
-            label="Brug Claude som AI-lærer"
-            help="Giver mere frit formulerede forklaringer. Kræver din egen API-nøgle, og der sendes data til Anthropic."
+            label="Tilkobl Claude i stedet"
+            help="Giver mere frit formulerede forklaringer. Kræver din egen API-nøgle, og så koster hvert spørgsmål penge."
             checked={settings.useLlmTutor}
             onChange={(v) => update({ useLlmTutor: v })}
           />
 
           {settings.useLlmTutor ? (
-            <div>
-              <label className="mb-1.5 block text-sm font-semibold" htmlFor="apikey">
-                Claude API-nøgle
-              </label>
-              <div className="flex gap-2">
-                <input
-                  id="apikey"
-                  type={showKey ? 'text' : 'password'}
-                  value={settings.apiKey}
-                  onChange={(e) => update({ apiKey: e.target.value })}
-                  placeholder="sk-ant-…"
-                  className="field flex-1 font-mono text-sm"
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                <button onClick={() => setShowKey((v) => !v)} className="btn-secondary px-3 text-xs">
-                  {showKey ? 'Skjul' : 'Vis'}
-                </button>
+            <>
+              <div>
+                <p className="mb-2 text-sm font-semibold">Vælg model</p>
+                <div className="space-y-2">
+                  {MODELS.map((m) => {
+                    const selected = settings.llmModel === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => update({ llmModel: m.id })}
+                        aria-pressed={selected}
+                        className={clsx(
+                          'flex w-full items-start gap-3 rounded-xl border-2 p-3 text-left transition-colors',
+                          selected
+                            ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/50'
+                            : 'border-ink-200 dark:border-ink-700',
+                        )}
+                      >
+                        <span className="min-w-0 flex-1">
+                          <span className="flex flex-wrap items-center gap-2">
+                            <span className="font-bold">{m.name}</span>
+                            <Chip tone={m.id === MODELS[0]!.id ? 'good' : 'neutral'}>
+                              {formatDkk(costPerQuestionDkk(m))} pr. spørgsmål
+                            </Chip>
+                          </span>
+                          <span className="mt-1 block text-xs text-ink-500 dark:text-ink-400">{m.blurb}</span>
+                          <span className="mt-1 block text-[11px] tabular-nums text-ink-400 dark:text-ink-500">
+                            ${m.inputPerM}/mio. input · ${m.outputPerM}/mio. output
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <p className="mt-2 text-xs text-ink-500 dark:text-ink-400">
-                Nøglen gemmes kun i din browser og sendes kun til Anthropics API. Fejler kaldet, svarer den indbyggede
-                lærer i stedet.
-              </p>
-            </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold" htmlFor="apikey">
+                  Claude API-nøgle
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    id="apikey"
+                    type={showKey ? 'text' : 'password'}
+                    value={settings.apiKey}
+                    onChange={(e) => update({ apiKey: e.target.value })}
+                    placeholder="sk-ant-…"
+                    className="field flex-1 font-mono text-sm"
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                  <button onClick={() => setShowKey((v) => !v)} className="btn-secondary px-3 text-xs">
+                    {showKey ? 'Skjul' : 'Vis'}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-ink-500 dark:text-ink-400">
+                  Nøglen gemmes kun i din browser og sendes kun til Anthropics API. Fejler kaldet, svarer den
+                  indbyggede lærer i stedet.
+                </p>
+              </div>
+
+              {settings.llmUsage.calls > 0 ? (
+                <div className="rounded-xl bg-ink-100 p-3 dark:bg-ink-800">
+                  <p className="text-xs font-bold uppercase tracking-wide text-ink-400">Forbrug indtil nu</p>
+                  <p className="mt-1 text-sm">
+                    {settings.llmUsage.calls} spørgsmål ·{' '}
+                    <span className="font-bold">
+                      {formatDkk(costOfUsageDkk(getModel(settings.llmModel), settings.llmUsage.input, settings.llmUsage.output))}
+                    </span>
+                  </p>
+                  <button
+                    onClick={() => update({ llmUsage: { input: 0, output: 0, calls: 0 } })}
+                    className="btn-ghost mt-1 -ml-2 px-2 py-1 text-xs"
+                  >
+                    Nulstil tælleren
+                  </button>
+                </div>
+              ) : null}
+            </>
           ) : null}
         </Card>
       </section>

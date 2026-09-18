@@ -5,7 +5,8 @@ import { lv, mcq, numAns, s, trapIfDifferent } from '../helpers';
 export const koordinatsystem: Domain = {
   id: 'koordinatsystem',
   name: 'Koordinatsystem',
-  category: 'funktioner',
+  category: 'geometri-maaling',
+  area: 'placeringer-flytninger',
   icon: '⊹',
   blurb: 'Punkter, afstande og midtpunkter i koordinatsystemet.',
   skills: [
@@ -102,6 +103,7 @@ export const koordinatsystem: Domain = {
 
     {
       id: 'koord-afstand',
+      aids: 'med',
       domainId: 'koordinatsystem',
       name: 'Afstand og midtpunkt',
       goal: 'Du kan beregne afstanden mellem to punkter og finde midtpunktet.',

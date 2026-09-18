@@ -6,6 +6,7 @@ export const roedder: Domain = {
   id: 'roedder',
   name: 'Kvadratrødder',
   category: 'tal-algebra',
+  area: 'tal',
   icon: '√',
   blurb: 'Det omvendte af at kvadrere — og det værktøj Pythagoras hviler på.',
   skills: [
@@ -93,6 +94,7 @@ export const roedder: Domain = {
         },
         {
           id: 'rod-decimal',
+          aids: 'med',
           label: 'Kvadratrod med decimaler',
           minLevel: 3,
           make: ({ rng, level }) => {

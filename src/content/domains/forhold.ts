@@ -6,6 +6,7 @@ export const forhold: Domain = {
   id: 'forhold',
   name: 'Forhold og proportionalitet',
   category: 'tal-algebra',
+  area: 'regnestrategier',
   icon: 'a:b',
   blurb: 'Opskrifter, blandingsforhold, målestok og sammenhænge der følges ad.',
   skills: [

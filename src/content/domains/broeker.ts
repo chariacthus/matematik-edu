@@ -6,6 +6,7 @@ export const broeker: Domain = {
   id: 'broeker',
   name: 'Brøker',
   category: 'tal-algebra',
+  area: 'tal',
   icon: '1/2',
   blurb: 'Fra at forstå hvad en brøk er, til at regne med dem uden at tænke over det.',
   skills: [
@@ -622,6 +623,7 @@ export const broeker: Domain = {
         },
         {
           id: 'broek-til-procent',
+          aids: 'med',
           label: 'Brøk til procent',
           minLevel: 2,
           make: ({ rng, level }) => {

@@ -5,7 +5,8 @@ import { lv, mcq, name, numAns, s, trapIfDifferent } from '../helpers';
 export const funktioner: Domain = {
   id: 'funktioner',
   name: 'Funktioner',
-  category: 'funktioner',
+  category: 'tal-algebra',
+  area: 'funktioner',
   icon: 'f(x)',
   blurb: 'Lineære og eksponentielle sammenhænge — forskrift, graf og virkelighed.',
   skills: [
@@ -346,6 +347,7 @@ export const funktioner: Domain = {
 
     {
       id: 'funk-eksponentiel',
+      aids: 'med',
       domainId: 'funktioner',
       name: 'Eksponentielle funktioner',
       goal: 'Du kan regne med eksponentiel vækst og kende forskel på den og lineær vækst.',

@@ -7,7 +7,8 @@ const PI = Math.PI;
 export const arealRumfang: Domain = {
   id: 'areal-rumfang',
   name: 'Areal og rumfang',
-  category: 'geometri',
+  category: 'geometri-maaling',
+  area: 'maaling',
   icon: '▦',
   blurb: 'Omkreds, areal, overflade og rumfang — og hvornår man bruger hvad.',
   skills: [
@@ -196,6 +197,7 @@ export const arealRumfang: Domain = {
 
     {
       id: 'areal-cirkel',
+      aids: 'med',
       domainId: 'areal-rumfang',
       name: 'Cirklens omkreds og areal',
       goal: 'Du kan beregne omkreds og areal af en cirkel.',
@@ -280,6 +282,7 @@ export const arealRumfang: Domain = {
         },
         {
           id: 'cirkel-baglaens',
+          aids: 'med',
           label: 'Find radius',
           minLevel: 4,
           make: ({ rng, level }) => {
@@ -309,6 +312,7 @@ export const arealRumfang: Domain = {
 
     {
       id: 'areal-sammensat',
+      aids: 'med',
       domainId: 'areal-rumfang',
       name: 'Sammensatte figurer',
       goal: 'Du kan finde arealet af en figur der er sat sammen af flere enkle figurer.',
@@ -447,6 +451,7 @@ export const arealRumfang: Domain = {
         },
         {
           id: 'prisme-rumfang',
+          aids: 'med',
           label: 'Rumfang af prisme',
           minLevel: 3,
           make: ({ rng, level }) => {
@@ -509,6 +514,7 @@ export const arealRumfang: Domain = {
 
     {
       id: 'rumfang-cylinder',
+      aids: 'med',
       domainId: 'areal-rumfang',
       name: 'Cylinder, kegle og kugle',
       goal: 'Du kan beregne rumfang af de runde rumfigurer.',
@@ -598,6 +604,7 @@ export const arealRumfang: Domain = {
         },
         {
           id: 'overflade-kasse',
+          aids: 'med',
           label: 'Overfladeareal',
           minLevel: 3,
           make: ({ rng, level }) => {

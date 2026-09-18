@@ -1,20 +1,24 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { useStore } from '../state/store';
 import { buildPlan, domainProgress, overallProgress, type PlanItem } from '../engine/planner';
 import { activeMisconceptions, readBehaviour } from '../engine/diagnosis';
 import { dueSkills } from '../engine/srs';
-import { levelProgress, levelTitle } from '../engine/gamification';
-import { getSkill } from '../content';
+import { levelProgress } from '../engine/gamification';
+import { CATEGORIES, getSkill } from '../content';
 import { navigate } from '../lib/router';
 import { relativeDays } from '../lib/dates';
-import { Callout, Card, Chip, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
+import { Callout, Card, Chip, EmptyState, PageHeader, ProgressBar, ProgressRing, SectionTitle, StatRow, Tabs } from '../components/ui';
+
+type Tab = 'plan' | 'repetition' | 'fejl';
 
 /**
- * Forsiden: hvad skal jeg lave lige nu?
+ * Forsiden.
  *
- * Planen er sorteret af planlæggeren, så det øverste kort altid er det
- * mest værdifulde næste skridt — ikke bare det næste i rækken.
+ * Den var tidligere en stak af syv sektioner under hinanden. Nu er der
+ * fire blokke: status, ét anbefalet næste skridt, faneblade til resten
+ * og et emneoverblik. Kun én fane vises ad gangen, så siden kan læses
+ * uden at scrolle forbi ting man ikke skal bruge.
  */
 export function DashboardPage() {
   const profile = useStore((s) => s.profile);
@@ -23,7 +27,7 @@ export function DashboardPage() {
   const attempts = useStore((s) => s.attempts);
   const gamification = useStore((s) => s.gamification);
 
-  const plan = useMemo(() => buildPlan({ states: skills, misconceptions, profile }), [skills, misconceptions, profile]);
+  const plan = useMemo(() => buildPlan({ states: skills, misconceptions, profile }, 8), [skills, misconceptions, profile]);
   const overall = useMemo(() => overallProgress(skills), [skills]);
   const domains = useMemo(() => domainProgress(skills, profile), [skills, profile]);
   const due = useMemo(() => dueSkills(skills), [skills]);
@@ -31,149 +35,182 @@ export function DashboardPage() {
   const behaviour = useMemo(() => readBehaviour(attempts, 10), [attempts]);
   const level = levelProgress(gamification.xp);
 
+  const [tab, setTab] = useState<Tab>('plan');
   const first = plan[0];
-  const rest = plan.slice(1, 4);
+  const rest = plan.filter((p) => p !== first && p.kind !== 'repetition' && p.kind !== 'fejlklinik');
   const goalPct = Math.min(100, (gamification.todayXp / gamification.dailyGoalXp) * 100);
   const hour = new Date().getHours();
-  const hello = hour < 10 ? 'Godmorgen' : hour < 17 ? 'Hej' : 'Godaften';
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">
-            {hello}
-            {profile.name ? `, ${profile.name}` : ''}
-          </h1>
-          <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">
-            {overall.mastered > 0
-              ? `${overall.mastered} af ${overall.total} færdigheder mestret · niveau ${level.level}, ${levelTitle(level.level)}`
-              : 'Lad os komme i gang med den første færdighed.'}
-          </p>
-        </div>
-        <ProgressRing value={overall.percent} size={58} />
-      </header>
+    <div>
+      <PageHeader
+        title={`${hour < 10 ? 'Godmorgen' : hour < 17 ? 'Hej' : 'Godaften'}${profile.name ? `, ${profile.name}` : ''}`}
+        subtitle={`Niveau ${level.level} · ${overall.mastered} af ${overall.total} færdigheder mestret`}
+        right={<ProgressRing value={overall.percent} size={56} />}
+      />
 
-      {/* Dagens mål */}
-      <Card className="!p-4">
-        <div className="mb-2 flex items-center justify-between text-sm">
-          <span className="font-bold">Dagens mål</span>
-          <span className="tabular-nums text-ink-500 dark:text-ink-400">
-            {gamification.todayXp} / {gamification.dailyGoalXp} XP
-          </span>
+      {/* Status i én række i stedet for tre kort */}
+      <div className="mb-4">
+        <StatRow
+          stats={[
+            { label: 'Dage i træk', value: String(gamification.streakDays), tone: gamification.streakDays > 0 ? 'warn' : undefined },
+            { label: 'XP i dag', value: `${gamification.todayXp}/${gamification.dailyGoalXp}`, tone: goalPct >= 100 ? 'good' : 'accent' },
+            { label: 'Mestret', value: String(overall.mastered), tone: 'brand' },
+          ]}
+        />
+        <div className="mt-2">
+          <ProgressBar value={goalPct} tone={goalPct >= 100 ? 'good' : 'accent'} size="sm" label="Dagens mål" />
         </div>
-        <ProgressBar value={goalPct} tone={goalPct >= 100 ? 'good' : 'accent'} label="Dagens mål" />
-        {goalPct >= 100 ? (
-          <p className="mt-2 text-xs font-semibold text-good-600 dark:text-good-300">Målet er nået i dag. Alt herfra er bonus.</p>
-        ) : null}
-      </Card>
+      </div>
 
-      {/* Adfærd værd at nævne */}
+      {/* Én besked om arbejdsvaner ad gangen, ikke flere */}
       {behaviour.rushing ? (
-        <Callout tone="warn" title="Du svarer meget hurtigt" icon={<span aria-hidden>⏱️</span>}>
-          Flere af de seneste svar kom hurtigere end opgaven kan læses — og de fleste var forkerte. Læs opgaven færdig
-          først; det er hurtigere i sidste ende.
-        </Callout>
+        <div className="mb-4">
+          <Callout tone="warn" icon={<span aria-hidden>⏱️</span>}>
+            Du svarer hurtigere end opgaverne kan læses — og de fleste bliver forkerte. Læs opgaven færdig først.
+          </Callout>
+        </div>
       ) : behaviour.hintDependent ? (
-        <Callout tone="brand" title="Du bruger mange hints" icon={<span aria-hidden>💡</span>}>
-          Det er helt fint at bruge hints — men prøv at skrive det første skridt ned selv, før du åbner et. Det er dér
-          læringen sker.
-        </Callout>
+        <div className="mb-4">
+          <Callout tone="brand" icon={<span aria-hidden>💡</span>}>
+            Prøv at skrive første skridt ned selv, før du åbner et hint. Det er dér læringen sker.
+          </Callout>
+        </div>
       ) : null}
 
-      {/* Anbefalet næste skridt */}
+      {/* Ét tydeligt næste skridt */}
       {first ? (
-        <section>
-          <SectionTitle hint="anbefalet af din profil">Næste skridt</SectionTitle>
+        <section className="mb-6">
+          <SectionTitle>Næste skridt</SectionTitle>
           <PlanCard item={first} primary />
         </section>
       ) : null}
 
-      {/* Fejl der skal ryddes op i */}
-      {errors.length ? (
-        <section>
-          <SectionTitle hint={`${errors.length} stk.`}>Fejl der går igen</SectionTitle>
-          <div className="space-y-2">
-            {errors.slice(0, 3).map(({ state, def }) => (
-              <Card key={def.id} className="!p-4">
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 text-lg" aria-hidden>🔍</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold">{def.name}</p>
-                    <p className="mt-0.5 text-sm text-ink-600 dark:text-ink-300">{def.correction}</p>
-                    <p className="mt-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300">Huskeregel: {def.tip}</p>
-                  </div>
-                  <Chip tone="warn">{state.count}×</Chip>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </section>
-      ) : null}
+      {/* Resten bag faneblade */}
+      <section className="mb-6">
+        <Tabs
+          value={tab}
+          onChange={setTab}
+          tabs={[
+            { id: 'plan', label: 'Plan', count: rest.length || undefined },
+            { id: 'repetition', label: 'Repetition', count: due.length || undefined },
+            { id: 'fejl', label: 'Fejl', count: errors.length || undefined },
+          ]}
+        />
 
-      {/* Repetition */}
-      {due.length ? (
-        <section>
-          <SectionTitle hint={`${due.length} klar`}>Til repetition</SectionTitle>
-          <Card className="!p-4">
-            <p className="mb-3 text-sm text-ink-600 dark:text-ink-300">
-              De her emner har du mestret — men de er ved at falde ud igen. Fem minutter nu sparer en hel genindlæring
-              senere.
-            </p>
-            <ul className="mb-3 space-y-1.5">
-              {due.slice(0, 4).map((s) => (
-                <li key={s.skillId} className="flex items-center justify-between gap-3 text-sm">
-                  <span className="truncate font-semibold">{getSkill(s.skillId)?.name ?? s.skillId}</span>
-                  <span className="shrink-0 text-xs text-ink-500 dark:text-ink-400">{relativeDays(s.due)}</span>
-                </li>
+        {tab === 'plan' ? (
+          rest.length ? (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {rest.slice(0, 4).map((item) => (
+                <PlanCard key={`${item.kind}-${item.skillId}`} item={item} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState icon="✅" title="Planen er tom" body="Du har taget alt det vi anbefalede. Vælg selv et emne i biblioteket." />
+          )
+        ) : null}
+
+        {tab === 'repetition' ? (
+          due.length ? (
+            <Card>
+              <p className="mb-3 text-sm text-ink-600 dark:text-ink-300">
+                De her emner er ved at falde ud igen. Fem minutter nu sparer en genindlæring senere.
+              </p>
+              <ul className="mb-3 divide-y divide-ink-100 dark:divide-ink-800">
+                {due.slice(0, 5).map((s) => (
+                  <li key={s.skillId} className="flex items-center justify-between gap-3 py-2 text-sm">
+                    <span className="truncate font-semibold">{getSkill(s.skillId)?.name ?? s.skillId}</span>
+                    <span className="shrink-0 text-xs text-ink-500 dark:text-ink-400">{relativeDays(s.due)}</span>
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => navigate({ name: 'review' })} className="btn-primary w-full">
+                Start repetition ({due.length})
+              </button>
+            </Card>
+          ) : (
+            <EmptyState icon="🌱" title="Intet at repetere" body="Alt du har mestret, sidder stadig fast. Vi giver besked når noget skal op igen." />
+          )
+        ) : null}
+
+        {tab === 'fejl' ? (
+          errors.length ? (
+            <ul className="space-y-2">
+              {errors.slice(0, 5).map(({ state, def }) => (
+                <Card key={def.id} as="li" pad="md">
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 text-base" aria-hidden>🔍</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold">{def.name}</p>
+                      <p className="mt-0.5 text-sm text-ink-600 dark:text-ink-300">{def.correction}</p>
+                      <p className="mt-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300">{def.tip}</p>
+                    </div>
+                    <Chip tone="warn">{state.count}×</Chip>
+                  </div>
+                </Card>
               ))}
             </ul>
-            <button onClick={() => navigate({ name: 'review' })} className="btn-primary w-full">
-              Start repetition ({due.length})
-            </button>
-          </Card>
-        </section>
-      ) : null}
+          ) : (
+            <EmptyState icon="👌" title="Ingen fejl der går igen" body="Når den samme fejl dukker op to gange, stopper vi op og forklarer den her." />
+          )
+        ) : null}
+      </section>
 
-      {/* Resten af planen */}
-      {rest.length ? (
-        <section>
-          <SectionTitle>Også på din plan</SectionTitle>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {rest.map((item) => (
-              <PlanCard key={`${item.kind}-${item.skillId}`} item={item} />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {/* Emneoverblik */}
+      {/* Emneoverblik, grupperet som i Fælles Mål */}
       <section>
-        <SectionTitle hint={<a href="#/bibliotek" className="font-semibold text-brand-600 dark:text-brand-300">se alle</a>}>
-          Dine emner
+        <SectionTitle
+          action={
+            <a href="#/bibliotek" className="text-xs font-semibold text-brand-600 dark:text-brand-300">
+              Se alle
+            </a>
+          }
+        >
+          Dine kompetenceområder
         </SectionTitle>
         <div className="grid gap-2 sm:grid-cols-2">
-          {domains
-            .slice()
-            .sort((a, b) => b.percent - a.percent || (b.diagnostic ?? 0) - (a.diagnostic ?? 0))
-            .slice(0, 6)
-            .map((d) => (
+          {CATEGORIES.map((cat) => {
+            const inCat = domains.filter((d) => d.category === cat.id);
+            if (!inCat.length) return null;
+            const pct = Math.round(inCat.reduce((n, d) => n + d.percent, 0) / inCat.length);
+            const mastered = inCat.reduce((n, d) => n + d.mastered, 0);
+            const total = inCat.reduce((n, d) => n + d.total, 0);
+            return (
               <button
-                key={d.domainId}
-                onClick={() => navigate({ name: 'domain', domainId: d.domainId })}
-                className="card flex items-center gap-3 !p-3 text-left transition-shadow hover:shadow-lift"
+                key={cat.id}
+                onClick={() => navigate({ name: 'library' })}
+                className="card flex items-center gap-3 p-3 text-left transition-shadow hover:shadow-lift"
               >
-                <ProgressRing value={d.percent} size={44} stroke={5} />
+                <ProgressRing value={pct} size={44} stroke={5} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-bold">{d.name}</span>
+                  <span className="block truncate text-sm font-bold">{cat.name}</span>
                   <span className="block text-xs text-ink-500 dark:text-ink-400">
-                    {d.mastered}/{d.total} mestret
-                    {d.diagnostic !== null ? ` · test ${d.diagnostic} %` : ''}
+                    {mastered}/{total} færdigheder
                   </span>
                 </span>
               </button>
-            ))}
+            );
+          })}
         </div>
+      </section>
+
+      {/* FP9 */}
+      <section className="mt-6">
+        <SectionTitle>Prøvetræning</SectionTitle>
+        <button
+          onClick={() => navigate({ name: 'exam' })}
+          className="card flex w-full items-center gap-3 p-4 text-left transition-shadow hover:shadow-lift"
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink-900 text-lg text-white dark:bg-ink-100 dark:text-ink-900" aria-hidden>
+            FP9
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-bold">Træn til prøven</span>
+            <span className="block text-sm text-ink-600 dark:text-ink-300">
+              Begge prøvedele — med og uden hjælpemidler — på tid.
+            </span>
+          </span>
+          <span className="shrink-0 text-ink-400" aria-hidden>›</span>
+        </button>
       </section>
     </div>
   );
@@ -199,30 +236,33 @@ function PlanCard({ item, primary }: { item: PlanItem; primary?: boolean }) {
       onClick={go}
       className={clsx(
         'card w-full text-left transition-shadow hover:shadow-lift',
-        primary ? 'border-brand-300 !p-5 dark:border-brand-800' : '!p-4',
+        primary ? 'border-brand-300 p-5 dark:border-brand-800' : 'p-4',
       )}
     >
       <div className="flex items-start gap-3">
-        <span className={clsx('flex shrink-0 items-center justify-center rounded-xl', primary ? 'h-11 w-11 text-xl' : 'h-9 w-9 text-base', {
-          warn: 'bg-warn-100 dark:bg-warn-900/40',
-          brand: 'bg-brand-100 dark:bg-brand-950',
-          accent: 'bg-accent-100 dark:bg-accent-900/40',
-          good: 'bg-good-100 dark:bg-good-900/40',
-        }[style.tone])} aria-hidden>
+        <span
+          className={clsx(
+            'flex shrink-0 items-center justify-center rounded-xl',
+            primary ? 'h-11 w-11 text-xl' : 'h-9 w-9 text-base',
+            {
+              warn: 'bg-warn-100 dark:bg-warn-900/40',
+              brand: 'bg-brand-100 dark:bg-brand-950',
+              accent: 'bg-accent-100 dark:bg-accent-900/40',
+              good: 'bg-good-100 dark:bg-good-900/40',
+            }[style.tone],
+          )}
+          aria-hidden
+        >
           {style.icon}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="mb-0.5 block text-[11px] font-bold uppercase tracking-wide text-ink-400 dark:text-ink-500">
+          <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">
             {style.label}
           </span>
-          <span className={clsx('block font-bold', primary ? 'text-lg' : 'text-sm')}>{item.title}</span>
-          <span className="mt-1 block text-sm text-ink-600 dark:text-ink-300">{item.reason}</span>
-          {primary ? (
-            <span className="mt-3 inline-flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400">
-              <Chip tone="neutral">ca. {item.estimatedMinutes} min</Chip>
-            </span>
-          ) : null}
+          <span className={clsx('block font-bold leading-snug', primary ? 'text-lg' : 'text-sm')}>{item.title}</span>
+          <span className="mt-1 block text-sm leading-snug text-ink-600 dark:text-ink-300">{item.reason}</span>
         </span>
+        {primary ? <Chip tone="neutral" className="shrink-0">{item.estimatedMinutes} min</Chip> : null}
       </div>
     </button>
   );

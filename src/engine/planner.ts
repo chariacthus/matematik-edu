@@ -1,4 +1,4 @@
-import type { DomainId, LearnerProfile, MisconceptionState, Skill, SkillState } from '../types';
+import type { AreaId, CategoryId, DomainId, LearnerProfile, MisconceptionState, Skill, SkillState } from '../types';
 import { ALL_SKILLS, DOMAINS, domainName, getSkill, skillsOf } from '../content';
 import { retention } from './srs';
 import { activeMisconceptions } from './diagnosis';
@@ -150,6 +150,8 @@ export function buildPlan(ctx: PlanContext, limit = 6): PlanItem[] {
 export interface DomainProgress {
   domainId: DomainId;
   name: string;
+  category: CategoryId;
+  area: AreaId;
   /** 0-100. Vægter mestrede færdigheder fuldt og igangværende delvist. */
   percent: number;
   mastered: number;
@@ -182,6 +184,8 @@ export function domainProgress(
     return {
       domainId: domain.id,
       name: domain.name,
+      category: domain.category,
+      area: domain.area,
       percent: skills.length ? Math.round((sum / skills.length) * 100) : 0,
       mastered,
       total: skills.length,

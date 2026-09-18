@@ -36,6 +36,7 @@ export function ProblemCard({
   nextLabel = 'Næste',
   showConfidence,
   allowHints = true,
+  allowTutor = true,
   autoAdvance,
   headerRight,
 }: {
@@ -47,6 +48,8 @@ export function ProblemCard({
   nextLabel?: string;
   showConfidence?: boolean;
   allowHints?: boolean;
+  /** Til prøvetræning: ingen AI-lærer, som til den rigtige prøve. */
+  allowTutor?: boolean;
   autoAdvance?: boolean;
   headerRight?: React.ReactNode;
 }) {
@@ -260,9 +263,11 @@ export function ProblemCard({
             </button>
           ) : null}
 
-          <button onClick={() => setTutorOpen(true)} className="btn-accent ml-auto">
-            <span aria-hidden>✦</span> Spørg AI-lærer
-          </button>
+          {allowTutor ? (
+            <button onClick={() => setTutorOpen(true)} className="btn-accent ml-auto">
+              <span aria-hidden>✦</span> Spørg AI-lærer
+            </button>
+          ) : null}
 
           {settled && verdict === 'wrong' && !showSolution ? (
             <button onClick={() => setShowSolution(true)} className="btn-ghost">

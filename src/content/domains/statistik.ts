@@ -5,7 +5,8 @@ import { lv, numAns, s, trapIfDifferent } from '../helpers';
 export const statistik: Domain = {
   id: 'statistik',
   name: 'Statistik',
-  category: 'data',
+  category: 'statistik-sandsynlighed',
+  area: 'statistik',
   icon: '📊',
   blurb: 'Beskriv et datasæt med de rigtige tal — og vælg det der fortæller sandheden.',
   skills: [

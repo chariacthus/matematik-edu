@@ -9,6 +9,7 @@ const NAV: { route: Route; label: string; icon: string }[] = [
   { route: { name: 'dashboard' }, label: 'I dag', icon: '◎' },
   { route: { name: 'library' }, label: 'Bibliotek', icon: '☰' },
   { route: { name: 'practice' }, label: 'Træn', icon: '✎' },
+  { route: { name: 'exam' }, label: 'Prøve', icon: '◳' },
   { route: { name: 'profile' }, label: 'Profil', icon: '◈' },
 ];
 

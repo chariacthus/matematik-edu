@@ -5,7 +5,8 @@ import { fracAns, lv, mcq, numAns, s, trapIfDifferent } from '../helpers';
 export const sandsynlighed: Domain = {
   id: 'sandsynlighed',
   name: 'Sandsynlighed',
-  category: 'data',
+  category: 'statistik-sandsynlighed',
+  area: 'sandsynlighed',
   icon: '🎲',
   blurb: 'Fra ét terningkast til kombinerede forsøg med og uden tilbagelægning.',
   skills: [

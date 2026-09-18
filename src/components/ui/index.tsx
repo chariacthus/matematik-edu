@@ -5,15 +5,179 @@ import clsx from 'clsx';
 /* Kort og sektioner                                                   */
 /* ------------------------------------------------------------------ */
 
-export function Card({ children, className, as: As = 'div' }: { children: ReactNode; className?: string; as?: 'div' | 'section' | 'article' }) {
-  return <As className={clsx('card p-5', className)}>{children}</As>;
+/**
+ * Kort med et fast sæt polstringer.
+ *
+ * Tidligere overstyrede hver side polstringen med !p-3 / !p-4 / !p-5, og
+ * resultatet var at ingen to kort så ens ud. Nu er der tre størrelser og
+ * ikke flere.
+ */
+export function Card({
+  children,
+  className,
+  pad = 'md',
+  as: As = 'div',
+}: {
+  children: ReactNode;
+  className?: string;
+  pad?: 'none' | 'sm' | 'md' | 'lg';
+  as?: 'div' | 'section' | 'article' | 'li';
+}) {
+  const padding = { none: '', sm: 'p-3', md: 'p-4', lg: 'p-5' }[pad];
+  return <As className={clsx('card', padding, className)}>{children}</As>;
 }
 
-export function SectionTitle({ children, hint }: { children: ReactNode; hint?: ReactNode }) {
+/**
+ * Overskrift til en sektion. Bevidst lille og i versaler, så den ikke
+ * konkurrerer med sidens titel - det var en af grundene til at
+ * forsiden føltes rodet.
+ */
+export function SectionTitle({ children, hint, action }: { children: ReactNode; hint?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="mb-3 flex items-baseline justify-between gap-3">
-      <h2 className="text-base font-bold tracking-tight text-ink-900 dark:text-ink-50">{children}</h2>
-      {hint ? <span className="text-xs text-ink-500 dark:text-ink-400">{hint}</span> : null}
+    <div className="mb-2.5 flex items-center justify-between gap-3">
+      <h2 className="text-[11px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">{children}</h2>
+      {action ?? (hint ? <span className="text-xs text-ink-500 dark:text-ink-400">{hint}</span> : null)}
+    </div>
+  );
+}
+
+/** Sidens titel, med plads til en handling til højre. */
+export function PageHeader({
+  title,
+  subtitle,
+  back,
+  right,
+}: {
+  title: string;
+  subtitle?: ReactNode;
+  back?: { label: string; onClick: () => void };
+  right?: ReactNode;
+}) {
+  return (
+    <header className="mb-5">
+      {back ? (
+        <button onClick={back.onClick} className="btn-ghost -ml-2 mb-1 px-2 py-1 text-xs">
+          ← {back.label}
+        </button>
+      ) : null}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-extrabold leading-tight tracking-tight">{title}</h1>
+          {subtitle ? <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{subtitle}</p> : null}
+        </div>
+        {right ? <div className="shrink-0">{right}</div> : null}
+      </div>
+    </header>
+  );
+}
+
+/**
+ * Faneblade. Det er dem der fjerner stakken af sektioner på forsiden:
+ * i stedet for at vise plan, repetition og fejl under hinanden, vises
+ * én ad gangen.
+ */
+export function Tabs<T extends string>({
+  value,
+  onChange,
+  tabs,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  tabs: { id: T; label: string; count?: number }[];
+}) {
+  return (
+    <div className="mb-4 flex gap-1 rounded-xl bg-ink-100 p-1 dark:bg-ink-900" role="tablist">
+      {tabs.map((t) => (
+        <button
+          key={t.id}
+          role="tab"
+          aria-selected={value === t.id}
+          onClick={() => onChange(t.id)}
+          className={clsx(
+            'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors',
+            value === t.id
+              ? 'bg-white text-ink-900 shadow-sm dark:bg-ink-800 dark:text-ink-50'
+              : 'text-ink-500 hover:text-ink-700 dark:text-ink-400 dark:hover:text-ink-200',
+          )}
+        >
+          {t.label}
+          {t.count ? (
+            <span
+              className={clsx(
+                'rounded-full px-1.5 text-[10px] font-bold tabular-nums',
+                value === t.id ? 'bg-brand-600 text-white' : 'bg-ink-200 text-ink-600 dark:bg-ink-700 dark:text-ink-300',
+              )}
+            >
+              {t.count}
+            </span>
+          ) : null}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * En navngiven fremdriftslinje.
+ *
+ * Navnet står på sin egen linje over bjælken i stedet for i en fast
+ * bredde ved siden af. Det er den eneste måde lange navne som
+ * "Statistik og sandsynlighed" kan stå helt på en telefon.
+ */
+export function LabelledBar({
+  label,
+  value,
+  right,
+  tone,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  right: ReactNode;
+  tone?: 'brand' | 'good' | 'warn' | 'accent';
+  onClick?: () => void;
+}) {
+  const head = (
+    <span className="mb-1 flex items-baseline justify-between gap-3">
+      <span className="min-w-0 truncate text-sm font-semibold">{label}</span>
+      <span className="shrink-0 text-xs font-bold tabular-nums text-ink-500 dark:text-ink-400">{right}</span>
+    </span>
+  );
+  const body = (
+    <>
+      {head}
+      <ProgressBar value={value} size="sm" tone={tone ?? (value >= 70 ? 'good' : value >= 35 ? 'brand' : 'warn')} label={label} />
+    </>
+  );
+  return onClick ? (
+    <button onClick={onClick} className="block w-full text-left">
+      {body}
+    </button>
+  ) : (
+    <div>{body}</div>
+  );
+}
+
+/** En række kompakte nøgletal — erstatter tre separate kort. */
+export function StatRow({ stats }: { stats: { label: string; value: string; tone?: 'brand' | 'good' | 'warn' | 'accent' }[] }) {
+  return (
+    <div className="card grid grid-cols-3 divide-x divide-ink-200 dark:divide-ink-800">
+      {stats.map((s) => (
+        <div key={s.label} className="px-2 py-3 text-center">
+          <p
+            className={clsx(
+              'text-lg font-extrabold tabular-nums leading-none',
+              s.tone === 'good' && 'text-good-600 dark:text-good-300',
+              s.tone === 'warn' && 'text-warn-600 dark:text-warn-300',
+              s.tone === 'accent' && 'text-accent-600 dark:text-accent-300',
+              s.tone === 'brand' && 'text-brand-600 dark:text-brand-300',
+            )}
+          >
+            {s.value}
+          </p>
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-ink-400 dark:text-ink-500">{s.label}</p>
+        </div>
+      ))}
     </div>
   );
 }

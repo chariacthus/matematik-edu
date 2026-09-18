@@ -5,7 +5,8 @@ import { lv, mcq, numAns, s, trapIfDifferent } from '../helpers';
 export const geometri: Domain = {
   id: 'geometri',
   name: 'Geometri',
-  category: 'geometri',
+  category: 'geometri-maaling',
+  area: 'geometriske-egenskaber',
   icon: '△',
   blurb: 'Vinkler, trekanter, firkanter, cirklen — og Pythagoras.',
   skills: [

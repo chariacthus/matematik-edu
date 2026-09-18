@@ -1,4 +1,4 @@
-import type { Difficulty, Domain, DomainId, Generator, Problem, Rng, Skill } from '../types';
+import type { Aids, Area, AreaId, Category, Difficulty, Domain, DomainId, Generator, Problem, Rng, Skill } from '../types';
 import { makeRng, randomSeed } from '../lib/math';
 
 import { tal } from './domains/tal';
@@ -20,20 +20,91 @@ import { statistik } from './domains/statistik';
 import { sandsynlighed } from './domains/sandsynlighed';
 import { problemloesning } from './domains/problemloesning';
 import { modeller } from './domains/modeller';
+import { flytninger } from './domains/flytninger';
+import { tegning } from './domains/tegning';
 
 /**
  * Registret over hele pensum. Rækkefølgen her er den rækkefølge emnerne
  * vises i — den går fra fundament mod anvendelse.
  */
-export const DOMAINS: Domain[] = [tal, broeker, decimaler, procenter, forhold, potenser, roedder, algebra, ligninger, uligheder, geometri, arealRumfang, trigonometri, koordinatsystem, funktioner, statistik, sandsynlighed, problemloesning, modeller];
+export const DOMAINS: Domain[] = [tal, broeker, decimaler, procenter, forhold, potenser, roedder, algebra, ligninger, uligheder, geometri, arealRumfang, trigonometri, koordinatsystem, flytninger, tegning, funktioner, statistik, sandsynlighed, problemloesning, modeller];
 
-export const CATEGORIES = [
-  { id: 'tal-algebra' as const, name: 'Tal & algebra', description: 'Tal, brøker, procenter og bogstavregning.' },
-  { id: 'geometri' as const, name: 'Geometri', description: 'Figurer, vinkler, mål og trigonometri.' },
-  { id: 'funktioner' as const, name: 'Funktioner', description: 'Koordinatsystem, grafer og sammenhænge.' },
-  { id: 'data' as const, name: 'Statistik & sandsynlighed', description: 'Beskriv data og vurdér chancer.' },
-  { id: 'anvendelse' as const, name: 'Anvendelse', description: 'Tekstopgaver, problemløsning og modeller.' },
+/**
+ * Kompetenceområderne fra Fælles Mål for matematik, 7.-9. klasse. Samme
+ * inddeling som eleven møder i skolen og til FP9.
+ */
+export const CATEGORIES: Category[] = [
+  {
+    id: 'tal-algebra',
+    name: 'Tal og algebra',
+    description: 'Tal, regnestrategier, ligninger, formler og funktioner.',
+    faellesMaal: 'Eleven kan anvende reelle tal og algebraiske udtryk i matematiske undersøgelser.',
+  },
+  {
+    id: 'geometri-maaling',
+    name: 'Geometri og måling',
+    description: 'Figurer, tegning, flytninger og måling.',
+    faellesMaal: 'Eleven kan forklare geometriske sammenhænge og beregne mål.',
+  },
+  {
+    id: 'statistik-sandsynlighed',
+    name: 'Statistik og sandsynlighed',
+    description: 'Beskriv data og vurdér chancer.',
+    faellesMaal: 'Eleven kan vurdere statistiske undersøgelser og anvende sandsynlighed.',
+  },
+  {
+    id: 'kompetencer',
+    name: 'Matematiske kompetencer',
+    description: 'Problembehandling, modellering og ræsonnement.',
+    faellesMaal: 'Eleven kan handle med dømmekraft i komplekse situationer med matematik.',
+  },
 ];
+
+/** Færdigheds- og vidensområderne under hvert kompetenceområde. */
+export const AREAS: Area[] = [
+  { id: 'tal', category: 'tal-algebra', name: 'Tal' },
+  { id: 'regnestrategier', category: 'tal-algebra', name: 'Regnestrategier' },
+  { id: 'ligninger', category: 'tal-algebra', name: 'Ligninger' },
+  { id: 'formler', category: 'tal-algebra', name: 'Formler og algebraiske udtryk' },
+  { id: 'funktioner', category: 'tal-algebra', name: 'Funktioner' },
+  { id: 'geometriske-egenskaber', category: 'geometri-maaling', name: 'Geometriske egenskaber og sammenhænge' },
+  { id: 'geometrisk-tegning', category: 'geometri-maaling', name: 'Geometrisk tegning' },
+  { id: 'placeringer-flytninger', category: 'geometri-maaling', name: 'Placeringer og flytninger' },
+  { id: 'maaling', category: 'geometri-maaling', name: 'Måling' },
+  { id: 'statistik', category: 'statistik-sandsynlighed', name: 'Statistik' },
+  { id: 'sandsynlighed', category: 'statistik-sandsynlighed', name: 'Sandsynlighed' },
+  { id: 'problembehandling', category: 'kompetencer', name: 'Problembehandling' },
+  { id: 'modellering', category: 'kompetencer', name: 'Modellering' },
+  { id: 'raesonnement', category: 'kompetencer', name: 'Ræsonnement og tankegang' },
+  { id: 'repraesentation', category: 'kompetencer', name: 'Repræsentation og symbolbehandling' },
+  { id: 'kommunikation', category: 'kompetencer', name: 'Kommunikation' },
+  { id: 'hjaelpemidler', category: 'kompetencer', name: 'Hjælpemidler' },
+];
+
+const areaById = new Map(AREAS.map((a) => [a.id, a]));
+
+export function areaName(id: AreaId): string {
+  return areaById.get(id)?.name ?? id;
+}
+
+/** Emner der hører under et bestemt færdigheds- og vidensområde. */
+export function domainsInArea(id: AreaId): Domain[] {
+  return DOMAINS.filter((d) => d.area === id);
+}
+
+/**
+ * Hvilken FP9-prøve en færdighed hører til. Generatoren kan overstyre
+ * færdigheden, fordi en enkelt opgavetype kan kræve lommeregner selvom
+ * resten af færdigheden ikke gør.
+ */
+export function aidsOf(skill: Skill, generator?: Generator): Aids {
+  return generator?.aids ?? skill.aids ?? 'begge';
+}
+
+export function matchesAids(skill: Skill, generator: Generator, want: 'uden' | 'med'): boolean {
+  const a = aidsOf(skill, generator);
+  return a === 'begge' || a === want;
+}
 
 const domainById = new Map(DOMAINS.map((d) => [d.id, d]));
 const skillById = new Map<string, Skill>();

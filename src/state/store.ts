@@ -18,6 +18,7 @@ import { XP, addXp, checkAchievements, newGamification, touchDay } from '../engi
 import { DOMAINS, getSkill } from '../content';
 import * as storage from '../lib/storage';
 import { dayKey } from '../lib/dates';
+import { DEFAULT_MODEL } from '../tutor/models';
 
 /* ------------------------------------------------------------------ */
 /* Tilstand                                                            */
@@ -67,7 +68,9 @@ export interface AppState {
   setPhase: (skillId: string, phase: LessonPhase) => void;
   reviewSkill: (skillId: string, correct: boolean, hints: number, tries: number, seconds: number, expectedSeconds: number) => void;
   updateSettings: (patch: Partial<Settings>) => void;
+  recordLlmUsage: (input: number, output: number) => void;
   clearBadges: () => void;
+  dismissBadge: () => void;
   addMinutes: (minutes: number) => void;
   resetAll: () => void;
   importState: (json: string) => boolean;
@@ -98,6 +101,8 @@ function defaultSettings(): Settings {
     askConfidence: true,
     apiKey: '',
     useLlmTutor: false,
+    llmModel: DEFAULT_MODEL,
+    llmUsage: { input: 0, output: 0, calls: 0 },
   };
 }
 
@@ -356,7 +361,22 @@ export const useStore = create<AppState>((set, get) => {
       });
     },
 
+    recordLlmUsage: (input, output) => {
+      set((s) => {
+        const llmUsage = {
+          input: s.settings.llmUsage.input + input,
+          output: s.settings.llmUsage.output + output,
+          calls: s.settings.llmUsage.calls + 1,
+        };
+        const settings = { ...s.settings, llmUsage };
+        persist({ ...s, settings });
+        return { settings };
+      });
+    },
+
     clearBadges: () => set({ pendingBadges: [] }),
+
+    dismissBadge: () => set((s) => ({ pendingBadges: s.pendingBadges.slice(1) })),
 
     addMinutes: (minutes) => {
       set((s) => {

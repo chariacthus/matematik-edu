@@ -29,6 +29,7 @@ export function TutorPanel({
   onHintUsed: () => void;
 }) {
   const settings = useStore((s) => s.settings);
+  const recordLlmUsage = useStore((s) => s.recordLlmUsage);
   const misconceptions = useStore((s) => s.misconceptions);
   const struggling = Object.values(misconceptions)
     .filter((m) => !m.resolved && m.count >= 1)
@@ -98,10 +99,12 @@ export function TutorPanel({
 
     const result = await askClaude({
       apiKey: settings.apiKey,
+      model: settings.llmModel,
       system: buildSystemPrompt({ problem, skill, state, strugglingWith: struggling, helpLevel }),
       turns,
       signal: controller.signal,
     });
+    if (result.usage) recordLlmUsage(result.usage.input, result.usage.output);
 
     if (result.ok) {
       setMessages((m) => [...m, tutorMessage(result.text, { helpLevel: helpLevel + 1 })]);

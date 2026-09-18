@@ -18,6 +18,7 @@ export type Route =
   | { name: 'domain'; domainId: string }
   | { name: 'practice' }
   | { name: 'review' }
+  | { name: 'exam' }
   | { name: 'profile' }
   | { name: 'settings' };
 
@@ -41,6 +42,8 @@ export function parseHash(hash: string): Route {
       return { name: 'practice' };
     case 'repeter':
       return { name: 'review' };
+    case 'proeve':
+      return { name: 'exam' };
     case 'profil':
       return { name: 'profile' };
     case 'indstillinger':
@@ -68,6 +71,8 @@ export function hrefFor(route: Route): string {
       return '#/traen';
     case 'review':
       return '#/repeter';
+    case 'exam':
+      return '#/proeve';
     case 'profile':
       return '#/profil';
     case 'settings':

@@ -6,6 +6,7 @@ export const ligninger: Domain = {
   id: 'ligninger',
   name: 'Ligninger',
   category: 'tal-algebra',
+  area: 'ligninger',
   icon: '=',
   blurb: 'Vægten der skal holdes i balance — fra ét trin til ligninger med parenteser og brøker.',
   skills: [

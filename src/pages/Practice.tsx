@@ -60,7 +60,7 @@ export function PracticePage() {
           ← Vælg et andet emne
         </button>
 
-        <Card className="!p-4">
+        <Card>
           <div className="flex items-center justify-between text-sm">
             <span className="font-bold">{skill.name}</span>
             <span className="tabular-nums text-ink-500 dark:text-ink-400">
@@ -112,7 +112,7 @@ export function PracticePage() {
                     setRound({ correct: 0, total: 0 });
                     next(s);
                   }}
-                  className="card flex items-center gap-3 !p-3 text-left transition-shadow hover:shadow-lift"
+                  className="card flex items-center gap-3 p-3 text-left transition-shadow hover:shadow-lift"
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold">{s.name}</span>

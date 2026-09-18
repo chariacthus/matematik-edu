@@ -5,7 +5,8 @@ import { lv, mcq, name, numAns, s, trapIfDifferent } from '../helpers';
 export const problemloesning: Domain = {
   id: 'problemloesning',
   name: 'Problemløsning',
-  category: 'anvendelse',
+  category: 'kompetencer',
+  area: 'problembehandling',
   icon: '🧩',
   blurb: 'Tekstopgaver i flere trin, baglæns tænkning og talmønstre.',
   skills: [

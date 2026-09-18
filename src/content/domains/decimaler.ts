@@ -6,6 +6,7 @@ export const decimaler: Domain = {
   id: 'decimaler',
   name: 'Decimaltal',
   category: 'tal-algebra',
+  area: 'tal',
   icon: '0,5',
   blurb: 'Pladsværdi, regning med kommatal og de omregninger du bruger hele tiden.',
   skills: [
@@ -248,6 +249,7 @@ export const decimaler: Domain = {
         },
         {
           id: 'decimal-indkoeb',
+          aids: 'med',
           label: 'Indkøb med decimaltal',
           minLevel: 2,
           make: ({ rng, level }) => {

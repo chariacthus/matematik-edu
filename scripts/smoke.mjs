@@ -106,7 +106,7 @@ try {
     await page.getByRole('button', { name: /^Videre \(1 valgt\)$/ }).click();
     await page.getByRole('button', { name: 'Statistik', exact: true }).click();
     await page.getByRole('button', { name: /Start niveautesten/ }).click();
-    await page.getByText(/Opgave 1 af 38/).waitFor({ timeout: 8000 });
+    await page.getByText(/Opgave 1 af 42/).waitFor({ timeout: 8000 });
   });
   await shot('02-niveautest');
 
@@ -189,6 +189,39 @@ try {
     await page.goto('http://127.0.0.1:4173/#/indstillinger');
     await page.getByRole('heading', { name: 'Indstillinger' }).waitFor({ timeout: 8000 });
   });
+
+  await step('viser FP9-prøvetræning', async () => {
+    await page.goto('http://127.0.0.1:4173/#/proeve');
+    await page.getByRole('heading', { name: 'Prøvetræning' }).waitFor({ timeout: 8000 });
+    await page.getByRole('heading', { name: 'Uden hjælpemidler' }).waitFor({ timeout: 5000 });
+  });
+  await shot('11-proeve');
+
+  await step('kører en prøve uden hjælpemidler', async () => {
+    await page.getByRole('button', { name: 'Start' }).first().click();
+    await page.getByText(/Opgave 1 af 20/).waitFor({ timeout: 8000 });
+    for (let i = 0; i < 3; i++) {
+      await page.getByRole('button', { name: 'Spring over' }).click();
+      await page.waitForTimeout(120);
+    }
+    await page.getByRole('button', { name: 'Aflevér prøven' }).click();
+    await page.getByRole('heading', { name: /Prøven er afleveret/ }).waitFor({ timeout: 8000 });
+  });
+  await shot('12-proeveresultat');
+
+  await step('viser prisen på AI-læreren i indstillinger', async () => {
+    await page.goto('http://127.0.0.1:4173/#/indstillinger');
+    await page.getByText(/Den indbyggede AI-lærer er gratis/).waitFor({ timeout: 8000 });
+    const toggle = page.getByLabel('Tilkobl Claude i stedet');
+    await toggle.click();
+    await page.getByText(/pr\. spørgsmål/).first().waitFor({ timeout: 5000 });
+    // Kontakten skal faktisk vise sig som slået til, ikke bare afsløre
+    // afsnittet nedenunder.
+    const on = await toggle.getAttribute('aria-checked');
+    if (on !== 'true') throw new Error(`kontakten viser aria-checked=${on}`);
+    await page.waitForTimeout(250);
+  });
+  await shot('13-ai-pris');
 
   await step('virker i mørkt tema', async () => {
     await page.goto('http://127.0.0.1:4173/#/indstillinger');
