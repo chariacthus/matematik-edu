@@ -11,7 +11,7 @@ import { DAY_MS, dayKey, relativeDays } from '../lib/dates';
 import { Icon, type IconName } from '../components/Icon';
 import {
   Callout, Card, Chip, CountUp, EmptyState, IconTile, LevelBadge,
-  ProgressBar, ProgressRing, SectionTitle, Segmented, StreakStrip,
+  ProgressBar, ProgressRing, SectionTitle, Segmented, StreakStrip, XpBar,
 } from '../components/ui';
 
 type Tab = 'plan' | 'repetition' | 'fejl';
@@ -37,6 +37,7 @@ export function DashboardPage() {
   const errors = useMemo(() => activeMisconceptions(misconceptions).filter((m) => m.state.count >= 2), [misconceptions]);
   const behaviour = useMemo(() => readBehaviour(attempts, 10), [attempts]);
   const level = levelProgress(gamification.xp);
+  const pendingLevelUp = useStore((s) => s.pendingLevelUp);
 
   // De seneste syv dage. Vi tæller både registrerede forsøg og dagens
   // optjente XP med - ellers kan striben sige 1 dag mens kalenderen står
@@ -72,25 +73,24 @@ export function DashboardPage() {
           </button>
         </div>
 
-        <Card pad="md" className="space-y-3">
+        <Card pad="lg" className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <span className="min-w-0">
-              <span className="block text-[11px] font-bold uppercase tracking-wide text-ink-400 dark:text-ink-500">
-                {levelTitle(level.level)}
-              </span>
-              <span className="block text-sm font-bold tabular-nums">
-                <CountUp value={level.into} /> / {level.needed} XP
+              <span className="eyebrow block">{levelTitle(level.level)}</span>
+              <span className="mt-0.5 block text-lg font-extrabold tabular-nums">
+                <CountUp value={gamification.xp} /> <span className="text-sm text-ink-400">XP i alt</span>
               </span>
             </span>
-            <ProgressRing value={overall.percent} size={44} stroke={5} />
+            <ProgressRing value={overall.percent} size={48} stroke={5} />
           </div>
-          <ProgressBar value={(level.into / level.needed) * 100} tone="xp" size="lg" label="Fremgang mod næste niveau" />
 
-          <div className="flex items-center justify-between gap-3 border-t border-ink-100 pt-3 dark:border-white/[0.07]">
+          <XpBar level={level.level} into={level.into} needed={level.needed} levelUp={pendingLevelUp !== null} />
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-200/60 pt-3.5 dark:border-white/[0.07]">
             <StreakStrip days={week} active={gamification.streakDays} />
             <span className="shrink-0 text-right">
               <span className="block text-[10px] font-bold uppercase tracking-wide text-ink-400">I dag</span>
-              <span className={clsx('block text-sm font-extrabold tabular-nums', goalPct >= 100 && 'text-xp-600 dark:text-xp-400')}>
+              <span className={clsx('block text-base font-extrabold tabular-nums', goalPct >= 100 && 'text-xp-500')}>
                 {gamification.todayXp}/{gamification.dailyGoalXp}
               </span>
             </span>
@@ -115,7 +115,7 @@ export function DashboardPage() {
       {/* Dagens mål */}
       {first ? (
         <section className="mb-6">
-          <SectionTitle>Dit næste mål</SectionTitle>
+          <SectionTitle hint="tryk for at starte">Dagens Missioner</SectionTitle>
           <MissionCard item={first} />
         </section>
       ) : null}
@@ -126,7 +126,7 @@ export function DashboardPage() {
           value={tab}
           onChange={setTab}
           options={[
-            { id: 'plan', label: 'Plan', icon: 'flag', count: rest.length || undefined },
+            { id: 'plan', label: 'Missioner', icon: 'flag', count: rest.length || undefined },
             { id: 'repetition', label: 'Repetition', icon: 'refresh', count: due.length || undefined },
             { id: 'fejl', label: 'Fejl', icon: 'search', count: errors.length || undefined },
           ]}
@@ -213,7 +213,7 @@ export function DashboardPage() {
               <button
                 key={cat.id}
                 onClick={() => navigate({ name: 'library' })}
-                className="card group flex items-center gap-3 p-3 text-left transition-all duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-lift"
+                className="card-interactive group flex items-center gap-3 p-3 text-left"
               >
                 <IconTile name={icon} tone="brand" />
                 <span className="min-w-0 flex-1">
@@ -236,7 +236,7 @@ export function DashboardPage() {
         <SectionTitle>Prøvetræning</SectionTitle>
         <button
           onClick={() => navigate({ name: 'exam' })}
-          className="card group flex w-full items-center gap-3 p-4 text-left transition-all duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-lift"
+          className="card-interactive group flex w-full items-center gap-3 p-4 text-left"
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink-900 text-[11px] font-extrabold tracking-tight text-white dark:bg-white dark:text-ink-950">
             FP9
@@ -271,10 +271,16 @@ function MissionCard({ item }: { item: PlanItem }) {
   return (
     <button
       onClick={() => go(item)}
-      className="group relative w-full overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-600 to-brand-700 p-5 text-left text-white shadow-glow transition-all duration-200 ease-spring hover:-translate-y-0.5 dark:border-brand-400/30"
+      className="group relative w-full overflow-hidden rounded-2xl border border-brand-400/40 bg-gradient-to-br from-brand-500/95 via-brand-600 to-brand-700 p-5 text-left text-white shadow-glow backdrop-blur-xl transition-all duration-200 ease-spring hover:-translate-y-1 hover:shadow-[0_0_0_1px_rgba(99,102,241,0.5),0_16px_48px_-12px_rgba(99,102,241,0.7)] active:translate-y-0 active:scale-[0.99]"
     >
-      {/* Diskret lysstribe, så fladen ikke er helt død */}
-      <span className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" aria-hidden />
+      {/* To bløde lysfelter, så fladen ikke er død — og en glans der
+          løber hen over kortet ved hover. */}
+      <span className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/15 blur-3xl" aria-hidden />
+      <span className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-xp-400/20 blur-3xl" aria-hidden />
+      <span
+        className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-white/10 opacity-0 transition-all duration-700 group-hover:left-[110%] group-hover:opacity-100"
+        aria-hidden
+      />
       <span className="relative flex items-start gap-3.5">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
           <Icon name={style.icon} size={22} filled={style.icon === 'play'} />
@@ -299,7 +305,7 @@ function PlanCard({ item }: { item: PlanItem }) {
   return (
     <button
       onClick={() => go(item)}
-      className="card group flex w-full items-start gap-3 p-4 text-left transition-all duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-lift"
+      className="card-interactive group flex w-full items-start gap-3 p-4 text-left"
     >
       <IconTile name={style.icon} tone={style.tone} size="sm" />
       <span className="min-w-0 flex-1">

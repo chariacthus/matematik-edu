@@ -58,6 +58,8 @@ export interface AppState {
   settings: Settings;
   /** Badges der lige er optjent og endnu ikke vist. */
   pendingBadges: string[];
+  /** Sat til det nye niveau i det øjeblik eleven stiger. Ryddes af brugerfladen. */
+  pendingLevelUp: number | null;
   hydrated: boolean;
 
   /* Handlinger */
@@ -71,6 +73,7 @@ export interface AppState {
   recordLlmUsage: (input: number, output: number) => void;
   clearBadges: () => void;
   dismissBadge: () => void;
+  clearLevelUp: () => void;
   addMinutes: (minutes: number) => void;
   resetAll: () => void;
   importState: (json: string) => boolean;
@@ -152,6 +155,7 @@ export const useStore = create<AppState>((set, get) => {
     // viser det rigtige antal dage.
     gamification: touchDay(initial.gamification),
     pendingBadges: [],
+    pendingLevelUp: null,
     hydrated: true,
 
     completeOnboarding: ({ name, confidence, hard, easy }) => {
@@ -293,7 +297,10 @@ export const useStore = create<AppState>((set, get) => {
 
         const attempts = [...s.attempts, attempt].slice(-MAX_ATTEMPTS);
         const skills = { ...s.skills, [skillId]: state };
+        const levelBefore = s.gamification.level;
         const gamification = addXp(s.gamification, xp);
+        // Krydsede vi en niveaugrænse med dette forsøg?
+        const leveledUp = gamification.level > levelBefore ? gamification.level : null;
 
         /* Badges */
         const masteredCount = Object.values(skills).filter((x) => x.masteredAt !== null).length;
@@ -327,6 +334,7 @@ export const useStore = create<AppState>((set, get) => {
           misconceptions,
           gamification: withBadges,
           pendingBadges: [...s.pendingBadges, ...unlocked.map((a) => a.id)],
+          pendingLevelUp: leveledUp ?? s.pendingLevelUp,
         };
       });
 
@@ -378,6 +386,8 @@ export const useStore = create<AppState>((set, get) => {
 
     dismissBadge: () => set((s) => ({ pendingBadges: s.pendingBadges.slice(1) })),
 
+    clearLevelUp: () => set({ pendingLevelUp: null }),
+
     addMinutes: (minutes) => {
       set((s) => {
         const gamification = { ...touchDay(s.gamification), totalMinutes: s.gamification.totalMinutes + minutes };
@@ -396,13 +406,14 @@ export const useStore = create<AppState>((set, get) => {
         gamification: { ...newGamification(), today: dayKey() },
         settings: defaultSettings(),
         pendingBadges: [],
+        pendingLevelUp: null,
       });
     },
 
     importState: (json) => {
       if (!storage.importAll(json)) return false;
       const loaded = loadPersisted();
-      set({ ...loaded, gamification: touchDay(loaded.gamification), pendingBadges: [] });
+      set({ ...loaded, gamification: touchDay(loaded.gamification), pendingBadges: [], pendingLevelUp: null });
       return true;
     },
   };

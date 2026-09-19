@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { Icon, type IconName } from '../Icon';
+import { Portal } from '../Portal';
 
 /* ------------------------------------------------------------------ */
 /* Flader                                                              */
@@ -241,64 +242,181 @@ export function LabelledBar({
 /* Spil-HUD                                                            */
 /* ------------------------------------------------------------------ */
 
-/** Niveaubjælken: nuværende niveau, fremgang, næste niveau. */
-export function XpBar({ level, into, needed, compact }: { level: number; into: number; needed: number; compact?: boolean }) {
-  const pct = needed > 0 ? (into / needed) * 100 : 0;
+/**
+ * XP-bjælken.
+ *
+ * Tyk, med neon-gradient og en lysstribe der vandrer hen over. Ved
+ * niveauskift skifter den til fejringstilstand: mærket hopper, en ring
+ * sprænger udad, og bjælken gløder indtil animationen er ovre.
+ */
+export function XpBar({
+  level,
+  into,
+  needed,
+  compact,
+  levelUp,
+}: {
+  level: number;
+  into: number;
+  needed: number;
+  compact?: boolean;
+  /** Sat i det øjeblik eleven er steget et niveau. */
+  levelUp?: boolean;
+}) {
+  const pct = needed > 0 ? Math.min(100, (into / needed) * 100) : 0;
   return (
-    <div className="flex items-center gap-2.5">
-      <LevelBadge level={level} size={compact ? 'sm' : 'md'} />
+    <div className="flex items-center gap-3">
+      <LevelBadge level={level} size={compact ? 'sm' : 'md'} celebrate={levelUp} />
+
       <div className="min-w-0 flex-1">
-        <ProgressBar value={pct} tone="xp" size={compact ? 'sm' : 'md'} label={`Fremgang mod niveau ${level + 1}`} />
+        <div
+          className={clsx(
+            'relative w-full overflow-hidden rounded-full border transition-shadow duration-500',
+            compact ? 'h-2.5' : 'h-4',
+            levelUp
+              ? 'border-xp-300 shadow-glow-xp'
+              : 'border-ink-200/70 dark:border-white/10',
+            'bg-ink-200/60 dark:bg-black/40',
+          )}
+          role="progressbar"
+          aria-valuenow={Math.round(pct)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Fremgang mod niveau ${level + 1}`}
+        >
+          <div
+            className="neon-xp relative h-full rounded-full transition-[width] duration-[900ms] ease-spring"
+            style={{ width: `${Math.max(pct, pct > 0 ? 4 : 0)}%` }}
+          >
+            {/* Indre glans, så bjælken ser rund ud frem for flad. */}
+            <span className="absolute inset-x-0 top-0 h-1/2 rounded-t-full bg-white/25" aria-hidden />
+            {/* Lysstribe der løber hen over — kun når der er noget at vise. */}
+            {pct > 8 ? (
+              <span className="absolute inset-y-0 w-10 animate-sheen bg-white/35 blur-[2px]" aria-hidden />
+            ) : null}
+          </div>
+        </div>
+
         {!compact ? (
-          <p className="mt-1 text-[11px] font-semibold tabular-nums text-ink-400 dark:text-ink-500">
+          <p className="mt-1.5 text-[11px] font-bold tabular-nums text-ink-400 dark:text-ink-500">
             <CountUp value={into} /> / {needed} XP
           </p>
         ) : null}
       </div>
+
       {!compact ? <LevelBadge level={level + 1} size="sm" dim /> : null}
     </div>
   );
 }
 
-export function LevelBadge({ level, size = 'md', dim }: { level: number; size?: 'sm' | 'md' | 'lg'; dim?: boolean }) {
+export function LevelBadge({
+  level,
+  size = 'md',
+  dim,
+  celebrate,
+}: {
+  level: number;
+  size?: 'sm' | 'md' | 'lg';
+  dim?: boolean;
+  celebrate?: boolean;
+}) {
   const box = { sm: 'h-7 w-7 text-[11px]', md: 'h-9 w-9 text-sm', lg: 'h-12 w-12 text-lg' }[size];
   return (
-    <span
-      className={clsx(
-        'flex shrink-0 items-center justify-center rounded-xl font-extrabold tabular-nums',
-        box,
-        dim
-          ? 'bg-ink-100 text-ink-400 dark:bg-white/[0.05] dark:text-ink-500'
-          : 'bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-inset',
-      )}
-      title={`Niveau ${level}`}
-    >
-      {level}
+    <span className="relative inline-flex shrink-0">
+      {/* Ringen der sprænger udad ved niveauskift. */}
+      {celebrate ? (
+        <span className="absolute inset-0 animate-level-burst rounded-xl border-2 border-xp-400" aria-hidden />
+      ) : null}
+      <span
+        className={clsx(
+          'flex items-center justify-center rounded-xl font-extrabold tabular-nums',
+          box,
+          celebrate && 'animate-level-pop',
+          dim
+            ? 'bg-ink-100 text-ink-400 dark:bg-white/[0.05] dark:text-ink-500'
+            : celebrate
+              ? 'bg-gradient-to-br from-xp-300 to-xp-500 text-ink-950 shadow-glow-xp'
+              : 'bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-inset',
+        )}
+        title={`Niveau ${level}`}
+      >
+        {level}
+      </span>
     </span>
   );
 }
 
-/** De seneste syv dage som prikker — en stribe man ikke vil bryde. */
+/** Fejringsbanner når eleven stiger et niveau. */
+export function LevelUpBanner({ level, title, onDone }: { level: number; title: string; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 4200);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  return (
+    <Portal>
+      <div className="pointer-events-none fixed inset-x-0 top-16 z-50 flex justify-center px-4">
+        <button
+          onClick={onDone}
+          className="pointer-events-auto flex animate-panel-in items-center gap-3 rounded-2xl border border-xp-300/60 bg-white/85 px-4 py-3 shadow-glow-xp backdrop-blur-2xl dark:bg-ink-900/85"
+        >
+          <LevelBadge level={level} size="lg" celebrate />
+          <span className="text-left">
+            <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-xp-600 dark:text-xp-400">
+              Niveau {level} nået
+            </span>
+            <span className="block text-base font-extrabold">{title}</span>
+          </span>
+        </button>
+      </div>
+    </Portal>
+  );
+}
+
+/**
+ * Dagsstriben.
+ *
+ * Aktive dage har en flamme der gløder; missede dage er en dæmpet
+ * omrids. Dagens felt trækker vejret, så man kan se hvad der står på
+ * spil lige nu.
+ */
 export function StreakStrip({ days, active }: { days: boolean[]; active: number }) {
   const names = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
+  const today = days.length - 1;
   return (
     <div className="flex items-center gap-3">
-      <span className="flex items-center gap-1.5 text-warn-500">
-        <Icon name="flame" size={18} filled />
-        <span className="text-lg font-extrabold tabular-nums text-ink-900 dark:text-ink-50">{active}</span>
+      <span className="flex items-center gap-1.5">
+        <Icon
+          name="flame"
+          size={20}
+          filled
+          className={clsx(active > 0 ? 'animate-flame-glow text-orange-400' : 'text-ink-300 dark:text-ink-600')}
+        />
+        <span className="text-xl font-extrabold tabular-nums leading-none">{active}</span>
       </span>
+
       <div className="flex gap-1">
-        {days.map((on, i) => (
-          <span key={i} className="flex flex-col items-center gap-1">
-            <span
-              className={clsx(
-                'h-6 w-6 rounded-lg transition-colors',
-                on ? 'bg-warn-400 dark:bg-warn-500' : 'bg-ink-200 dark:bg-white/[0.07]',
-              )}
-            />
-            <span className="text-[9px] font-bold text-ink-400 dark:text-ink-500">{names[i]}</span>
-          </span>
-        ))}
+        {days.map((on, i) => {
+          const isToday = i === today;
+          return (
+            <span key={i} className="flex flex-col items-center gap-1">
+              <span
+                className={clsx(
+                  'flex h-7 w-7 items-center justify-center rounded-lg border transition-all duration-300',
+                  on
+                    ? 'border-orange-300/60 bg-orange-400/20 text-orange-400 dark:border-orange-400/40'
+                    : 'border-ink-200 bg-ink-100/60 text-ink-300 dark:border-white/[0.07] dark:bg-white/[0.03] dark:text-ink-700',
+                  on && isToday && 'animate-flame-glow',
+                )}
+                title={on ? 'Aktiv dag' : 'Ingen aktivitet'}
+              >
+                <Icon name={on ? 'flame' : 'bolt'} size={14} filled={on} />
+              </span>
+              <span className={clsx('text-[9px] font-bold', isToday ? 'text-ink-700 dark:text-ink-200' : 'text-ink-400 dark:text-ink-500')}>
+                {names[i]}
+              </span>
+            </span>
+          );
+        })}
       </div>
     </div>
   );
@@ -453,29 +571,31 @@ export function Modal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink-950/60 p-0 backdrop-blur-md sm:items-center sm:p-4" onClick={onClose}>
-      <div
-        ref={ref}
-        tabIndex={-1}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className={clsx(
-          'max-h-[90vh] w-full animate-fade-up overflow-y-auto rounded-t-3xl border border-ink-200 bg-white p-5 shadow-lift outline-none',
-          'dark:border-white/10 dark:bg-ink-900 sm:rounded-3xl',
-          wide ? 'sm:max-w-2xl' : 'sm:max-w-md',
-        )}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <h3 className="text-lg font-extrabold">{title}</h3>
-          <button onClick={onClose} className="btn-ghost -mr-2 -mt-1 p-1.5" aria-label="Luk">
-            <Icon name="close" size={18} />
-          </button>
+    <Portal>
+      <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink-950/60 p-0 backdrop-blur-md sm:items-center sm:p-4" onClick={onClose}>
+        <div
+          ref={ref}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          className={clsx(
+            'max-h-[90vh] w-full animate-fade-up overflow-y-auto rounded-t-3xl border border-ink-200 bg-white p-5 shadow-lift outline-none',
+            'dark:border-white/10 dark:bg-ink-900 sm:rounded-3xl',
+            wide ? 'sm:max-w-2xl' : 'sm:max-w-md',
+          )}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <h3 className="text-lg font-extrabold">{title}</h3>
+            <button onClick={onClose} className="btn-ghost -mr-2 -mt-1 p-1.5" aria-label="Luk">
+              <Icon name="close" size={18} />
+            </button>
+          </div>
+          {children}
         </div>
-        {children}
       </div>
-    </div>
+    </Portal>
   );
 }
 

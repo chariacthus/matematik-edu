@@ -128,7 +128,7 @@ try {
   await step('gemmer profilen og lander på forsiden', async () => {
     await page.getByRole('button', { name: /Kom i gang med min plan/ }).click();
     await page.getByRole('heading', { name: 'Freja', exact: true }).waitFor({ timeout: 8000 });
-    await page.getByText('Dit næste mål').waitFor({ timeout: 5000 });
+    await page.getByText('Dagens Missioner').waitFor({ timeout: 5000 });
   });
   await shot('04-forside');
 
@@ -171,13 +171,41 @@ try {
       await input.fill('999999');
       await page.getByRole('button', { name: 'Tjek svar' }).click();
       await page.getByText(/Ikke helt|Stadig ikke|set før/).first().waitFor({ timeout: 5000 });
+
+      // Rystet ved forkert svar, og de to kvitterings-animationer skal
+      // faktisk findes i stilarket. Tailwind udelader en klasse der ikke
+      // står ordret i kildekoden, og så fejler ingen typetjek - kun
+      // fornemmelsen forsvinder.
+      const feel = await page.evaluate(() => {
+        const card = document.querySelector('article.card.animate-shake');
+        const names = new Set();
+        for (const sheet of document.styleSheets) {
+          let rules;
+          try { rules = sheet.cssRules; } catch { continue; }
+          for (const rule of rules) {
+            if (rule instanceof CSSKeyframesRule) names.add(rule.name);
+          }
+        }
+        return { shaken: Boolean(card), keyframes: [...names] };
+      });
+      if (!feel.shaken) throw new Error('opgavekortet ryster ikke ved forkert svar');
+      for (const name of ['shake', 'pulse-correct']) {
+        if (!feel.keyframes.includes(name)) {
+          throw new Error(`animationen "${name}" mangler i stilarket`);
+        }
+      }
     }
   });
   await shot('07-feedback');
 
-  await step('åbner AI-læreren og beder om svaret', async () => {
+  await step('åbner AI-læreren som flydende panel og beder om svaret', async () => {
     await page.getByRole('button', { name: 'AI-lærer', exact: true }).click();
-    await page.getByRole('dialog', { name: 'AI-lærer' }).waitFor({ timeout: 5000 });
+    const dock = page.getByRole('dialog', { name: 'AI-lærer' });
+    await dock.waitFor({ timeout: 5000 });
+    // Panelet må ikke dække hele skærmen på desktopbredde, men her er
+    // vi på telefon, hvor det er et ark. Vi kontrollerer bare at det
+    // ikke er den gamle modal ved at se efter panelets egen overskrift.
+    await dock.getByText('Ligninger i to trin').waitFor({ timeout: 5000 });
     await page.getByLabel('Besked til AI-læreren').fill('hvad er svaret?');
     await page.getByRole('button', { name: 'Send' }).click();
     await page.getByText(/lærer ingenting af at få tallet/).waitFor({ timeout: 5000 });
@@ -185,7 +213,7 @@ try {
   await shot('08-ai-laerer');
 
   await step('viser fri træning', async () => {
-    await page.getByRole('dialog', { name: 'AI-lærer' }).getByRole('button', { name: 'Luk' }).click();
+    await page.getByRole('button', { name: 'Luk AI-lærer' }).click();
     await page.goto('http://127.0.0.1:4173/#/traen');
     await page.getByRole('heading', { name: 'Fri træning' }).waitFor({ timeout: 8000 });
   });
@@ -243,6 +271,71 @@ try {
     if (!dark) throw new Error('mørkt tema blev ikke slået til');
   });
   await shot('10-moerkt');
+
+  // Glasstilen er tænkt til mørkt tema, så hovedskærmene fanges der.
+  await step('forsiden i mørkt tema', async () => {
+    await page.goto('http://127.0.0.1:4173/');
+    await page.getByText('Dagens Missioner').waitFor({ timeout: 8000 });
+  });
+  await shot('15-forside-moerk');
+
+  await step('AI-panelet i mørkt tema', async () => {
+    await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
+    await page.getByRole('button', { name: 'AI-lærer', exact: true }).waitFor({ timeout: 8000 });
+    await page.getByRole('button', { name: 'AI-lærer', exact: true }).click();
+    await page.getByRole('dialog', { name: 'AI-lærer' }).waitFor({ timeout: 5000 });
+    await page.getByLabel('Besked til AI-læreren').fill('jeg forstår det ikke');
+    await page.getByRole('button', { name: 'Send' }).click();
+    await page.waitForTimeout(700);
+
+    // Panelet skal fylde det meste af højden på en telefon, og elevens
+    // egen besked skal være synlig. Ellers er samtalen ubrugelig.
+    const box = await page.evaluate(() => {
+      const el = document.querySelector('[role="dialog"][aria-label="AI-lærer"]');
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { top: Math.round(r.top), height: Math.round(r.height), width: Math.round(r.width), vh: window.innerHeight };
+    });
+    if (!box) throw new Error('AI-panelet blev ikke fundet');
+    if (box.height < box.vh * 0.5) {
+      throw new Error(`AI-panelet er kun ${box.height}px højt af ${box.vh}px - beskeder får ikke plads`);
+    }
+    await page.getByText('jeg forstår det ikke').waitFor({ timeout: 5000 });
+  });
+  await shot('16-ai-moerk');
+
+  await step('AI-panelet svæver i hjørnet på en stor skærm', async () => {
+    // Luk panelet fra forrige trin. En hash-navigation genindlæser ikke
+    // siden, så det ville ellers stå og dække knappen.
+    await page.getByRole('button', { name: 'Luk AI-lærer' }).click();
+    await page.getByRole('dialog', { name: 'AI-lærer' }).waitFor({ state: 'detached', timeout: 5000 });
+    await page.setViewportSize({ width: 1280, height: 860 });
+    await page.getByRole('button', { name: 'AI-lærer', exact: true }).waitFor({ timeout: 8000 });
+    await page.getByRole('button', { name: 'AI-lærer', exact: true }).click();
+    await page.getByRole('dialog', { name: 'AI-lærer' }).waitFor({ timeout: 5000 });
+    await page.waitForTimeout(500);
+
+    // Panelet skal ligge i nederste højre hjørne af vinduet. Ligger det
+    // et andet sted, er det blevet fanget inde i opgavekortet igen.
+    const box = await page.evaluate(() => {
+      const r = document.querySelector('[role="dialog"][aria-label="AI-lærer"]').getBoundingClientRect();
+      return { right: Math.round(window.innerWidth - r.right), bottom: Math.round(window.innerHeight - r.bottom), height: Math.round(r.height) };
+    });
+    if (box.right > 40 || box.bottom > 40) {
+      throw new Error(`AI-panelet sidder ${box.right}px fra højre og ${box.bottom}px fra bunden - det er ikke forankret til vinduet`);
+    }
+    if (box.height < 500) throw new Error(`AI-panelet er kun ${box.height}px højt på en stor skærm`);
+    // Opgaven skal stadig kunne læses ved siden af - derfor ingen modal.
+    await page.getByText(/Løs ligningen/).first().waitFor({ timeout: 5000 });
+  });
+  await shot('18-ai-desktop');
+  await page.setViewportSize({ width: 420, height: 900 });
+
+  await step('prøvetræning i mørkt tema', async () => {
+    await page.goto('http://127.0.0.1:4173/#/proeve');
+    await page.getByRole('heading', { name: 'Prøvetræning' }).waitFor({ timeout: 8000 });
+  });
+  await shot('17-proeve-moerk');
 
   await step('husker fremgangen efter genindlæsning', async () => {
     await page.goto('http://127.0.0.1:4173/');

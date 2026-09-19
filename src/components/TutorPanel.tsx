@@ -4,7 +4,7 @@ import type { Problem, Skill, SkillState } from '../types';
 import { detectIntent, greeting, respond, studentMessage, tutorMessage, type TutorContext, type TutorMessage } from '../tutor/tutor';
 import { askClaude, buildSystemPrompt, type LlmTurn } from '../tutor/llm';
 import { MathBlock, MathText } from './MathText';
-import { Spinner } from './ui';
+import { Icon } from './Icon';
 import { useStore } from '../state/store';
 
 /**
@@ -125,9 +125,10 @@ export function TutorPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <p className="flex items-center gap-1.5 border-b border-ink-200 pb-2.5 text-xs text-ink-500 dark:border-ink-800 dark:text-ink-400">
-        <span className="flex h-4 w-4 items-center justify-center rounded bg-accent-600 text-[9px] text-white" aria-hidden>
-          ✦
+      <p className="flex items-center gap-1.5 border-b border-ink-200/70 pb-2.5 text-[11px] text-ink-500 dark:border-white/[0.08] dark:text-ink-400">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-xp-400 opacity-60" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-xp-500" />
         </span>
         {useLlm ? 'Claude er tilkoblet' : 'Indbygget lærer — virker uden internet'}
       </p>
@@ -137,10 +138,10 @@ export function TutorPanel({
           <div key={m.id} className={clsx('flex', m.role === 'elev' ? 'justify-end' : 'justify-start')}>
             <div
               className={clsx(
-                'max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
+                'max-w-[85%] animate-fade-up whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
                 m.role === 'elev'
-                  ? 'rounded-br-md bg-brand-600 text-white'
-                  : 'rounded-bl-md bg-ink-100 text-ink-800 dark:bg-ink-800 dark:text-ink-100',
+                  ? 'rounded-br-sm bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-inset'
+                  : 'rounded-bl-sm border border-ink-200/70 bg-white/70 text-ink-800 backdrop-blur-sm dark:border-white/[0.08] dark:bg-white/[0.06] dark:text-ink-100',
               )}
             >
               <MathText>{m.text}</MathText>
@@ -152,8 +153,14 @@ export function TutorPanel({
         ))}
         {busy ? (
           <div className="flex justify-start">
-            <div className="rounded-2xl rounded-bl-md bg-ink-100 px-3.5 py-2.5 dark:bg-ink-800">
-              <Spinner label="tænker …" />
+            <div className="flex animate-fade-in items-center gap-1.5 rounded-2xl rounded-bl-sm border border-ink-200/70 bg-white/70 px-4 py-3 backdrop-blur-sm dark:border-white/[0.08] dark:bg-white/[0.06]">
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className="h-1.5 w-1.5 animate-typing-dot rounded-full bg-ink-400 dark:bg-ink-300"
+                  style={{ animationDelay: `${i * 160}ms` }}
+                />
+              ))}
             </div>
           </div>
         ) : null}
@@ -171,7 +178,7 @@ export function TutorPanel({
               key={s}
               onClick={() => send(s)}
               disabled={busy}
-              className="rounded-full border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 hover:border-brand-400 hover:text-brand-700 disabled:opacity-50 dark:border-ink-700 dark:text-ink-300"
+              className="rounded-full border border-ink-200/80 bg-white/60 px-3 py-1.5 text-xs font-semibold text-ink-600 backdrop-blur-sm transition-all duration-150 ease-spring hover:-translate-y-0.5 hover:border-brand-400 hover:text-brand-700 active:scale-95 disabled:opacity-50 dark:border-white/[0.10] dark:bg-white/[0.05] dark:text-ink-300 dark:hover:border-brand-400/60"
             >
               {s}
             </button>
@@ -184,7 +191,7 @@ export function TutorPanel({
           e.preventDefault();
           send(input);
         }}
-        className="flex gap-2 border-t border-ink-200 pt-3 dark:border-ink-800"
+        className="flex gap-2 border-t border-ink-200/70 pt-3 dark:border-white/[0.08]"
       >
         <input
           value={input}
@@ -194,8 +201,8 @@ export function TutorPanel({
           aria-label="Besked til AI-læreren"
           disabled={busy}
         />
-        <button type="submit" className="btn-primary px-4" disabled={busy || !input.trim()}>
-          Send
+        <button type="submit" className="btn-primary px-3.5" disabled={busy || !input.trim()} aria-label="Send">
+          <Icon name="send" size={16} />
         </button>
       </form>
     </div>

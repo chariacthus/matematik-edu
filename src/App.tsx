@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { useRoute, navigate } from './lib/router';
 import { useStore } from './state/store';
 import { Layout } from './components/Layout';
-import { Toast } from './components/ui';
-import { achievementById } from './engine/gamification';
+import { LevelUpBanner, Toast } from './components/ui';
+import { achievementById, levelTitle } from './engine/gamification';
 import { OnboardingPage } from './pages/Onboarding';
 import { DiagnosticPage } from './pages/Diagnostic';
 import { DashboardPage } from './pages/Dashboard';
@@ -31,6 +31,8 @@ export default function App() {
   const profile = useStore((s) => s.profile);
   const pendingBadges = useStore((s) => s.pendingBadges);
   const dismissBadge = useStore((s) => s.dismissBadge);
+  const pendingLevelUp = useStore((s) => s.pendingLevelUp);
+  const clearLevelUp = useStore((s) => s.clearLevelUp);
 
   // En elev der ikke er kommet gennem onboarding skal ikke kunne lande
   // på forsiden — den ville være tom og forvirrende.
@@ -75,6 +77,11 @@ export default function App() {
       {/* Ét badge ad gangen, nederst og over menuen. Tre bannere på én
           gang dækkede indholdet - og det man lige har præsteret er ikke
           vigtigere end det man er i gang med at læse. */}
+      {/* Niveauskift fylder mere end et badge og vises derfor øverst. */}
+      {pendingLevelUp !== null ? (
+        <LevelUpBanner level={pendingLevelUp} title={levelTitle(pendingLevelUp)} onDone={clearLevelUp} />
+      ) : null}
+
       <BadgeToast id={pendingBadges[0]} onDone={dismissBadge} />
     </Layout>
   );

@@ -17,6 +17,38 @@
     overscroll-behavior-y: none;
   }
 
+  /**
+   * Baggrundslys.
+   *
+   * Glas kan kun ses hvis der er noget bag det. To store, bløde
+   * farvepletter ligger fast bag hele appen og giver de gennemsigtige
+   * flader noget at bryde. De sidder i et ::before på body, så de ikke
+   * fylder i DOM'en og ikke kan fanges af mus eller skærmlæser.
+   */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: -20vmax;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(38vmax 38vmax at 18% 8%, rgba(99, 102, 241, 0.16), transparent 62%),
+      radial-gradient(34vmax 34vmax at 86% 22%, rgba(6, 182, 212, 0.12), transparent 60%),
+      radial-gradient(30vmax 30vmax at 50% 96%, rgba(132, 204, 22, 0.10), transparent 62%);
+    @apply animate-drift;
+  }
+
+  /* I lyst tema skal lyset kun anes — ellers bliver teksten svær at læse. */
+  html:not(.dark) body::before {
+    opacity: 0.55;
+  }
+  html.dark body::before {
+    background:
+      radial-gradient(40vmax 40vmax at 16% 6%, rgba(99, 102, 241, 0.26), transparent 62%),
+      radial-gradient(36vmax 36vmax at 88% 20%, rgba(6, 182, 212, 0.16), transparent 60%),
+      radial-gradient(32vmax 32vmax at 52% 98%, rgba(132, 204, 22, 0.13), transparent 62%);
+  }
+
   /* Overskrifter strammes ind — det er halvdelen af at se moderne ud. */
   h1, h2, h3 { letter-spacing: -0.021em; }
 
@@ -43,29 +75,55 @@
 
 @layer components {
   /**
-   * Flade kort med en fin kant frem for en tung skygge. Skygger på alt
-   * er det der får en grænseflade til at se opblødt og generisk ud.
+   * Glasflader.
+   *
+   * Halvgennemsigtig baggrund + baggrundssløring + en kant der lyser
+   * svagt indefra. Sløringen ligger på en statisk baggrund og koster
+   * derfor ikke noget under scroll — modsat sløring henover indhold der
+   * bevæger sig.
    */
-  .card {
-    @apply rounded-2xl border border-ink-200/80 bg-white shadow-card
-           dark:border-white/[0.07] dark:bg-ink-900 dark:shadow-none;
+  .glass {
+    @apply border border-ink-200/70 bg-white/70 backdrop-blur-xl
+           dark:border-white/10 dark:bg-white/[0.045];
   }
-  .card-raised {
-    @apply card dark:bg-ink-850;
+  /* Kraftigere variant til paneler der lægger sig OVEN PÅ indholdet. */
+  .glass-strong {
+    @apply border border-ink-200/80 bg-white/85 backdrop-blur-2xl
+           dark:border-white/[0.14] dark:bg-ink-900/80;
   }
 
+  .card {
+    @apply glass rounded-2xl shadow-card dark:shadow-none;
+  }
+  .card-raised {
+    @apply glass-strong rounded-2xl shadow-card dark:shadow-none;
+  }
+
+  /**
+   * Kort man kan trykke på: løfter sig og lysner ved hover, og synker
+   * ved klik. Det er forskellen på en flade og en knap.
+   */
+  .card-interactive {
+    @apply card transition-all duration-200 ease-spring
+           hover:-translate-y-0.5 hover:border-brand-300 hover:bg-white/90 hover:shadow-lift
+           active:translate-y-0 active:scale-[0.99]
+           dark:hover:border-brand-400/40 dark:hover:bg-white/[0.08];
+  }
+
+  /* active:scale er sat lavt med vilje — et tryk skal kunne mærkes. */
   .btn {
     @apply inline-flex select-none items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
-           transition-all duration-150 ease-spring active:scale-[0.97]
+           transition-all duration-150 ease-spring active:scale-[0.94]
            disabled:pointer-events-none disabled:opacity-40;
   }
   .btn-primary {
-    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-500
+    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-500 hover:shadow-glow
            dark:bg-brand-500 dark:hover:bg-brand-400 dark:shadow-inset;
   }
   .btn-secondary {
-    @apply btn border border-ink-200 bg-white text-ink-700 hover:border-ink-300 hover:bg-ink-50
-           dark:border-white/10 dark:bg-white/[0.04] dark:text-ink-100 dark:hover:bg-white/[0.08];
+    @apply btn border border-ink-200 bg-white/70 text-ink-700 backdrop-blur-sm
+           hover:border-ink-300 hover:bg-white
+           dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-ink-100 dark:hover:bg-white/[0.10];
   }
   .btn-ghost {
     @apply btn text-ink-500 hover:bg-ink-100 hover:text-ink-800
@@ -80,15 +138,23 @@
   }
 
   .field {
-    @apply w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-base text-ink-900
-           transition-colors placeholder:text-ink-400 focus:border-brand-500
-           dark:border-white/10 dark:bg-white/[0.04] dark:text-ink-50 dark:placeholder:text-ink-500
+    @apply w-full rounded-xl border border-ink-200 bg-white/80 px-3.5 py-2.5 text-base text-ink-900
+           backdrop-blur-sm transition-colors placeholder:text-ink-400 focus:border-brand-500
+           dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-ink-50 dark:placeholder:text-ink-500
            dark:focus:border-brand-400;
   }
 
   /* Overskrift over en sektion — små versaler, aldrig i konkurrence med sidens titel. */
   .eyebrow {
     @apply text-[11px] font-bold uppercase tracking-[0.12em] text-ink-400 dark:text-ink-500;
+  }
+
+  /**
+   * Neon-gradienten til XP. Den bruges kun ét sted, og det er meningen:
+   * hvis alt lyser, betyder det ingenting at noget lyser.
+   */
+  .neon-xp {
+    background-image: linear-gradient(90deg, #4ade80 0%, #84cc16 28%, #22d3ee 68%, #6366f1 100%);
   }
 
   /* Blank stribe der løber hen over et element mens noget indlæses. */

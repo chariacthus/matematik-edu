@@ -6,8 +6,8 @@ import { MathBlock, MathText } from './MathText';
 import { Icon } from './Icon';
 import { Visual } from './visuals/Visual';
 import { AnswerInput, InputHint, type Verdict } from './AnswerInput';
-import { Callout, Chip, Disclosure, LevelDots, Modal, XpPop } from './ui';
-import { TutorPanel } from './TutorPanel';
+import { Callout, Chip, Disclosure, LevelDots, XpPop } from './ui';
+import { TutorDock } from './TutorDock';
 import { feedbackForWrongAnswer } from '../tutor/tutor';
 import { getMisconception } from '../content/misconceptions';
 
@@ -135,8 +135,10 @@ export function ProblemCard({
     <article
       className={clsx(
         'card relative overflow-visible transition-colors duration-300',
-        verdict === 'correct' && 'border-xp-400 dark:border-xp-500/50',
-        verdict === 'wrong' && 'border-bad-400 dark:border-bad-500/50',
+        // Grønt pulsslag ved rigtigt svar, ryst ved forkert. Begge slås
+        // fra af prefers-reduced-motion.
+        verdict === 'correct' && 'animate-pulse-correct border-xp-400 dark:border-xp-400',
+        verdict === 'wrong' && 'animate-shake border-bad-400 dark:border-bad-500/60',
       )}
     >
       {xpPop && xpOnCorrect ? <XpPop amount={xpOnCorrect} onDone={() => setXpPop(false)} /> : null}
@@ -295,20 +297,18 @@ export function ProblemCard({
         ) : null}
       </div>
 
-      <Modal open={tutorOpen} onClose={() => setTutorOpen(false)} title="AI-lærer" wide>
-        <div className="h-[65vh]">
-          <TutorPanel
-            problem={problem}
-            skill={skill}
-            state={state}
-            attemptedWrong={tries > 0 && verdict === 'wrong'}
-            // At spørge læreren tæller som hjælp, præcis som et hint.
-            // Ellers kunne man få hele vejen forklaret uden at det
-            // påvirkede vurderingen af hvor sikkert emnet sidder.
-            onHintUsed={() => setHintsShown((h) => Math.min(h + 1, problem.hints.length + 3))}
-          />
-        </div>
-      </Modal>
+      <TutorDock
+        open={tutorOpen}
+        onClose={() => setTutorOpen(false)}
+        problem={problem}
+        skill={skill}
+        state={state}
+        attemptedWrong={tries > 0 && verdict === 'wrong'}
+        // At spørge læreren tæller som hjælp, præcis som et hint. Ellers
+        // kunne man få hele vejen forklaret uden at det påvirkede
+        // vurderingen af hvor sikkert emnet sidder.
+        onHintUsed={() => setHintsShown((h) => Math.min(h + 1, problem.hints.length + 3))}
+      />
     </article>
   );
 }

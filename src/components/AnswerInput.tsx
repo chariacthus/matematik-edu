@@ -40,9 +40,9 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
 
   const ring =
     verdict === 'correct'
-      ? 'border-good-500 ring-2 ring-good-500/30'
+      ? 'border-xp-500 ring-2 ring-xp-500/35'
       : verdict === 'wrong'
-        ? 'border-bad-500 ring-2 ring-bad-500/30 animate-shake'
+        ? 'border-bad-500 ring-2 ring-bad-500/35'
         : '';
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -69,21 +69,27 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
               onClick={() => onChange({ kind: 'choice', index: i })}
               onDoubleClick={onSubmit}
               className={clsx(
-                'flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-base transition-all',
-                'disabled:opacity-60',
+                'flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-base',
+                'transition-all duration-150 ease-spring active:scale-[0.98] disabled:opacity-60',
                 isSelected
                   ? verdict === 'correct'
-                    ? 'border-good-500 bg-good-100 dark:bg-good-900/30'
+                    ? 'animate-pulse-correct border-xp-500 bg-xp-100 dark:bg-xp-500/15'
                     : verdict === 'wrong'
-                      ? 'border-bad-500 bg-bad-100 animate-shake dark:bg-bad-900/30'
-                      : 'border-brand-500 bg-brand-50 dark:bg-brand-950/50'
-                  : 'border-ink-200 bg-white hover:border-ink-300 dark:border-ink-700 dark:bg-ink-800 dark:hover:border-ink-600',
+                      ? 'animate-shake border-bad-500 bg-bad-100 dark:bg-bad-500/15'
+                      : 'border-brand-500 bg-brand-50 shadow-glow dark:bg-brand-500/15'
+                  : 'border-ink-200 bg-white/70 backdrop-blur-sm hover:-translate-y-0.5 hover:border-brand-300 hover:bg-white dark:border-white/[0.09] dark:bg-white/[0.04] dark:hover:border-brand-400/50 dark:hover:bg-white/[0.08]',
               )}
             >
               <span
                 className={clsx(
-                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold',
-                  isSelected ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-500 dark:bg-ink-700 dark:text-ink-300',
+                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-extrabold transition-colors',
+                  isSelected
+                    ? verdict === 'correct'
+                      ? 'bg-xp-500 text-ink-950'
+                      : verdict === 'wrong'
+                        ? 'bg-bad-500 text-white'
+                        : 'bg-brand-600 text-white'
+                    : 'bg-ink-100 text-ink-500 dark:bg-white/[0.08] dark:text-ink-300',
                 )}
                 aria-hidden
               >
@@ -119,8 +125,11 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
                 })
               }
               className={clsx(
-                'flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all disabled:opacity-60',
-                isSelected ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/50' : 'border-ink-200 bg-white dark:border-ink-700 dark:bg-ink-800',
+                'flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left',
+                'transition-all duration-150 ease-spring active:scale-[0.98] disabled:opacity-60',
+                isSelected
+                  ? 'border-brand-500 bg-brand-50 shadow-glow dark:bg-brand-500/15'
+                  : 'border-ink-200 bg-white/70 hover:border-brand-300 dark:border-white/[0.09] dark:bg-white/[0.04]',
               )}
             >
               <span className={clsx('flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2', isSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-ink-300 dark:border-ink-600')} aria-hidden>
