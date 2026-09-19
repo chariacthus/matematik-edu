@@ -178,7 +178,7 @@ function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: (
           { label: 'Tid brugt', value: `${result.minutesUsed} min` },
         ].map((s) => (
           <Card key={s.label} pad="sm" className="text-center">
-            <p className="text-lg font-extrabold tabular-nums">{s.value}</p>
+            <p className="num text-lg font-extrabold">{s.value}</p>
             <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-400">{s.label}</p>
           </Card>
         ))}
@@ -208,7 +208,7 @@ function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: (
 
       {result.weakSkills.length ? (
         <section className="mt-5">
-          <SectionTitle hint="tryk for at træne">Det du skal øve</SectionTitle>
+          <SectionTitle>Det du skal øve</SectionTitle>
           <ul className="space-y-2">
             {result.weakSkills.slice(0, 6).map((w) => (
               <Card key={w.skillId} as="li" pad="sm">

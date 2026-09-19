@@ -166,7 +166,7 @@ export function ProfilePage() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <Card pad="sm" className="text-center">
-      <p className="text-xl font-extrabold tabular-nums">{value}</p>
+      <p className="num text-xl font-extrabold">{value}</p>
       <p className="mt-0.5 text-[11px] uppercase tracking-wide text-ink-500 dark:text-ink-400">{label}</p>
     </Card>
   );

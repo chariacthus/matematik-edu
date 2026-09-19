@@ -127,7 +127,7 @@ export function CountUp({ value, duration = 650, className }: { value: number; d
     return () => cancelAnimationFrame(raf.current);
   }, [value, duration]);
 
-  return <span className={clsx('tabular-nums', className)}>{shown}</span>;
+  return <span className={clsx('num', className)}>{shown}</span>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -202,7 +202,7 @@ export function ProgressRing({
           className={clsx('transition-[stroke-dashoffset] duration-[900ms] ease-spring', colour)}
         />
       </svg>
-      <span className="absolute text-[11px] font-extrabold tabular-nums">{children ?? `${Math.round(pct)}%`}</span>
+      <span className="absolute text-[11px] num font-extrabold">{children ?? `${Math.round(pct)}%`}</span>
     </div>
   );
 }
@@ -329,7 +329,7 @@ export function LevelBadge({
       ) : null}
       <span
         className={clsx(
-          'flex items-center justify-center rounded-xl font-extrabold tabular-nums',
+          'flex items-center justify-center rounded-xl num font-extrabold',
           box,
           celebrate && 'animate-level-pop',
           dim
@@ -391,7 +391,7 @@ export function StreakStrip({ days, active }: { days: boolean[]; active: number 
           filled
           className={clsx(active > 0 ? 'animate-flame-glow text-orange-400' : 'text-ink-300 dark:text-ink-600')}
         />
-        <span className="text-xl font-extrabold tabular-nums leading-none">{active}</span>
+        <span className="num text-xl font-extrabold leading-none">{active}</span>
       </span>
 
       <div className="flex gap-1">
@@ -694,7 +694,7 @@ export function StatRow({ stats }: { stats: { label: string; value: string; tone
         <div key={s.label} className="px-2 py-3 text-center">
           <p
             className={clsx(
-              'text-lg font-extrabold leading-none tabular-nums',
+              'num text-lg font-extrabold leading-none',
               s.tone === 'xp' && 'text-xp-600 dark:text-xp-400',
               s.tone === 'good' && 'text-good-600 dark:text-good-400',
               s.tone === 'warn' && 'text-warn-600 dark:text-warn-400',
