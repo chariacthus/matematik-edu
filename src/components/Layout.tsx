@@ -40,7 +40,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="sticky top-0 z-30 border-b border-ink-200/70 bg-ink-50/80 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/80">
+      <header className="shine-edge-b sticky top-0 z-30 border-b border-ink-200/40 bg-ink-50/80 backdrop-blur-xl dark:border-white/[0.04] dark:bg-ink-950/80">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-2.5">
           <a href={hrefFor({ name: 'dashboard' })} className="flex shrink-0 items-center gap-2 font-extrabold tracking-tight">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-inset">
@@ -101,7 +101,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
       {/* Mobilnavigation i bunden — tommelfingervenlig */}
       {profile.onboarded ? (
         <nav
-          className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-ink-200 bg-white/90 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/90 sm:hidden"
+          className="shine-edge-t safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-ink-200/40 bg-white/90 backdrop-blur-xl dark:border-white/[0.04] dark:bg-ink-950/90 sm:hidden"
           aria-label="Hovedmenu"
         >
           <div className="mx-auto flex max-w-lg">

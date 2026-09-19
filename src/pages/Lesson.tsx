@@ -14,7 +14,7 @@ import { randomSeed } from '../lib/math';
 import { MathBlock, MathText } from './../components/MathText';
 import { Visual } from '../components/visuals/Visual';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, Chip, ComboMeter, EmptyState, ProgressBar } from '../components/ui';
+import { Callout, Card, Chip, ComboMeter, EmptyState } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { xpForAttempt } from '../engine/gamification';
 
@@ -433,24 +433,38 @@ function PhaseTrack({ phase, progress }: { phase: LessonPhase; progress: number 
   const overall = ((idx + within) / LESSON_PHASES.length) * 100;
 
   return (
-    <div>
-      <div className="mb-2 flex items-center justify-between text-xs">
+    <div
+      role="group"
+      aria-label={`Trin ${idx + 1} af 7: ${PHASE_LABELS[phase]}, ${Math.round(overall)} procent af forløbet`}
+    >
+      <div className="mb-2 flex items-baseline justify-between text-xs">
         <span className="font-bold text-brand-700 dark:text-brand-300">
           Trin {idx + 1} af 7 · {PHASE_LABELS[phase]}
         </span>
-        <span className="text-ink-500 dark:text-ink-400">{Math.round(overall)} %</span>
       </div>
-      <ProgressBar value={overall} label="Fremgang i forløbet" />
-      <ol className="mt-2 flex gap-1" aria-label="Forløbets syv trin">
+      {/*
+        Syv felter — ét pr. trin. Det trin man står på fyldes op mens
+        man løser opgaver, så stregen bevæger sig mens man arbejder.
+        Tidligere var der både en samlet procentlinje og de syv felter;
+        de sagde det samme, og den ene kunne undværes.
+      */}
+      <ol className="flex gap-1" aria-hidden>
         {LESSON_PHASES.map((p, i) => (
           <li
             key={p}
             className={clsx(
-              'h-1 flex-1 rounded-full transition-colors',
-              i < idx ? 'bg-good-500' : i === idx ? 'bg-brand-500' : 'bg-ink-200 dark:bg-ink-800',
+              'h-1.5 flex-1 overflow-hidden rounded-full',
+              i < idx ? 'bg-good-500' : 'bg-ink-200 dark:bg-white/[0.08]',
             )}
             title={PHASE_LABELS[p]}
-          />
+          >
+            {i === idx ? (
+              <span
+                className="neon-xp block h-full rounded-full transition-[width] duration-500 ease-spring"
+                style={{ width: `${Math.max(8, within * 100)}%` }}
+              />
+            ) : null}
+          </li>
         ))}
       </ol>
     </div>

@@ -114,7 +114,9 @@ export function buildPlan(ctx: PlanContext, limit = 6): PlanItem[] {
       kind: 'fortsaet',
       skillId: state.skillId,
       title: skill.name,
-      reason: `Du er i gang — du mangler ${Math.max(0, Math.round((1 - state.pKnown) * 100))}% for at have den sikkert inde.`,
+      // Sig hvor langt man ER, ikke hvor meget der mangler. "Du mangler
+      // 89%" lyder som om man ikke er kommet i gang.
+      reason: `Du er ${Math.round(state.pKnown * 100)} % inde. Fortsæt til den sidder.`,
       priority: 500 + Math.round(state.pKnown * 100),
       estimatedMinutes: 8,
     });

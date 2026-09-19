@@ -32,7 +32,10 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
   useEffect(() => {
     if (autoFocus && spec.kind !== 'choice' && spec.kind !== 'multi') {
       // Kort forsinkelse, så feltet ikke stjæler fokus mens siden skifter.
-      const t = setTimeout(() => ref.current?.focus(), 60);
+      // preventScroll: ellers ruller browseren feltet ind i billedet, og
+      // overskriften på lektionen forsvinder op bag den faste topbjælke
+      // i samme sekund man åbner den.
+      const t = setTimeout(() => ref.current?.focus({ preventScroll: true }), 60);
       return () => clearTimeout(t);
     }
     return undefined;
@@ -44,6 +47,10 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
       : verdict === 'wrong'
         ? 'border-bad-500 ring-2 ring-bad-500/35'
         : '';
+
+  // Kanten om feltet skifter farve med svaret, så man kan se det uden
+  // at læse feedbacken.
+  const shineTone = verdict === 'correct' ? 'shine-xp' : verdict === 'wrong' ? 'shine-bad' : '';
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !disabled) {
@@ -209,6 +216,9 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* Et <input> kan ikke selv bære et ::before, så kanten lægges på
+          en indpakning udenom. */}
+      <div className={clsx('field-shine w-full max-w-xs', shineTone)}>
       <input
         ref={ref}
         // Tal- og brøkfelter skal vise det numeriske tastatur på mobil,
@@ -217,7 +227,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
-        className={clsx('field max-w-xs font-mono text-lg', ring)}
+        className={clsx('field w-full font-mono text-lg', ring)}
         placeholder={placeholder}
         value={v}
         disabled={disabled}
@@ -225,6 +235,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
         onKeyDown={onKeyDown}
         aria-label="Dit svar"
       />
+      </div>
       {spec.kind === 'number' && spec.unit ? (
         <span className="text-base font-semibold text-ink-500 dark:text-ink-400">{spec.unit}</span>
       ) : null}

@@ -137,8 +137,12 @@ export function ProblemCard({
         'card relative overflow-visible transition-colors duration-300',
         // Grønt pulsslag ved rigtigt svar, ryst ved forkert. Begge slås
         // fra af prefers-reduced-motion.
-        verdict === 'correct' && 'animate-pulse-correct border-xp-400 dark:border-xp-400',
-        verdict === 'wrong' && 'animate-shake border-bad-400 dark:border-bad-500/60',
+        //
+        // Ved et rigtigt svar løber lyset desuden én gang rundt om
+        // kortet i grønt. Det er belønningen: man kan se den i
+        // øjenkrogen uden at skulle læse noget.
+        verdict === 'correct' && 'animate-pulse-correct shine-xp shine-2 shine-live border-xp-400 dark:border-xp-400',
+        verdict === 'wrong' && 'animate-shake shine-bad shine-2 border-bad-400 dark:border-bad-500/60',
       )}
     >
       {xpPop && xpOnCorrect ? <XpPop amount={xpOnCorrect} onDone={() => setXpPop(false)} /> : null}

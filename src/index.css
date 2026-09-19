@@ -1,3 +1,16 @@
+/**
+ * Skrifterne pakkes med appen i stedet for at hentes fra Google.
+ *
+ * Appen lover at virke uden internet, og en skrift der først dukker op
+ * når nettet er der, bryder det løfte. Variable udgaver, så alle
+ * vægtene ligger i én fil.
+ *
+ * Space Grotesk til overskrifter og tal - den har karakter og gør at
+ * et regnestykke ligner noget man har lyst til at røre ved. Plus
+ * Jakarta Sans til brødtekst, fordi den er rolig at læse i småt.
+ */
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/plus-jakarta-sans';
 @import 'katex/dist/katex.min.css';
 
 @tailwind base;
@@ -49,8 +62,20 @@
       radial-gradient(32vmax 32vmax at 52% 98%, rgba(132, 204, 22, 0.13), transparent 62%);
   }
 
-  /* Overskrifter strammes ind — det er halvdelen af at se moderne ud. */
-  h1, h2, h3 { letter-spacing: -0.021em; }
+  /**
+   * Overskrifter og tal sættes i Space Grotesk.
+   *
+   * Den har en bredere, mere kantet form end brødteksten, så en titel
+   * og et regnestykke skiller sig ud uden at skulle skrues op i
+   * størrelse. Brødteksten bliver i Plus Jakarta Sans, som er roligere
+   * at læse i mange linjer.
+   */
+  h1, h2, h3, h4 {
+    @apply font-display;
+    letter-spacing: -0.024em;
+  }
+  /* Tal er halvdelen af indholdet her - de fortjener samme behandling. */
+  .num { @apply font-display; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 
   /* Tal skal ikke hoppe når de tæller op. */
   .tabular, .tabular-nums { font-variant-numeric: tabular-nums; }
@@ -64,6 +89,19 @@
     @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-ink-50 dark:ring-offset-ink-950;
   }
 
+  /**
+   * Skrivefelter får en tættere markering.
+   *
+   * Den almindelige fokusring ligger 2px uden for elementet. På et felt
+   * der i forvejen har en kant, giver det to ringe uden om hinanden, og
+   * feltet ser ud til at have dobbelt kant. Her lægger ringen sig i
+   * stedet klods op ad kanten, så det læses som én markering.
+   */
+  .field:focus-visible,
+  .field:focus {
+    @apply outline-none ring-2 ring-brand-500/40 ring-offset-0;
+  }
+
   input[type='number']::-webkit-outer-spin-button,
   input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
@@ -73,7 +111,239 @@
   ::-webkit-scrollbar-track { background: transparent; }
 }
 
+/**
+ * Skinnende kanter.
+ *
+ * En almindelig kant er én farve hele vejen rundt. Her ligger der i
+ * stedet en farveovergang i kanten, så den skifter tone fra hjørne til
+ * hjørne - som lys der falder hen over noget metal.
+ *
+ * Trikket: et ::before fylder hele elementet, får farveovergangen som
+ * baggrund, og maskeres så kun de yderste 1-2 pixels står tilbage. To
+ * masker lagt oven på hinanden - hele elementet minus indholdsfeltet -
+ * giver en ring. Det virker oven på glas, hvor det sædvanlige
+ * background-clip-trick fejler, fordi baggrunden her er gennemsigtig.
+ *
+ * Vinklen er en rigtig custom property med @property, så browseren ved
+ * den er en vinkel og kan regne mellemtrin ud. Uden den kan en
+ * conic-gradient ikke animeres.
+ */
+@property --shine-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
 @layer components {
+  .shine,
+  .card,
+  .card-raised,
+  .btn-primary,
+  .btn-secondary,
+  .btn-xp,
+  .chip,
+  .field-shine {
+    /* Farverne kan skiftes pr. element - se tonerne nedenfor. */
+    --shine-from: theme('colors.brand.400');
+    --shine-via: theme('colors.accent.300');
+    --shine-to: theme('colors.brand.600');
+    --shine-width: 1px;
+    --shine-opacity: 0.9;
+    position: relative;
+    isolation: isolate;
+  }
+  .shine::before,
+  .card::before,
+  .card-raised::before,
+  .btn-primary::before,
+  .btn-secondary::before,
+  .btn-xp::before,
+  .chip::before,
+  .field-shine::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    padding: var(--shine-width);
+    background: linear-gradient(135deg, var(--shine-from), var(--shine-via) 45%, var(--shine-to));
+    opacity: var(--shine-opacity);
+    pointer-events: none;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    transition: opacity 0.25s ease;
+  }
+  /* I lyst tema skal kanten kunne ses mod hvidt - derfor mørkere toner. */
+  html:not(.dark) .shine,
+  html:not(.dark) .card,
+  html:not(.dark) .card-raised,
+  html:not(.dark) .btn-primary,
+  html:not(.dark) .btn-secondary,
+  html:not(.dark) .btn-xp,
+  html:not(.dark) .chip,
+  html:not(.dark) .field-shine {
+    --shine-from: theme('colors.brand.500');
+    --shine-via: theme('colors.accent.400');
+    --shine-to: theme('colors.brand.700');
+    --shine-opacity: 0.75;
+  }
+
+  /**
+   * Toner. Kanten skal sige hvad elementet handler om.
+   *
+   * html-præfikset er der for specificitetens skyld: reglerne for lyst
+   * tema ovenfor er mere specifikke end en enkelt klasse, og uden det
+   * ville et grønt kort få den blå standardkant i lyst tema.
+   */
+  html .shine-xp { --shine-from: theme('colors.xp.400'); --shine-via: theme('colors.accent.400'); --shine-to: theme('colors.xp.500'); --shine-opacity: 0.95; }
+  html .shine-good { --shine-from: theme('colors.good.400'); --shine-via: theme('colors.xp.400'); --shine-to: theme('colors.good.500'); --shine-opacity: 0.95; }
+  html .shine-warn { --shine-from: theme('colors.warn.300'); --shine-via: theme('colors.warn.500'); --shine-to: theme('colors.warn.400'); --shine-opacity: 0.95; }
+  html .shine-bad { --shine-from: theme('colors.bad.300'); --shine-via: theme('colors.bad.500'); --shine-to: theme('colors.bad.400'); --shine-opacity: 0.95; }
+  html .shine-accent { --shine-from: theme('colors.accent.300'); --shine-via: theme('colors.brand.400'); --shine-to: theme('colors.accent.500'); }
+  /* Neutral: kanten skinner, men trækker ingen opmærksomhed. */
+  .shine-quiet { --shine-opacity: 0.3; }
+
+
+  /**
+   * Fladerne bærer selve kanten.
+   *
+   * Den flade kant fra .glass slukkes, så farveforløbet ikke skal kæmpe
+   * med en grå streg ovenpå. Den bliver stående som en svag rest, så
+   * kortet stadig har en form hvis masken ikke virker i browseren.
+   */
+  .card, .card-raised {
+    --shine-opacity: 0.7;
+    @apply border-ink-200/40 dark:border-white/[0.06];
+  }
+  html:not(.dark) .card,
+  html:not(.dark) .card-raised { --shine-opacity: 0.55; }
+  /* Kortet lyser op når man peger på det. */
+  .card-interactive:hover::before { opacity: 0.85; }
+
+  /* Knapper er til at trykke på - de må godt lyse. */
+  .btn-primary, .btn-secondary, .btn-xp { --shine-opacity: 0.85; }
+  .btn-primary:hover::before,
+  .btn-secondary:hover::before,
+  .btn-xp:hover::before { opacity: 1; }
+  .btn-xp { --shine-from: theme('colors.xp.300'); --shine-via: theme('colors.good.300'); --shine-to: theme('colors.accent.300'); }
+  .btn-primary { --shine-from: theme('colors.brand.300'); --shine-via: theme('colors.accent.300'); --shine-to: theme('colors.brand.400'); }
+
+  /* Chips er små - en tynd, rolig kant. */
+  .chip { --shine-width: 1px; --shine-opacity: 0.5; }
+  html:not(.dark) .chip { --shine-opacity: 0.38; }
+
+  /**
+   * Skrivefelter kan ikke selv have et ::before, så feltet pakkes ind i
+   * en .field-shine der bærer kanten.
+   */
+  .field-shine { --shine-opacity: 0.35; border-radius: theme('borderRadius.xl'); }
+  .field-shine:focus-within::before { opacity: 1; }
+  .field-shine > .field {
+    @apply border-transparent bg-white/80 dark:border-transparent dark:bg-white/[0.05];
+  }
+
+  /* Kraftigere kant til det der skal træde frem. */
+  .shine-2 { --shine-width: 1.5px; --shine-opacity: 0.8; }
+
+  /**
+   * Skinnende kantlinje på bjælker der sidder klods op ad skærmkanten.
+   *
+   * En ring hele vejen rundt ville tegne en streg langs skærmens kant,
+   * hvor der ikke er nogen kant. Her er det kun den ene side der
+   * lyser, og den fader ud i begge ender.
+   */
+  .shine-edge-b, .shine-edge-t { position: relative; }
+  .shine-edge-b::after, .shine-edge-t::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      theme('colors.brand.400') 22%,
+      theme('colors.accent.300') 50%,
+      theme('colors.brand.400') 78%,
+      transparent
+    );
+    opacity: 0.55;
+  }
+  .shine-edge-b::after { bottom: -1px; }
+  .shine-edge-t::after { top: -1px; }
+  html:not(.dark) .shine-edge-b::after,
+  html:not(.dark) .shine-edge-t::after { opacity: 0.4; }
+
+  /* Kanten lyser op når man peger på elementet. */
+  .shine-hover:hover::before { opacity: 1; }
+
+  /**
+   * Levende kant: lyset løber rundt om elementet.
+   *
+   * Kun til det ene element der er i fokus lige nu. Kører den på alt,
+   * bliver siden umulig at læse matematik i.
+   */
+  .shine-live::before {
+    background:
+      conic-gradient(
+        from var(--shine-angle),
+        transparent 0deg,
+        var(--shine-from) 55deg,
+        var(--shine-via) 110deg,
+        var(--shine-to) 150deg,
+        transparent 210deg,
+        transparent 360deg
+      ),
+      linear-gradient(135deg, var(--shine-from), var(--shine-via) 45%, var(--shine-to));
+    opacity: 0.9;
+    animation: shine-spin 4.5s linear infinite;
+  }
+  @keyframes shine-spin {
+    to { --shine-angle: 360deg; }
+  }
+
+  /* På en farvet flade skal lyset være lyst for at kunne ses. */
+  html .shine.shine-live {
+    --shine-from: #ffffff;
+    --shine-via: theme('colors.accent.200');
+    --shine-to: theme('colors.xp.300');
+    --shine-opacity: 0.95;
+  }
+
+  /**
+   * Glimt der stryger hen over fladen.
+   *
+   * Ligger i et ::after, så det ikke rører ved elementets egen
+   * baggrund. Kun ved hover - ellers blinker hele siden.
+   */
+  /* .card-interactive står med her frem for via @apply: @apply kopierer
+     kun klassens egne erklæringer, ikke dens ::after. */
+  .sheen, .card-interactive { position: relative; overflow: hidden; }
+  .sheen::after, .card-interactive::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.16) 48%, transparent 58%);
+    transform: translateX(-120%);
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .sheen:hover::after, .card-interactive:hover::after { transform: translateX(120%); }
+
+  /* Ingen løbende lys for den der har bedt om ro. */
+  @media (prefers-reduced-motion: reduce) {
+    .shine-live::before { animation: none; }
+    .sheen::after, .card-interactive::after { transition: none; }
+  }
+
   /**
    * Glasflader.
    *

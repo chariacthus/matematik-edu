@@ -10,7 +10,7 @@ import { navigate } from '../lib/router';
 import { DAY_MS, dayKey, relativeDays } from '../lib/dates';
 import { Icon, type IconName } from '../components/Icon';
 import {
-  Callout, Card, Chip, CountUp, EmptyState, IconTile, LevelBadge,
+  Callout, Card, Chip, CountUp, EmptyState, IconTile,
   ProgressBar, ProgressRing, SectionTitle, Segmented, StreakStrip, XpBar,
 } from '../components/ui';
 
@@ -59,18 +59,9 @@ export function DashboardPage() {
     <div className="animate-fade-in">
       {/* HUD */}
       <section className="mb-5">
-        <div className="mb-3 flex items-end justify-between gap-4">
-          <div className="min-w-0">
-            <p className="eyebrow mb-1">{hour < 10 ? 'Godmorgen' : hour < 17 ? 'Eftermiddag' : 'Godaften'}</p>
-            <h1 className="truncate text-[28px] font-extrabold leading-[1.1]">{profile.name || 'Kom i gang'}</h1>
-          </div>
-          <button
-            onClick={() => navigate({ name: 'profile' })}
-            className="flex shrink-0 items-center gap-2 rounded-xl px-1 py-1 transition-colors hover:bg-ink-100 dark:hover:bg-white/[0.06]"
-            title={levelTitle(level.level)}
-          >
-            <LevelBadge level={level.level} size="lg" />
-          </button>
+        <div className="mb-3 min-w-0">
+          <p className="eyebrow mb-1">{hour < 10 ? 'Godmorgen' : hour < 17 ? 'Eftermiddag' : 'Godaften'}</p>
+          <h1 className="truncate text-[28px] font-extrabold leading-[1.1]">{profile.name || 'Kom i gang'}</h1>
         </div>
 
         <Card pad="lg" className="space-y-4">
@@ -115,7 +106,7 @@ export function DashboardPage() {
       {/* Dagens mål */}
       {first ? (
         <section className="mb-6">
-          <SectionTitle hint="tryk for at starte">Dagens Missioner</SectionTitle>
+          <SectionTitle>Dagens Missioner</SectionTitle>
           <MissionCard item={first} />
         </section>
       ) : null}
@@ -271,7 +262,7 @@ function MissionCard({ item }: { item: PlanItem }) {
   return (
     <button
       onClick={() => go(item)}
-      className="group relative w-full overflow-hidden rounded-2xl border border-brand-400/40 bg-gradient-to-br from-brand-500/95 via-brand-600 to-brand-700 p-5 text-left text-white shadow-glow backdrop-blur-xl transition-all duration-200 ease-spring hover:-translate-y-1 hover:shadow-[0_0_0_1px_rgba(99,102,241,0.5),0_16px_48px_-12px_rgba(99,102,241,0.7)] active:translate-y-0 active:scale-[0.99]"
+      className="shine shine-2 shine-live group relative w-full overflow-hidden rounded-2xl border border-transparent bg-gradient-to-br from-brand-500/95 via-brand-600 to-brand-700 p-5 text-left text-white shadow-glow backdrop-blur-xl transition-all duration-200 ease-spring hover:-translate-y-1 hover:shadow-[0_0_0_1px_rgba(99,102,241,0.5),0_16px_48px_-12px_rgba(99,102,241,0.7)] active:translate-y-0 active:scale-[0.99]"
     >
       {/* To bløde lysfelter, så fladen ikke er død — og en glans der
           løber hen over kortet ved hover. */}

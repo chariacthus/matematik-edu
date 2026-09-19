@@ -73,7 +73,20 @@ page.on('console', (m) => {
   }
 });
 page.on('requestfailed', (r) => {
-  if (!/fonts\.(googleapis|gstatic)\.com/.test(r.url())) errors.push(`request: ${r.url()}`);
+  // ERR_ABORTED betyder at vi selv navigerede væk mens hentningen kørte.
+  // Det sker hver gang testen skifter rute hurtigt, og siger intet om
+  // appen. Alt andet er en rigtig netværksfejl.
+  const reason = r.failure()?.errorText ?? '';
+  if (reason.includes('ERR_ABORTED')) return;
+  errors.push(`request: ${r.url()} (${reason})`);
+});
+// En fil der ikke findes giver ikke requestfailed, men et svar med 404.
+// Uden det her ville en manglende skrift eller et manglende asset gå
+// stille igennem.
+page.on('response', (r) => {
+  if (r.status() >= 400 && r.url().startsWith('http://127.0.0.1:4173/')) {
+    errors.push(`http ${r.status()}: ${r.url()}`);
+  }
 });
 
 const step = async (name, fn) => {
@@ -131,6 +144,31 @@ try {
     await page.getByText('Dagens Missioner').waitFor({ timeout: 5000 });
   });
   await shot('04-forside');
+
+  await step('kort lyser og får et glimt når man peger på dem', async () => {
+    const card = page.locator('.card-interactive').first();
+    await card.waitFor({ timeout: 5000 });
+    // Musen bliver liggende hvor der sidst blev klikket. Flyt den væk,
+    // ellers står kortet allerede i hover-tilstand når vi måler.
+    await page.mouse.move(2, 2);
+    await page.waitForTimeout(800);
+    const before = await card.evaluate((el) => getComputedStyle(el, '::after').transform);
+    await card.hover();
+    await page.waitForTimeout(400);
+    const after = await card.evaluate((el) => ({
+      sheen: getComputedStyle(el, '::after').transform,
+      ring: getComputedStyle(el, '::before').opacity,
+    }));
+    // @apply kopierer ikke ::after fra en klasse, så glimtet er stille
+    // forsvundet én gang før. Her fanges det.
+    if (before === 'none' || after.sheen === 'none') {
+      throw new Error('glimtet findes ikke på kortet - ::after mangler');
+    }
+    if (after.sheen === before) {
+      throw new Error(`glimtet bevæger sig ikke ved hover (${before})`);
+    }
+    if (Number(after.ring) < 0.5) throw new Error(`kanten lyser ikke op ved hover (${after.ring})`);
+  });
 
   await step('åbner biblioteket', async () => {
     await page.goto('http://127.0.0.1:4173/#/bibliotek');
