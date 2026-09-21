@@ -10,20 +10,28 @@ export default {
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {
-        /* Flader: næsten sort i mørkt tema, køligt hvidt i lyst. */
+        /**
+         * Flader og tekst.
+         *
+         * Neutrale gråtoner. De mørke trin var før blåstikkende og
+         * nærmest sorte (#0a0d14); det gjorde fladerne hårde og fik de
+         * farvede elementer til at skrige. Nu er 950 en mørk grå man
+         * kan se, og trinene op derfra er tætte nok til at et kort kan
+         * skille sig ud fra baggrunden uden en kraftig kant.
+         */
         ink: {
-          50: '#f7f8fa',
-          100: '#eef0f4',
-          200: '#dde1e9',
-          300: '#b9c0ce',
-          400: '#8b93a5',
-          500: '#646c80',
-          600: '#4a5265',
-          700: '#343b4c',
-          800: '#202634',
-          850: '#171c27',
-          900: '#11151e',
-          950: '#0a0d14',
+          50: '#f8f9fa',
+          100: '#f0f1f3',
+          200: '#e0e2e6',
+          300: '#c3c7cd',
+          400: '#9096a0',
+          500: '#6b7078',
+          600: '#4a4e56',
+          700: '#34373d',
+          800: '#26282d',
+          850: '#1d1f23',
+          900: '#17181b',
+          950: '#0f1012',
         },
         /* Primær: elektrisk indigo. Bruges sparsomt og altid til handling. */
         brand: {
@@ -74,13 +82,21 @@ export default {
           500: '#f43f5e', 600: '#e11d48', 700: '#be123c', 900: '#881337',
         },
       },
+      /**
+       * Skygger.
+       *
+       * Hver af dem starter med lysningen langs overkanten. En
+       * box-shadow erstatter hele værdien, så uden den her ville en
+       * shadow-utility slette kantlysningen fra .edge - og fladen ville
+       * se flad ud igen. Fallbacken gør at et element uden .edge bare
+       * får ingen lysning frem for at tabe hele skyggen.
+       */
       boxShadow: {
-        card: '0 1px 2px rgba(10,13,20,0.04), 0 4px 16px -8px rgba(10,13,20,0.12)',
-        lift: '0 2px 4px rgba(10,13,20,0.06), 0 16px 32px -16px rgba(10,13,20,0.30)',
-        /* Glød til aktive spil-elementer. */
-        glow: '0 0 0 1px rgba(99,102,241,0.35), 0 8px 32px -8px rgba(99,102,241,0.45)',
-        'glow-xp': '0 0 0 1px rgba(132,204,22,0.35), 0 8px 32px -8px rgba(132,204,22,0.45)',
-        inset: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+        card: 'inset 0 1px 0 0 var(--edge-top, transparent), 0 1px 2px rgba(15,16,18,0.04), 0 4px 16px -8px rgba(15,16,18,0.12)',
+        lift: 'inset 0 1px 0 0 var(--edge-top, transparent), 0 2px 4px rgba(0,0,0,0.10), 0 16px 40px -16px rgba(0,0,0,0.45)',
+        glow: 'inset 0 1px 0 0 var(--edge-top, transparent), 0 6px 24px -10px rgba(99,102,241,0.45)',
+        'glow-xp': 'inset 0 1px 0 0 var(--edge-top, transparent), 0 6px 24px -10px rgba(132,204,22,0.40)',
+        inset: 'inset 0 1px 0 rgba(255,255,255,0.10)',
       },
       borderRadius: { xl: '0.75rem', '2xl': '1rem', '3xl': '1.375rem' },
       backdropBlur: { xs: '2px' },

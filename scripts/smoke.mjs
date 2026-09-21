@@ -145,29 +145,33 @@ try {
   });
   await shot('04-forside');
 
-  await step('kort lyser og får et glimt når man peger på dem', async () => {
+  await step('kort har en kant og reagerer på hover', async () => {
     const card = page.locator('.card-interactive').first();
     await card.waitFor({ timeout: 5000 });
     // Musen bliver liggende hvor der sidst blev klikket. Flyt den væk,
     // ellers står kortet allerede i hover-tilstand når vi måler.
     await page.mouse.move(2, 2);
-    await page.waitForTimeout(800);
-    const before = await card.evaluate((el) => getComputedStyle(el, '::after').transform);
+    await page.waitForTimeout(500);
+    const read = () =>
+      card.evaluate((el) => {
+        const cs = getComputedStyle(el);
+        return { border: cs.borderTopColor, bg: cs.backgroundColor, shadow: cs.boxShadow };
+      });
+    const before = await read();
+    // Kanten er en rigtig kant plus en tynd lysning langs overkanten.
+    // Falder en af dem ud, ser fladerne flade ud igen.
+    if (/rgba\(0, 0, 0, 0\)|transparent/.test(before.border)) {
+      throw new Error(`kortet har ingen kant (${before.border})`);
+    }
+    if (!before.shadow.includes('inset')) {
+      throw new Error(`kortet mangler lysningen langs overkanten (${before.shadow})`);
+    }
     await card.hover();
     await page.waitForTimeout(400);
-    const after = await card.evaluate((el) => ({
-      sheen: getComputedStyle(el, '::after').transform,
-      ring: getComputedStyle(el, '::before').opacity,
-    }));
-    // @apply kopierer ikke ::after fra en klasse, så glimtet er stille
-    // forsvundet én gang før. Her fanges det.
-    if (before === 'none' || after.sheen === 'none') {
-      throw new Error('glimtet findes ikke på kortet - ::after mangler');
+    const after = await read();
+    if (after.border === before.border && after.bg === before.bg) {
+      throw new Error('kortet reagerer ikke på hover');
     }
-    if (after.sheen === before) {
-      throw new Error(`glimtet bevæger sig ikke ved hover (${before})`);
-    }
-    if (Number(after.ring) < 0.5) throw new Error(`kanten lyser ikke op ved hover (${after.ring})`);
   });
 
   await step('åbner biblioteket', async () => {
@@ -267,7 +271,7 @@ try {
     await page.getByRole('heading', { name: 'Indstillinger' }).waitFor({ timeout: 8000 });
   });
 
-  await step('dialogboksen har glas, kant og plads til sin tekst', async () => {
+  await step('dialogboksen har flade, kant og plads til sin tekst', async () => {
     await page.goto('http://127.0.0.1:4173/#/indstillinger');
     await page.getByRole('button', { name: 'Nulstil alt', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Nulstil alt?' });
@@ -279,12 +283,16 @@ try {
       return {
         height: Math.round(el.getBoundingClientRect().height),
         blur: cs.backdropFilter,
-        ring: getComputedStyle(el, '::before').content,
+        border: cs.borderTopColor,
+        shadow: cs.boxShadow,
       };
     });
     if (box.height < 160) throw new Error(`dialogboksen er kun ${box.height}px høj - teksten får ikke plads`);
     if (box.blur === 'none') throw new Error('dialogboksen har ikke glas som resten af appen');
-    if (box.ring === 'none') throw new Error('dialogboksen mangler den skinnende kant');
+    if (/rgba\(0, 0, 0, 0\)|transparent/.test(box.border)) {
+      throw new Error(`dialogboksen mangler sin kant (${box.border})`);
+    }
+    if (!box.shadow.includes('inset')) throw new Error('dialogboksen mangler lysningen langs overkanten');
     await page.getByText(/Det sletter din profil/).waitFor({ timeout: 5000 });
     await shot('19-dialog');
     await page.getByRole('button', { name: 'Luk', exact: true }).click();

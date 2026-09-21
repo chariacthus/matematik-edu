@@ -48,9 +48,9 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
         ? 'border-bad-500 ring-2 ring-bad-500/35'
         : '';
 
-  // Kanten om feltet skifter farve med svaret, så man kan se det uden
+  // Kanten om feltet skifter tone med svaret, så man kan se det uden
   // at læse feedbacken.
-  const shineTone = verdict === 'correct' ? 'shine-xp' : verdict === 'wrong' ? 'shine-bad' : '';
+  const edgeTone = verdict === 'correct' ? 'edge-xp' : verdict === 'wrong' ? 'edge-bad' : '';
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !disabled) {
@@ -216,9 +216,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {/* Et <input> kan ikke selv bære et ::before, så kanten lægges på
-          en indpakning udenom. */}
-      <div className={clsx('field-shine w-full max-w-xs', shineTone)}>
+      <div className={clsx('w-full max-w-xs', edgeTone)}>
       <input
         ref={ref}
         // Tal- og brøkfelter skal vise det numeriske tastatur på mobil,

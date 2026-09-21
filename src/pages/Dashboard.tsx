@@ -256,31 +256,34 @@ function MissionCard({ item }: { item: PlanItem }) {
   return (
     <button
       onClick={() => go(item)}
-      className="shine shine-2 shine-live group relative w-full overflow-hidden rounded-2xl border border-transparent bg-gradient-to-br from-brand-500/95 via-brand-600 to-brand-700 p-5 text-left text-white shadow-glow backdrop-blur-xl transition-all duration-200 ease-spring hover:-translate-y-1 hover:shadow-[0_0_0_1px_rgba(99,102,241,0.5),0_16px_48px_-12px_rgba(99,102,241,0.7)] active:translate-y-0 active:scale-[0.99]"
+      /*
+        Dagens mission var en helt indigo flade. Den råbte højere end
+        noget andet på siden og passede ikke til de rolige gråtoner.
+        Nu er den en flade som de andre - bare større, med en brandtonet
+        kant og en fyldt knap. Hierarkiet kommer fra størrelsen, ikke
+        fra farvemængden.
+      */
+      className="edge edge-brand card-interactive group flex w-full items-start gap-4 p-5 text-left"
     >
-      {/* To bløde lysfelter, så fladen ikke er død — og en glans der
-          løber hen over kortet ved hover. */}
-      <span className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/15 blur-3xl" aria-hidden />
-      <span className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-xp-400/20 blur-3xl" aria-hidden />
-      <span
-        className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-white/10 opacity-0 transition-all duration-700 group-hover:left-[110%] group-hover:opacity-100"
-        aria-hidden
-      />
-      <span className="relative flex items-start gap-3.5">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
-          <Icon name={style.icon} size={22} filled={style.icon === 'play'} />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[11px] font-bold uppercase tracking-[0.12em] text-white/70">{style.label}</span>
-          <span className="mt-0.5 block text-xl font-extrabold leading-tight">{item.title}</span>
-          <span className="mt-1.5 block text-sm leading-snug text-white/80">{item.reason}</span>
-          <span className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-2 py-1 text-[11px] font-bold">
-            <Icon name="clock" size={12} />
-            {item.estimatedMinutes} min
-          </span>
-        </span>
-        <Icon name="chevron" size={20} className="mt-1 shrink-0 text-white/60 transition-transform group-hover:translate-x-1" />
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-inset">
+        <Icon name={style.icon} size={22} filled={style.icon === 'play'} />
       </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600 dark:text-brand-300">
+          {style.label}
+        </span>
+        <span className="mt-0.5 block text-lg font-extrabold leading-tight">{item.title}</span>
+        <span className="mt-1.5 block text-sm leading-snug text-ink-500 dark:text-ink-400">{item.reason}</span>
+        <span className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-ink-100 px-2 py-1 text-[11px] font-bold text-ink-600 dark:bg-white/[0.07] dark:text-ink-300">
+          <Icon name="clock" size={12} />
+          {item.estimatedMinutes} min
+        </span>
+      </span>
+      <Icon
+        name="chevron"
+        size={20}
+        className="mt-1 shrink-0 text-ink-400 transition-transform group-hover:translate-x-0.5"
+      />
     </button>
   );
 }

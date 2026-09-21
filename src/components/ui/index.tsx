@@ -321,11 +321,11 @@ export function XpBar({
         <div
           className={clsx(
             'relative w-full overflow-hidden rounded-full border transition-shadow duration-500',
-            compact ? 'h-2.5' : 'h-4',
+            compact ? 'h-2.5' : 'h-3',
             levelUp
-              ? 'border-xp-300 shadow-glow-xp'
-              : 'border-ink-200/70 dark:border-white/10',
-            'bg-ink-200/60 dark:bg-black/40',
+              ? 'border-xp-400/60 shadow-glow-xp'
+              : 'border-ink-200 dark:border-white/[0.08]',
+            'bg-ink-100 dark:bg-ink-850',
           )}
           role="progressbar"
           aria-valuenow={Math.round(pct)}
@@ -337,12 +337,10 @@ export function XpBar({
             className="neon-xp relative h-full rounded-full transition-[width] duration-[900ms] ease-spring"
             style={{ width: `${Math.max(pct, pct > 0 ? 4 : 0)}%` }}
           >
-            {/* Indre glans, så bjælken ser rund ud frem for flad. */}
-            <span className="absolute inset-x-0 top-0 h-1/2 rounded-t-full bg-white/25" aria-hidden />
-            {/* Lysstribe der løber hen over — kun når der er noget at vise. */}
-            {pct > 8 ? (
-              <span className="absolute inset-y-0 w-10 animate-sheen bg-white/35 blur-[2px]" aria-hidden />
-            ) : null}
+            {/* En tynd lysning langs overkanten, samme greb som på
+                fladerne. Den løbende lysstribe er væk - den blinkede
+                konstant i udkanten af synsfeltet. */}
+            <span className="absolute inset-x-0 top-0 h-px rounded-t-full bg-white/30" aria-hidden />
           </div>
         </div>
 
@@ -629,7 +627,7 @@ export function Modal({
           aria-modal="true"
           aria-label={title}
           className={clsx(
-            'glass-strong shine flex max-h-[90vh] w-full animate-fade-up flex-col rounded-t-3xl border-transparent shadow-lift outline-none',
+            'glass-strong edge edge-strong flex max-h-[90vh] w-full animate-fade-up flex-col rounded-t-3xl shadow-lift outline-none',
             'sm:rounded-3xl',
             wide ? 'sm:max-w-2xl' : 'sm:max-w-md',
           )}
@@ -717,7 +715,7 @@ export function EmptyState({ icon, title, body, action }: { icon: IconName; titl
 export function Disclosure({ summary, children, defaultOpen }: { summary: string; children: ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen ?? false);
   return (
-    <div className="shine shine-quiet overflow-hidden rounded-xl border border-transparent">
+    <div className="edge overflow-hidden rounded-xl">
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold"
