@@ -414,6 +414,19 @@
            dark:focus:border-brand-400;
   }
 
+  /**
+   * Sidens titel.
+   *
+   * Størrelsen står ét sted. Før var den skrevet i hånden på hver side,
+   * og de var vokset fra hinanden: 24px her, 28px der, 30px på
+   * velkomstskærmen. Man kunne se det som et hop hver gang man skiftede
+   * side.
+   */
+  .title-page {
+    @apply font-display text-[28px] font-extrabold leading-[1.1];
+    letter-spacing: -0.024em;
+  }
+
   /* Overskrift over en sektion — små versaler, aldrig i konkurrence med sidens titel. */
   .eyebrow {
     @apply text-[11px] font-bold uppercase tracking-[0.12em] text-ink-400 dark:text-ink-500;

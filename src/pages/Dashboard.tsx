@@ -10,8 +10,8 @@ import { navigate } from '../lib/router';
 import { DAY_MS, dayKey, relativeDays } from '../lib/dates';
 import { Icon, type IconName } from '../components/Icon';
 import {
-  Callout, Card, Chip, CountUp, EmptyState, IconTile,
-  ProgressBar, ProgressRing, SectionTitle, Segmented, StreakStrip, XpBar,
+  Callout, Card, Chip, CountUp, EmptyState, IconTile, Page,
+  ProgressBar, ProgressRing, Section, Segmented, StreakStrip, XpBar,
 } from '../components/ui';
 
 type Tab = 'plan' | 'repetition' | 'fejl';
@@ -56,13 +56,11 @@ export function DashboardPage() {
   const hour = new Date().getHours();
 
   return (
-    <div className="animate-fade-in">
+    <Page className="animate-fade-in">
       {/* HUD */}
-      <section className="mb-5">
-        <div className="mb-3 min-w-0">
-          <p className="eyebrow mb-1">{hour < 10 ? 'Godmorgen' : hour < 17 ? 'Eftermiddag' : 'Godaften'}</p>
-          <h1 className="truncate text-[28px] font-extrabold leading-[1.1]">{profile.name || 'Kom i gang'}</h1>
-        </div>
+      <section>
+        <p className="eyebrow mb-1">{hour < 10 ? 'Godmorgen' : hour < 17 ? 'Eftermiddag' : 'Godaften'}</p>
+        <h1 className="title-page mb-3 truncate">{profile.name || 'Kom i gang'}</h1>
 
         <Card pad="lg" className="space-y-4">
           <div className="flex items-center justify-between gap-3">
@@ -90,13 +88,13 @@ export function DashboardPage() {
       </section>
 
       {behaviour.rushing ? (
-        <div className="mb-4">
+        <div>
           <Callout tone="warn" icon="clock">
             Du svarer hurtigere end opgaverne kan læses, og de fleste bliver forkerte. Læs opgaven færdig først.
           </Callout>
         </div>
       ) : behaviour.hintDependent ? (
-        <div className="mb-4">
+        <div>
           <Callout tone="brand" icon="bulb">
             Skriv første skridt ned selv, før du åbner et hint. Det er dér læringen sker.
           </Callout>
@@ -105,14 +103,13 @@ export function DashboardPage() {
 
       {/* Dagens mål */}
       {first ? (
-        <section className="mb-6">
-          <SectionTitle>Dagens Missioner</SectionTitle>
+        <Section title="Dagens Missioner">
           <MissionCard item={first} />
-        </section>
+        </Section>
       ) : null}
 
       {/* Resten */}
-      <section className="mb-6">
+      <section>
         <Segmented
           value={tab}
           onChange={setTab}
@@ -182,16 +179,14 @@ export function DashboardPage() {
       </section>
 
       {/* Kompetenceområder */}
-      <section className="mb-6">
-        <SectionTitle
-          action={
-            <button onClick={() => navigate({ name: 'library' })} className="text-xs font-bold text-brand-600 dark:text-brand-300">
-              Se kortet
-            </button>
-          }
-        >
-          Kompetenceområder
-        </SectionTitle>
+      <Section
+        title="Kompetenceområder"
+        action={
+          <button onClick={() => navigate({ name: 'library' })} className="text-xs font-bold text-brand-600 dark:text-brand-300">
+            Se kortet
+          </button>
+        }
+      >
         <div className="grid gap-2 sm:grid-cols-2">
           {CATEGORIES.map((cat) => {
             const inCat = domains.filter((d) => d.category === cat.id);
@@ -220,11 +215,10 @@ export function DashboardPage() {
             );
           })}
         </div>
-      </section>
+      </Section>
 
       {/* FP9 */}
-      <section>
-        <SectionTitle>Prøvetræning</SectionTitle>
+      <Section title="Prøvetræning">
         <button
           onClick={() => navigate({ name: 'exam' })}
           className="card-interactive group flex w-full items-center gap-3 p-4 text-left"
@@ -238,8 +232,8 @@ export function DashboardPage() {
           </span>
           <Icon name="chevron" size={18} className="shrink-0 text-ink-400 transition-transform group-hover:translate-x-0.5" />
         </button>
-      </section>
-    </div>
+      </Section>
+    </Page>
   );
 }
 

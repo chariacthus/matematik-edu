@@ -7,7 +7,7 @@ import { abilityToLevel, newSkillState } from '../engine/mastery';
 import { navigate } from '../lib/router';
 import { randomSeed } from '../lib/math';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, Chip, EmptyState, ProgressBar, SectionTitle } from '../components/ui';
+import { Callout, Card, Chip, EmptyState, Page, PageHeader, ProgressBar, Section } from '../components/ui';
 import { Icon } from '../components/Icon';
 
 /**
@@ -91,17 +91,14 @@ export function PracticePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-extrabold tracking-tight">Fri træning</h1>
-        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">
-          Øv lige så meget du vil. Her er der ingen faser og ingen mestring at miste — bare opgaver på dit niveau.
-        </p>
-      </header>
+    <Page>
+      <PageHeader
+        title="Fri træning"
+        subtitle="Øv lige så meget du vil. Her er der ingen faser og ingen mestring at miste — bare opgaver på dit niveau."
+      />
 
       {started.length ? (
-        <section>
-          <SectionTitle hint="dine niveauer følger med">Du er i gang med</SectionTitle>
+        <Section title="Du er i gang med" hint="dine niveauer følger med">
           <div className="grid gap-2 sm:grid-cols-2">
             {started.map((s) => {
               const st = skills[s.id]!;
@@ -126,7 +123,7 @@ export function PracticePage() {
               );
             })}
           </div>
-        </section>
+        </Section>
       ) : (
         <Callout tone="brand" icon="info">
           Du har ikke trænet nogen færdigheder endnu. Vælg et emne herunder, eller start et forløb fra forsiden — så
@@ -134,8 +131,7 @@ export function PracticePage() {
         </Callout>
       )}
 
-      <section>
-        <SectionTitle>Alle emner</SectionTitle>
+      <Section title="Alle emner">
         <div className="space-y-4">
           {DOMAINS.map((d) => (
             <div key={d.id}>
@@ -158,8 +154,8 @@ export function PracticePage() {
             </div>
           ))}
         </div>
-      </section>
-    </div>
+      </Section>
+    </Page>
   );
 }
 

@@ -4,7 +4,7 @@ import type { DomainId } from '../types';
 import { DOMAINS } from '../content';
 import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
-import { Card, IconTile } from '../components/ui';
+import { Card, CardTitle, IconTile } from '../components/ui';
 import { Icon } from '../components/Icon';
 
 /**
@@ -43,11 +43,11 @@ export function OnboardingPage() {
         <Icon name="sigma" size={38} />
       </div>
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">MatematikAI</h1>
+        <h1 className="title-page">MatematikAI</h1>
         <p className="mt-2 text-ink-500 dark:text-ink-400">Din personlige matematiklærer til 9. klasse — bygget efter Fælles Mål og FP9.</p>
       </div>
       <Card className="text-left">
-        <p className="mb-3 text-sm font-bold">Sådan virker det</p>
+        <CardTitle>Sådan virker det</CardTitle>
         <ul className="space-y-2.5 text-sm text-ink-600 dark:text-ink-300">
           {([
             ['map', 'En kort niveautest viser hvor du står i 21 emner.'],
@@ -171,7 +171,7 @@ export function OnboardingPage() {
 function Heading({ title, sub }: { title: string; sub: string }) {
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight">{title}</h1>
+      <h1 className="title-page">{title}</h1>
       <p className="mt-1.5 text-sm text-ink-500 dark:text-ink-400">{sub}</p>
     </div>
   );

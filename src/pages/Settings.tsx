@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { useStore } from '../state/store';
 import { exportAll } from '../lib/storage';
 import { navigate } from '../lib/router';
-import { Card, Chip, Modal, PageHeader, SectionTitle } from '../components/ui';
+import { Card, CardTitle, Chip, Modal, PageHeader, SectionTitle } from '../components/ui';
 import { MODELS, costOfUsageDkk, costPerQuestionDkk, formatDkk, getModel } from '../tutor/models';
 import { Icon } from '../components/Icon';
 
@@ -38,7 +38,7 @@ export function SettingsPage() {
         <SectionTitle>Udseende</SectionTitle>
         <Card className="space-y-4">
           <div>
-            <p className="mb-2 text-sm font-semibold">Tema</p>
+            <CardTitle>Tema</CardTitle>
             <div className="flex gap-2">
               {(['light', 'dark', 'system'] as const).map((t) => (
                 <button
@@ -92,7 +92,7 @@ export function SettingsPage() {
           {settings.useLlmTutor ? (
             <>
               <div>
-                <p className="mb-2 text-sm font-semibold">Vælg model</p>
+                <CardTitle>Vælg model</CardTitle>
                 <div className="space-y-2">
                   {MODELS.map((m) => {
                     const selected = settings.llmModel === m.id;

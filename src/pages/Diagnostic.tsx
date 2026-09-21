@@ -13,7 +13,7 @@ import { DOMAINS, domainName, getSkill } from '../content';
 import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, LabelledBar, ProgressBar, ProgressRing } from '../components/ui';
+import { Callout, Card, CardTitle, LabelledBar, ProgressBar, ProgressRing } from '../components/ui';
 import { Icon } from '../components/Icon';
 
 /**
@@ -142,7 +142,7 @@ function DiagnosticResult({
         <div className="mx-auto mb-3 flex h-16 w-16 animate-pop items-center justify-center rounded-3xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-glow">
           <Icon name="map" size={30} />
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Dit nuværende niveau</h1>
+        <h1 className="title-page">Dit nuværende niveau</h1>
         <p className="mt-1.5 text-sm text-ink-500 dark:text-ink-400">
           Baseret på {tested} af {DOMAINS.length} emner. Tallene ændrer sig hele tiden, efterhånden som du træner.
         </p>
@@ -162,7 +162,7 @@ function DiagnosticResult({
       ) : null}
 
       <Card>
-        <p className="mb-4 text-sm font-bold">Din profil, emne for emne</p>
+        <CardTitle>Din profil, emne for emne</CardTitle>
         <ul className="space-y-3">
           {rows.map((r) => (
             <li key={r.id}>

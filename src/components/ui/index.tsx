@@ -65,6 +65,55 @@ export function SectionTitle({ children, hint, action }: { children: ReactNode; 
   );
 }
 
+/**
+ * Sideskallen.
+ *
+ * Hver rute havde sin egen lodrette rytme - nogle sider brugte
+ * space-y-4, andre space-y-6, og en del satte mb-3/4/5 i hånden på hver
+ * sektion. Resultatet var at afstanden mellem to overskrifter skiftede
+ * alt efter hvilken side man stod på. Her ligger rytmen ét sted.
+ *
+ * Sektioner er søskende i samme flow, så de skal ikke selv sætte
+ * bundmargen. Det er det, der holder siderne ens.
+ */
+export function Page({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={clsx('space-y-6', className)}>{children}</div>;
+}
+
+/** En sektion på en side: overskrift plus indhold, med fast afstand. */
+export function Section({
+  title,
+  hint,
+  action,
+  children,
+  className,
+}: {
+  title?: ReactNode;
+  hint?: ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={className}>
+      {title ? <SectionTitle hint={hint} action={action}>{title}</SectionTitle> : null}
+      {children}
+    </section>
+  );
+}
+
+/**
+ * Overskrift inde i et kort.
+ *
+ * Adskilt fra SectionTitle, som er den lille versaloverskrift OVER et
+ * kort. De to roller var blandet sammen og skrevet i hånden hver gang,
+ * så den samme slags overskrift optrådte med fire forskellige vægte og
+ * tre forskellige bundmargener.
+ */
+export function CardTitle({ children, className }: { children: ReactNode; className?: string }) {
+  return <h3 className={clsx('mb-2.5 text-sm font-extrabold', className)}>{children}</h3>;
+}
+
 export function PageHeader({
   title,
   subtitle,
@@ -77,7 +126,7 @@ export function PageHeader({
   right?: ReactNode;
 }) {
   return (
-    <header className="mb-5">
+    <header>
       {back ? (
         <button onClick={back.onClick} className="btn-ghost -ml-2 mb-1 gap-1 px-2 py-1 text-xs">
           <Icon name="arrow-left" size={14} />
@@ -86,7 +135,7 @@ export function PageHeader({
       ) : null}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-[28px] font-extrabold leading-[1.1]">{title}</h1>
+          <h1 className="title-page">{title}</h1>
           {subtitle ? <p className="mt-1.5 text-sm text-ink-500 dark:text-ink-400">{subtitle}</p> : null}
         </div>
         {right ? <div className="shrink-0">{right}</div> : null}

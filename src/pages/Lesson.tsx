@@ -14,7 +14,7 @@ import { randomSeed } from '../lib/math';
 import { MathBlock, MathText } from './../components/MathText';
 import { Visual } from '../components/visuals/Visual';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, Chip, ComboMeter, EmptyState } from '../components/ui';
+import { Callout, Card, CardTitle, Chip, ComboMeter, EmptyState, Page, PageHeader } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { xpForAttempt } from '../engine/gamification';
 
@@ -178,32 +178,27 @@ export function LessonPage({ skillId }: { skillId: string }) {
   }
 
   return (
-    <div className="space-y-5">
-      <header>
-        <button
-          onClick={() => navigate({ name: 'domain', domainId: skill.domainId })}
-          className="btn-ghost -ml-2 mb-1 gap-1 px-2 py-1 text-xs"
-        >
-          <Icon name="arrow-left" size={14} />
-          {domainName(skill.domainId)}
-        </button>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-extrabold leading-tight">{skill.name}</h1>
-            <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{skill.goal}</p>
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1.5">
-            <ComboMeter streak={combo} />
-            {xpGained > 0 ? (
-              <span className="flex items-center gap-1 text-xs font-extrabold tabular-nums text-xp-600 dark:text-xp-400">
-                <Icon name="bolt" size={12} filled />+{xpGained} XP
-              </span>
-            ) : null}
-          </div>
-        </div>
-      </header>
-
-      <PhaseTrack phase={state.phase} progress={state.phaseProgress} />
+    <Page>
+      <div className="space-y-4">
+        <PageHeader
+          title={skill.name}
+          subtitle={skill.goal}
+          back={{ label: domainName(skill.domainId), onClick: () => navigate({ name: 'domain', domainId: skill.domainId }) }}
+          right={
+            <span className="flex flex-col items-end gap-1.5">
+              <ComboMeter streak={combo} />
+              {xpGained > 0 ? (
+                <span className="num flex items-center gap-1 text-xs font-extrabold text-xp-600 dark:text-xp-400">
+                  <Icon name="bolt" size={12} filled />+{xpGained} XP
+                </span>
+              ) : null}
+            </span>
+          }
+        />
+        {/* Trinstriben hører til overskriften, ikke til indholdet - derfor
+            tættere på den end sidens almindelige afstand. */}
+        <PhaseTrack phase={state.phase} progress={state.phaseProgress} />
+      </div>
 
       {levelNote ? (
         <Callout tone="brand" icon="chart">
@@ -224,12 +219,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
         />
       ) : problem ? (
         <>
-          <Card>
-            <p className="text-sm">
-              <span className="font-bold">{PHASE_LABELS[state.phase]}.</span>{' '}
-              <span className="text-ink-600 dark:text-ink-300">{PHASE_HELP[state.phase]}</span>
-            </p>
-          </Card>
+          <p className="-mt-1 text-sm text-ink-500 dark:text-ink-400">{PHASE_HELP[state.phase]}</p>
           <ProblemCard
             problem={problem}
             skill={skill}
@@ -265,7 +255,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
           </button>
         </div>
       ) : null}
-    </div>
+    </Page>
   );
 }
 
@@ -294,7 +284,7 @@ function ExplainStep({ skill, onDone }: { skill: Skill; onDone: () => void }) {
           case 'rule':
             return (
               <Card key={i}>
-                <p className="mb-2 text-sm font-extrabold">{block.title}</p>
+                <CardTitle>{block.title}</CardTitle>
                 <MathBlock tex={block.math} className="my-1 text-center" />
                 {block.body ? (
                   <p className="mt-2 text-sm text-ink-600 dark:text-ink-300"><MathText>{block.body}</MathText></p>
@@ -311,7 +301,7 @@ function ExplainStep({ skill, onDone }: { skill: Skill; onDone: () => void }) {
           case 'list':
             return (
               <Card key={i}>
-                {block.title ? <p className="mb-2 text-sm font-extrabold">{block.title}</p> : null}
+                {block.title ? <CardTitle>{block.title}</CardTitle> : null}
                 <ul className="space-y-1.5">
                   {block.items.map((item, j) => (
                     <li key={j} className="flex gap-2.5 text-sm leading-relaxed">
@@ -536,7 +526,7 @@ function MasteredScreen({
         <Icon name="star" size={40} filled />
       </div>
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">{skill.name} er mestret</h1>
+        <h1 className="title-page">{skill.name} er mestret</h1>
         <p className="mt-2 text-ink-600 dark:text-ink-300">{skill.goal}</p>
       </div>
 
