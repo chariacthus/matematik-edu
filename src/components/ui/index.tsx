@@ -629,19 +629,23 @@ export function Modal({
           aria-modal="true"
           aria-label={title}
           className={clsx(
-            'max-h-[90vh] w-full animate-fade-up overflow-y-auto rounded-t-3xl border border-ink-200 bg-white p-5 shadow-lift outline-none',
-            'dark:border-white/10 dark:bg-ink-900 sm:rounded-3xl',
+            'glass-strong shine flex max-h-[90vh] w-full animate-fade-up flex-col rounded-t-3xl border-transparent shadow-lift outline-none',
+            'sm:rounded-3xl',
             wide ? 'sm:max-w-2xl' : 'sm:max-w-md',
           )}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="mb-4 flex items-start justify-between gap-4">
-            <h3 className="text-lg font-extrabold">{title}</h3>
-            <button onClick={onClose} className="btn-ghost -mr-2 -mt-1 p-1.5" aria-label="Luk">
-              <Icon name="close" size={18} />
-            </button>
+          {/* Rulningen ligger indenfor, så den skinnende kant bliver
+              stående i stedet for at rulle op med indholdet. */}
+          <div className="min-h-0 flex-1 overflow-y-auto p-5">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <h3 className="text-lg font-extrabold">{title}</h3>
+              <button onClick={onClose} className="btn-ghost -mr-2 -mt-1 p-1.5" aria-label="Luk">
+                <Icon name="close" size={18} />
+              </button>
+            </div>
+            {children}
           </div>
-          {children}
         </div>
       </div>
     </Portal>
@@ -713,7 +717,7 @@ export function EmptyState({ icon, title, body, action }: { icon: IconName; titl
 export function Disclosure({ summary, children, defaultOpen }: { summary: string; children: ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen ?? false);
   return (
-    <div className="overflow-hidden rounded-xl border border-ink-200 dark:border-white/10">
+    <div className="shine shine-quiet overflow-hidden rounded-xl border border-transparent">
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold"

@@ -267,6 +267,30 @@ try {
     await page.getByRole('heading', { name: 'Indstillinger' }).waitFor({ timeout: 8000 });
   });
 
+  await step('dialogboksen har glas, kant og plads til sin tekst', async () => {
+    await page.goto('http://127.0.0.1:4173/#/indstillinger');
+    await page.getByRole('button', { name: 'Nulstil alt', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Nulstil alt?' });
+    await dialog.waitFor({ timeout: 5000 });
+    // Indholdet ruller indeni, så kanten kan blive stående. Går det galt,
+    // klapper boksen sammen om overskriften.
+    const box = await dialog.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return {
+        height: Math.round(el.getBoundingClientRect().height),
+        blur: cs.backdropFilter,
+        ring: getComputedStyle(el, '::before').content,
+      };
+    });
+    if (box.height < 160) throw new Error(`dialogboksen er kun ${box.height}px høj - teksten får ikke plads`);
+    if (box.blur === 'none') throw new Error('dialogboksen har ikke glas som resten af appen');
+    if (box.ring === 'none') throw new Error('dialogboksen mangler den skinnende kant');
+    await page.getByText(/Det sletter din profil/).waitFor({ timeout: 5000 });
+    await shot('19-dialog');
+    await page.getByRole('button', { name: 'Luk', exact: true }).click();
+    await dialog.waitFor({ state: 'detached', timeout: 5000 });
+  });
+
   await step('viser FP9-prøvetræning', async () => {
     await page.goto('http://127.0.0.1:4173/#/proeve');
     await page.getByRole('heading', { name: 'Prøvetræning' }).waitFor({ timeout: 8000 });

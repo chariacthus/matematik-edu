@@ -139,7 +139,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
                   : 'border-ink-200 bg-white/70 hover:border-brand-300 dark:border-white/[0.09] dark:bg-white/[0.04]',
               )}
             >
-              <span className={clsx('flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2', isSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-ink-300 dark:border-ink-600')} aria-hidden>
+              <span className={clsx('flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2', isSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-ink-300 dark:border-ink-600')} aria-hidden>
                 {isSelected ? '✓' : ''}
               </span>
               <MathText className="min-w-0 flex-1">{c}</MathText>
