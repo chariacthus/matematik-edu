@@ -335,6 +335,29 @@ try {
   });
   await shot('13-ai-pris');
 
+  // Mørkt er standard, så lyst tema bliver ellers aldrig vist i testen.
+  await step('virker i lyst tema', async () => {
+    await page.goto('http://127.0.0.1:4173/#/indstillinger');
+    await page.getByRole('button', { name: 'Lyst' }).click();
+    await page.goto('http://127.0.0.1:4173/#/laer/broek-forstaa');
+    await page.getByRole('heading', { name: /Hvad er en brøk/ }).waitFor({ timeout: 8000 });
+    const light = await page.evaluate(() => {
+      if (document.documentElement.classList.contains('dark')) return null;
+      const card = document.querySelector('.card');
+      return card
+        ? { bg: getComputedStyle(card).backgroundColor, text: getComputedStyle(document.body).color }
+        : null;
+    });
+    if (!light) throw new Error('lyst tema blev ikke slået til');
+    // En mørk flade her ville betyde at en dark:-klasse er sluppet ud af
+    // sin variant og maler kortene mørke i lyst tema.
+    const rgb = light.bg.match(/\d+/g)?.map(Number) ?? [];
+    if (rgb.length >= 3 && (rgb[0] + rgb[1] + rgb[2]) / 3 < 140) {
+      throw new Error(`kortene er mørke i lyst tema (${light.bg})`);
+    }
+  });
+  await shot('20-lyst');
+
   await step('virker i mørkt tema', async () => {
     await page.goto('http://127.0.0.1:4173/#/indstillinger');
     await page.getByRole('button', { name: 'Mørkt' }).click();

@@ -73,7 +73,7 @@ export function Visual({ spec, className }: { spec: VisualSpec; className?: stri
  * som tokens i tailwind.config.js.
  */
 export const TONES = {
-  brand: { fill: '#6366f1', soft: '#e0e7ff', text: '#4338ca' },
+  brand: { fill: '#8b5cf6', soft: '#ede9fe', text: '#6d28d9' },
   accent: { fill: '#06b6d4', soft: '#cffafe', text: '#0e7490' },
   xp: { fill: '#84cc16', soft: '#ecfccb', text: '#4d7c0f' },
   bad: { fill: '#f43f5e', soft: '#ffe4e6', text: '#be123c' },
