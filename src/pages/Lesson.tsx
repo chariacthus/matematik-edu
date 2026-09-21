@@ -189,7 +189,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
               <ComboMeter streak={combo} />
               {xpGained > 0 ? (
                 <span className="num flex items-center gap-1 text-xs font-extrabold text-xp-600 dark:text-xp-400">
-                  <Icon name="bolt" size={12} filled />+{xpGained} XP
+                  <Icon name="bolt" size={12} />+{xpGained} XP
                 </span>
               ) : null}
             </span>
@@ -522,8 +522,8 @@ function MasteredScreen({
 }) {
   return (
     <div className="mx-auto max-w-lg space-y-5 py-6 text-center">
-      <div className="mx-auto flex h-20 w-20 animate-pop items-center justify-center rounded-3xl bg-gradient-to-br from-xp-400 to-xp-600 text-ink-950 shadow-glow-xp">
-        <Icon name="star" size={40} filled />
+      <div className="mx-auto flex h-20 w-20 animate-pop items-center justify-center rounded-3xl bg-xp-500 text-ink-950 shadow-glow-xp">
+        <Icon name="star" size={40} />
       </div>
       <div>
         <h1 className="title-page">{skill.name} er mestret</h1>

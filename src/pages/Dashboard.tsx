@@ -256,17 +256,10 @@ function MissionCard({ item }: { item: PlanItem }) {
   return (
     <button
       onClick={() => go(item)}
-      /*
-        Dagens mission var en helt indigo flade. Den råbte højere end
-        noget andet på siden og passede ikke til de rolige gråtoner.
-        Nu er den en flade som de andre - bare større, med en brandtonet
-        kant og en fyldt knap. Hierarkiet kommer fra størrelsen, ikke
-        fra farvemængden.
-      */
-      className="edge edge-brand card-interactive group flex w-full items-start gap-4 p-5 text-left"
+      className="card-interactive group flex w-full items-start gap-4 p-5 text-left"
     >
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-inset">
-        <Icon name={style.icon} size={22} filled={style.icon === 'play'} />
+        <Icon name={style.icon} size={22} />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600 dark:text-brand-300">

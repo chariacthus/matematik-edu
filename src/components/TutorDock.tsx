@@ -81,18 +81,17 @@ export function TutorDock({
         aria-modal={narrow}
         aria-label="AI-lærer"
         className={clsx(
-          'glass-strong edge edge-strong fixed z-50 flex animate-panel-in flex-col overflow-hidden rounded-3xl shadow-lift',
+          'glass-strong fixed z-50 flex animate-panel-in flex-col overflow-hidden rounded-3xl shadow-lift',
           narrow
             ? 'safe-bottom inset-x-2 bottom-2 top-24'
             : 'bottom-6 right-6 h-[560px] w-[400px]',
         )}
       >
-        <header className="flex items-center gap-2.5 border-b border-ink-200/70 px-4 py-3 dark:border-white/[0.08]">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-inset">
-            <Icon name="sparkle" size={17} />
-          </span>
+        <header className="flex items-center gap-3 border-b border-ink-200 px-4 py-3 dark:border-white/10">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-extrabold leading-tight">AI-lærer</p>
+            <p className="text-[13px] font-semibold uppercase tracking-[0.16em] text-ink-900 dark:text-white">
+              AI-lærer
+            </p>
             <p className="truncate text-[11px] text-ink-500 dark:text-ink-400">{skill.name}</p>
           </div>
           <button onClick={onClose} className="btn-ghost p-1.5" aria-label="Luk AI-lærer">

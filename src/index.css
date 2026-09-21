@@ -88,136 +88,47 @@
   ::-webkit-scrollbar-track { background: transparent; }
 }
 
-/**
- * Kanter.
- *
- * En flade i mørkt tema har brug for to ting for ikke at se flad ud: en
- * kant der er en anelse lysere end fladen selv, og en tynd lysning
- * langs overkanten - som lys der falder ovenfra og fanger kanten.
- *
- * Begge toner kommer fra elementet selv. Et grønt kort får en grøn
- * kant, en knap får sin egen farve igen i kanten. Det er forskellen på
- * en kant der hører til elementet og en der er lagt ovenpå.
- *
- * Lysningen er en inset box-shadow frem for et ::before med maske. Den
- * er billigere, virker på alt - også felter og knapper - og kan ikke
- * komme til at ligge oven på indholdet.
- */
 @layer components {
-  .edge,
-  .card,
-  .card-raised,
-  .btn-secondary,
-  .field,
-  .segmented {
-    /* Standard: neutral. Tonerne herunder skifter dem ud. */
-    --edge: rgb(255 255 255 / 0.09);
-    --edge-top: rgb(255 255 255 / 0.13);
-    border: 1px solid var(--edge);
-    box-shadow: inset 0 1px 0 0 var(--edge-top);
-  }
-  /* I lyst tema falder lyset stadig ovenfra, men kanten skal være mørk
-     for at kunne ses mod hvidt. */
-  html:not(.dark) .edge,
-  html:not(.dark) .card,
-  html:not(.dark) .card-raised,
-  html:not(.dark) .btn-secondary,
-  html:not(.dark) .field,
-  html:not(.dark) .segmented {
-    --edge: rgb(15 16 18 / 0.10);
-    --edge-top: rgb(255 255 255 / 0.9);
-  }
-
-  /**
-   * Toner.
-   *
-   * Kun til elementer der allerede HAR en farve. En neutral flade skal
-   * blive neutral - det er dét der gør at de farvede ting betyder
-   * noget.
-   */
-  .edge-brand { --edge: rgb(129 140 248 / 0.34); --edge-top: rgb(199 210 254 / 0.30); }
-  .edge-xp    { --edge: rgb(163 230 53 / 0.36);  --edge-top: rgb(217 249 157 / 0.32); }
-  .edge-good  { --edge: rgb(74 222 128 / 0.36);  --edge-top: rgb(187 247 208 / 0.32); }
-  .edge-warn  { --edge: rgb(251 191 36 / 0.36);  --edge-top: rgb(253 230 138 / 0.32); }
-  .edge-bad   { --edge: rgb(251 113 133 / 0.38); --edge-top: rgb(254 205 211 / 0.32); }
-  .edge-accent{ --edge: rgb(34 211 238 / 0.32);  --edge-top: rgb(165 243 252 / 0.28); }
-  html:not(.dark) .edge-brand { --edge: rgb(79 70 229 / 0.30); }
-  html:not(.dark) .edge-xp    { --edge: rgb(101 163 13 / 0.34); }
-  html:not(.dark) .edge-good  { --edge: rgb(22 163 74 / 0.32); }
-  html:not(.dark) .edge-warn  { --edge: rgb(217 119 6 / 0.34); }
-  html:not(.dark) .edge-bad   { --edge: rgb(225 29 72 / 0.32); }
-  html:not(.dark) .edge-accent{ --edge: rgb(8 145 178 / 0.30); }
-
-  /* Lidt tydeligere kant til det der skal træde frem. */
-  .edge-strong { --edge: rgb(255 255 255 / 0.16); --edge-top: rgb(255 255 255 / 0.20); }
-  html:not(.dark) .edge-strong { --edge: rgb(15 16 18 / 0.16); }
-
-  /**
-   * Flader.
-   *
-   * Massive gråtoner, ikke glas. En gennemsigtig flade oven på en
-   * farvet baggrund giver en snavset tone og gør teksten sværere at
-   * læse; her skal fladen bare være en anelse lysere end siden bag
-   * den. Sløring er gemt til de paneler der rent faktisk ligger OVEN
-   * PÅ noget - dér fortæller den at der er noget nedenunder.
-   */
   .surface {
-    @apply bg-white dark:bg-ink-900;
+    @apply border border-ink-200 bg-white dark:border-white/10 dark:bg-ink-900;
   }
-  /* Til paneler der lægger sig oven på indholdet. */
   .glass-strong {
-    @apply bg-white/90 backdrop-blur-2xl dark:bg-ink-850/90;
+    @apply border border-ink-200 bg-white/90 backdrop-blur-md dark:border-white/10 dark:bg-black/40;
   }
 
   .card {
-    @apply surface rounded-2xl;
+    @apply surface rounded-2xl shadow-card;
   }
   .card-raised {
-    @apply glass-strong rounded-2xl;
-  }
-  /* I lyst tema løfter en let slagskygge kortet fra den grå side. I
-     mørkt tema klarer kanten det alene - en skygge ville ikke kunne
-     ses. Lysningen langs overkanten står først, så den ikke går tabt. */
-  html:not(.dark) .card,
-  html:not(.dark) .card-raised {
-    box-shadow:
-      inset 0 1px 0 0 var(--edge-top),
-      0 1px 2px 0 rgb(15 16 18 / 0.04),
-      0 4px 16px -8px rgb(15 16 18 / 0.10);
+    @apply glass-strong rounded-2xl shadow-lift;
   }
 
-  /**
-   * Kort man kan trykke på: kanten og fladen lysner en anelse ved
-   * hover, og kortet synker ved klik. Ingen løft - det fik listerne til
-   * at hoppe når musen gled hen over dem.
-   */
   .card-interactive {
-    @apply card transition-[background-color,border-color,box-shadow] duration-150
-           hover:border-ink-300 active:scale-[0.995]
-           dark:hover:border-white/20 dark:hover:bg-ink-850;
+    @apply card transition-colors duration-150
+           hover:border-ink-300 hover:bg-ink-50
+           active:scale-[0.995]
+           dark:hover:border-white/[0.18] dark:hover:bg-ink-850;
   }
 
-  /* active:scale er sat lavt med vilje — et tryk skal kunne mærkes. */
   .btn {
     @apply inline-flex select-none items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
            transition-all duration-150 ease-spring active:scale-[0.96]
            disabled:pointer-events-none disabled:opacity-40;
   }
   .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400;
-    box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.18);
+    @apply btn bg-brand-600 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)]
+           hover:bg-brand-500;
   }
   .btn-secondary {
-    @apply btn bg-ink-50 text-ink-700 hover:bg-white
-           dark:bg-ink-850 dark:text-ink-100 dark:hover:bg-ink-800;
+    @apply btn border border-ink-200 bg-transparent text-ink-700 hover:bg-ink-100
+           dark:border-white/10 dark:text-ink-200 dark:hover:bg-white/[0.06];
   }
   .btn-ghost {
     @apply btn text-ink-500 hover:bg-ink-100 hover:text-ink-800
            dark:text-ink-400 dark:hover:bg-white/[0.06] dark:hover:text-ink-50;
   }
   .btn-xp {
-    @apply btn bg-xp-500 text-ink-950 hover:bg-xp-400;
-    box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.25);
+    @apply btn bg-xp-500 text-ink-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)] hover:bg-xp-400;
   }
 
   .chip {
@@ -225,15 +136,13 @@
   }
 
   .field {
-    @apply w-full rounded-xl bg-white px-3.5 py-2.5 text-base text-ink-900
+    @apply w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-base text-ink-900
            transition-colors placeholder:text-ink-400
-           dark:bg-ink-850 dark:text-ink-50 dark:placeholder:text-ink-500;
+           dark:border-white/10 dark:bg-white/[0.04] dark:text-ink-50 dark:placeholder:text-ink-500;
   }
-  /* Feltet får sin egen farve i kanten når man skriver i det. */
   .field:focus,
   .field:focus-visible {
-    --edge: theme('colors.brand.500');
-    @apply outline-none ring-2 ring-brand-500/25 ring-offset-0;
+    @apply border-brand-500 outline-none ring-2 ring-brand-500/25 ring-offset-0;
   }
 
   /* Plads til AI-panelet på brede skærme, jf. TutorDock. */

@@ -39,7 +39,7 @@ export function OnboardingPage() {
   const steps = [
     /* 0 — velkomst */
     <div key="0" className="space-y-5 text-center">
-      <div className="mx-auto flex h-20 w-20 animate-pop items-center justify-center rounded-3xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-glow">
+      <div className="mx-auto flex h-20 w-20 animate-pop items-center justify-center rounded-3xl bg-brand-600 text-white shadow-glow">
         <Icon name="sigma" size={38} />
       </div>
       <div>

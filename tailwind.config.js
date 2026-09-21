@@ -10,42 +10,32 @@ export default {
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {
-        /**
-         * Flader og tekst.
-         *
-         * Neutrale gråtoner. De mørke trin var før blåstikkende og
-         * nærmest sorte (#0a0d14); det gjorde fladerne hårde og fik de
-         * farvede elementer til at skrige. Nu er 950 en mørk grå man
-         * kan se, og trinene op derfra er tætte nok til at et kort kan
-         * skille sig ud fra baggrunden uden en kraftig kant.
-         */
         ink: {
-          50: '#f8f9fa',
-          100: '#f0f1f3',
-          200: '#e0e2e6',
-          300: '#c3c7cd',
-          400: '#9096a0',
-          500: '#6b7078',
-          600: '#4a4e56',
-          700: '#34373d',
-          800: '#26282d',
-          850: '#1d1f23',
-          900: '#17181b',
-          950: '#0f1012',
+          50: '#faf9fc',
+          100: '#f2f0f6',
+          200: '#e2dfea',
+          300: '#c5bfd4',
+          400: '#a79fb8',
+          500: '#857c98',
+          600: '#635a76',
+          700: '#443c55',
+          800: '#2c2539',
+          850: '#1f1a2b',
+          900: '#16131f',
+          950: '#0d0b14',
         },
-        /* Primær: elektrisk indigo. Bruges sparsomt og altid til handling. */
         brand: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          950: '#1e1b4b',
+          50: '#f5f3ff',
+          100: '#ede9fe',
+          200: '#ddd6fe',
+          300: '#c4b5fd',
+          400: '#a78bfa',
+          500: '#8b5cf6',
+          600: '#7c3aed',
+          700: '#6d28d9',
+          800: '#5b21b6',
+          900: '#4c1d95',
+          950: '#2e1065',
         },
         /* XP og fremgang: lime. Den ene farve der må lyse. */
         xp: {
@@ -82,21 +72,12 @@ export default {
           500: '#f43f5e', 600: '#e11d48', 700: '#be123c', 900: '#881337',
         },
       },
-      /**
-       * Skygger.
-       *
-       * Hver af dem starter med lysningen langs overkanten. En
-       * box-shadow erstatter hele værdien, så uden den her ville en
-       * shadow-utility slette kantlysningen fra .edge - og fladen ville
-       * se flad ud igen. Fallbacken gør at et element uden .edge bare
-       * får ingen lysning frem for at tabe hele skyggen.
-       */
       boxShadow: {
-        card: 'inset 0 1px 0 0 var(--edge-top, transparent), 0 1px 2px rgba(15,16,18,0.04), 0 4px 16px -8px rgba(15,16,18,0.12)',
-        lift: 'inset 0 1px 0 0 var(--edge-top, transparent), 0 2px 4px rgba(0,0,0,0.10), 0 16px 40px -16px rgba(0,0,0,0.45)',
-        glow: 'inset 0 1px 0 0 var(--edge-top, transparent), 0 6px 24px -10px rgba(99,102,241,0.45)',
-        'glow-xp': 'inset 0 1px 0 0 var(--edge-top, transparent), 0 6px 24px -10px rgba(132,204,22,0.40)',
-        inset: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+        card: '0 1px 2px rgba(0,0,0,0.20), 0 8px 24px -12px rgba(0,0,0,0.45)',
+        lift: '0 2px 6px rgba(0,0,0,0.30), 0 20px 48px -20px rgba(0,0,0,0.60)',
+        glow: '0 6px 24px -10px rgba(139,92,246,0.45)',
+        'glow-xp': '0 6px 24px -10px rgba(132,204,22,0.40)',
+        inset: 'inset 0 1px 1px rgba(255,255,255,0.3)',
       },
       borderRadius: { xl: '0.75rem', '2xl': '1rem', '3xl': '1.375rem' },
       backdropBlur: { xs: '2px' },

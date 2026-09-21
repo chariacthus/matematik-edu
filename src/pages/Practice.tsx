@@ -206,7 +206,7 @@ export function ReviewPage() {
     const correct = results.filter((r) => r.correct).length;
     return (
       <div className="mx-auto max-w-lg space-y-5 py-6 text-center">
-        <div className="mx-auto flex h-16 w-16 animate-pop items-center justify-center rounded-3xl bg-gradient-to-br from-accent-400 to-accent-600 text-white shadow-glow">
+        <div className="mx-auto flex h-16 w-16 animate-pop items-center justify-center rounded-3xl bg-accent-500 text-white shadow-glow">
           <Icon name="refresh" size={30} />
         </div>
         <h1 className="text-2xl font-extrabold tracking-tight">Repetition gennemført</h1>

@@ -43,29 +43,36 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
       <header className="sticky top-0 z-30 border-b border-ink-200 bg-ink-50/85 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/85">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-2.5">
           <a href={hrefFor({ name: 'dashboard' })} className="flex shrink-0 items-center gap-2 font-extrabold tracking-tight">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-inset">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-600 text-white shadow-inset">
               <Icon name="sigma" size={17} />
             </span>
             <span className="hidden text-[15px] sm:inline">MatematikAI</span>
           </a>
 
-          <nav className="ml-auto hidden items-center gap-0.5 sm:flex" aria-label="Hovedmenu">
-            {NAV.map((item) => (
-              <a
-                key={item.label}
-                href={hrefFor(item.route)}
-                className={clsx(
-                  'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-semibold transition-colors',
-                  isActive(item.route)
-                    ? 'bg-ink-900 text-white dark:bg-white dark:text-ink-950'
-                    : 'text-ink-500 hover:bg-ink-100 hover:text-ink-900 dark:text-ink-400 dark:hover:bg-white/[0.06] dark:hover:text-white',
-                )}
-                aria-current={isActive(item.route) ? 'page' : undefined}
-              >
-                <Icon name={item.icon} size={15} />
-                {item.label}
-              </a>
-            ))}
+          <nav className="ml-auto hidden items-center gap-1 sm:flex" aria-label="Hovedmenu">
+            {NAV.map((item) => {
+              const on = isActive(item.route);
+              return (
+                <a
+                  key={item.label}
+                  href={hrefFor(item.route)}
+                  className={clsx(
+                    'relative flex items-center gap-1.5 px-3 py-2 text-[13px] font-semibold transition-colors',
+                    on ? 'text-ink-950 dark:text-white' : 'text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white',
+                  )}
+                  aria-current={on ? 'page' : undefined}
+                >
+                  <Icon name={item.icon} size={15} className={on ? 'text-brand-500' : undefined} />
+                  {item.label}
+                  {on ? (
+                    <span
+                      className="absolute inset-x-2 -bottom-px h-px bg-brand-400 shadow-[0_0_8px_1px_rgba(167,139,250,0.7)]"
+                      aria-hidden
+                    />
+                  ) : null}
+                </a>
+              );
+            })}
           </nav>
 
           {profile.onboarded ? (
@@ -75,7 +82,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
                   className="flex items-center gap-1 rounded-lg bg-warn-100 px-2 py-1 text-xs font-extrabold tabular-nums text-warn-700 dark:bg-warn-500/15 dark:text-warn-300"
                   title={`${gamification.streakDays} dage i træk`}
                 >
-                  <Icon name="flame" size={13} filled />
+                  <Icon name="flame" size={13} />
                   {gamification.streakDays}
                 </span>
               ) : null}
@@ -84,7 +91,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
                 className="flex items-center gap-2 rounded-xl p-1 transition-colors hover:bg-ink-100 dark:hover:bg-white/[0.06]"
                 title={`Niveau ${progress.level} — ${gamification.xp} XP`}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 text-xs font-extrabold text-white shadow-inset">
+                <span className="num flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-xs font-extrabold text-white shadow-inset">
                   {progress.level}
                 </span>
                 <span className="hidden w-16 md:block">
@@ -114,12 +121,10 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
                   className="flex flex-1 flex-col items-center gap-1 pb-1.5 pt-2"
                   aria-current={on ? 'page' : undefined}
                 >
-                  {/* Den aktive fane får en fyldt pille bag ikonet - tydeligere
-                      end farve alene, især i mørkt tema. */}
                   <span
                     className={clsx(
-                      'flex h-7 w-12 items-center justify-center rounded-lg transition-all duration-200 ease-spring',
-                      on ? 'bg-brand-500/15 text-brand-600 dark:text-brand-300' : 'text-ink-400 dark:text-ink-500',
+                      'flex h-7 w-12 items-center justify-center transition-colors',
+                      on ? 'text-brand-400' : 'text-ink-400 dark:text-ink-500',
                     )}
                   >
                     <Icon name={item.icon} size={19} />

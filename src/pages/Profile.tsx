@@ -145,7 +145,7 @@ export function ProfilePage() {
                 key={a.id}
                 className={clsx('card flex items-start gap-2.5 p-3', !earned && 'opacity-45 grayscale')}
               >
-                <IconTile name={a.icon} tone={earned ? 'xp' : 'neutral'} size="sm" filled />
+                <IconTile name={a.icon} tone={earned ? 'xp' : 'neutral'} size="sm" />
                 <span className="min-w-0">
                   <span className="block text-sm font-bold">{a.name}</span>
                   <span className="block text-[11px] leading-snug text-ink-500 dark:text-ink-400">{a.description}</span>

@@ -141,8 +141,8 @@ export function ProblemCard({
         // Ved et rigtigt svar løber lyset desuden én gang rundt om
         // kortet i grønt. Det er belønningen: man kan se den i
         // øjenkrogen uden at skulle læse noget.
-        verdict === 'correct' && 'edge-xp animate-pulse-correct',
-        verdict === 'wrong' && 'edge-bad animate-shake',
+        verdict === 'correct' && 'animate-pulse-correct border-xp-500/50',
+        verdict === 'wrong' && 'animate-shake border-bad-500/50',
       )}
     >
       {xpPop && xpOnCorrect ? <XpPop amount={xpOnCorrect} onDone={() => setXpPop(false)} /> : null}

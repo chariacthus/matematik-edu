@@ -29,13 +29,11 @@ export function IconTile({
   name,
   tone = 'brand',
   size = 'md',
-  filled,
   className,
 }: {
   name: IconName;
   tone?: 'brand' | 'xp' | 'good' | 'warn' | 'bad' | 'accent' | 'neutral';
   size?: 'sm' | 'md' | 'lg';
-  filled?: boolean;
   className?: string;
 }) {
   const box = { sm: 'h-8 w-8 rounded-lg', md: 'h-10 w-10 rounded-xl', lg: 'h-12 w-12 rounded-2xl' }[size];
@@ -51,7 +49,7 @@ export function IconTile({
   }[tone];
   return (
     <span className={clsx('flex shrink-0 items-center justify-center', box, tones, className)}>
-      <Icon name={name} size={icon} filled={filled} />
+      <Icon name={name} size={icon} />
     </span>
   );
 }
@@ -382,8 +380,8 @@ export function LevelBadge({
           dim
             ? 'bg-ink-100 text-ink-400 dark:bg-white/[0.05] dark:text-ink-500'
             : celebrate
-              ? 'bg-gradient-to-br from-xp-300 to-xp-500 text-ink-950 shadow-glow-xp'
-              : 'bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-inset',
+              ? 'bg-xp-500 text-ink-950 shadow-glow-xp'
+              : 'bg-brand-600 text-white shadow-inset',
         )}
         title={`Niveau ${level}`}
       >
@@ -404,7 +402,7 @@ export function LevelUpBanner({ level, title, onDone }: { level: number; title: 
       <div className="pointer-events-none fixed inset-x-0 top-16 z-50 flex justify-center px-4">
         <button
           onClick={onDone}
-          className="glass-strong edge edge-xp pointer-events-auto flex animate-panel-in items-center gap-3 rounded-2xl px-4 py-3 shadow-lift"
+          className="glass-strong pointer-events-auto flex animate-panel-in items-center gap-3 rounded-2xl border-xp-500/40 px-4 py-3 shadow-lift"
         >
           <LevelBadge level={level} size="lg" celebrate />
           <span className="text-left">
@@ -435,7 +433,6 @@ export function StreakStrip({ days, active }: { days: boolean[]; active: number 
         <Icon
           name="flame"
           size={20}
-          filled
           className={clsx(active > 0 ? 'animate-flame-glow text-orange-400' : 'text-ink-300 dark:text-ink-600')}
         />
         <span className="num text-xl font-extrabold leading-none">{active}</span>
@@ -456,7 +453,7 @@ export function StreakStrip({ days, active }: { days: boolean[]; active: number 
                 )}
                 title={on ? 'Aktiv dag' : 'Ingen aktivitet'}
               >
-                <Icon name={on ? 'flame' : 'bolt'} size={14} filled={on} />
+                <Icon name={on ? 'flame' : 'bolt'} size={14} />
               </span>
               <span className={clsx('text-[9px] font-bold', isToday ? 'text-ink-700 dark:text-ink-200' : 'text-ink-400 dark:text-ink-500')}>
                 {names[i]}
@@ -492,7 +489,7 @@ export function ComboMeter({ streak }: { streak: number }) {
         streak >= 5 ? 'bg-warn-500 text-ink-950' : 'bg-xp-500 text-ink-950',
       )}
     >
-      <Icon name="bolt" size={12} filled />
+      <Icon name="bolt" size={12} />
       {streak} i træk
     </span>
   );
@@ -627,7 +624,7 @@ export function Modal({
           aria-modal="true"
           aria-label={title}
           className={clsx(
-            'glass-strong edge edge-strong flex max-h-[90vh] w-full animate-fade-up flex-col rounded-t-3xl shadow-lift outline-none',
+            'glass-strong flex max-h-[90vh] w-full animate-fade-up flex-col rounded-t-3xl shadow-lift outline-none',
             'sm:rounded-3xl',
             wide ? 'sm:max-w-2xl' : 'sm:max-w-md',
           )}
@@ -691,7 +688,7 @@ export function Toast({ message, onDone, tone = 'xp', icon }: { message: string;
   const tones = { xp: 'bg-xp-500 text-ink-950', brand: 'bg-brand-600 text-white', warn: 'bg-warn-500 text-ink-950' }[tone];
   return (
     <div className={clsx('flex animate-pop items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-bold shadow-lift', tones)} role="status">
-      {icon ? <Icon name={icon} size={16} filled /> : null}
+      {icon ? <Icon name={icon} size={16} /> : null}
       {message}
     </div>
   );
@@ -715,7 +712,7 @@ export function EmptyState({ icon, title, body, action }: { icon: IconName; titl
 export function Disclosure({ summary, children, defaultOpen }: { summary: string; children: ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen ?? false);
   return (
-    <div className="edge overflow-hidden rounded-xl">
+    <div className="overflow-hidden rounded-xl border border-ink-200 dark:border-white/10">
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold"

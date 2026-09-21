@@ -145,11 +145,9 @@ try {
   });
   await shot('04-forside');
 
-  await step('kort har en kant og reagerer på hover', async () => {
+  await step('kort har kant og skygge', async () => {
     const card = page.locator('.card-interactive').first();
     await card.waitFor({ timeout: 5000 });
-    // Musen bliver liggende hvor der sidst blev klikket. Flyt den væk,
-    // ellers står kortet allerede i hover-tilstand når vi måler.
     await page.mouse.move(2, 2);
     await page.waitForTimeout(500);
     const read = () =>
@@ -158,13 +156,12 @@ try {
         return { border: cs.borderTopColor, bg: cs.backgroundColor, shadow: cs.boxShadow };
       });
     const before = await read();
-    // Kanten er en rigtig kant plus en tynd lysning langs overkanten.
-    // Falder en af dem ud, ser fladerne flade ud igen.
     if (/rgba\(0, 0, 0, 0\)|transparent/.test(before.border)) {
       throw new Error(`kortet har ingen kant (${before.border})`);
     }
-    if (!before.shadow.includes('inset')) {
-      throw new Error(`kortet mangler lysningen langs overkanten (${before.shadow})`);
+    if (before.shadow === 'none') throw new Error('kortet har ingen skygge');
+    if (before.shadow.includes('inset')) {
+      throw new Error('kortet har en indvendig lysning - den hører kun til de primære knapper');
     }
     await card.hover();
     await page.waitForTimeout(400);
@@ -213,6 +210,12 @@ try {
       await input.fill('999999');
       await page.getByRole('button', { name: 'Tjek svar' }).click();
       await page.getByText(/Ikke helt|Stadig ikke|set før/).first().waitFor({ timeout: 5000 });
+
+      // Lysningen langs overkanten hører kun til de primære knapper.
+      const primary = await page.locator('.btn-primary').first().evaluate((el) => getComputedStyle(el).boxShadow);
+      if (!primary.includes('inset')) {
+        throw new Error(`den primære knap mangler lysningen langs overkanten (${primary})`);
+      }
 
       // Rystet ved forkert svar, og de to kvitterings-animationer skal
       // faktisk findes i stilarket. Tailwind udelader en klasse der ikke
@@ -292,7 +295,7 @@ try {
     if (/rgba\(0, 0, 0, 0\)|transparent/.test(box.border)) {
       throw new Error(`dialogboksen mangler sin kant (${box.border})`);
     }
-    if (!box.shadow.includes('inset')) throw new Error('dialogboksen mangler lysningen langs overkanten');
+
     await page.getByText(/Det sletter din profil/).waitFor({ timeout: 5000 });
     await shot('19-dialog');
     await page.getByRole('button', { name: 'Luk', exact: true }).click();

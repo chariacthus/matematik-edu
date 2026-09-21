@@ -140,8 +140,8 @@ export function TutorPanel({
               className={clsx(
                 'max-w-[85%] animate-fade-up whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
                 m.role === 'elev'
-                  ? 'rounded-br-sm bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-inset'
-                  : 'rounded-bl-sm border border-ink-200/70 bg-white/70 text-ink-800 backdrop-blur-sm dark:border-white/[0.08] dark:bg-white/[0.06] dark:text-ink-100',
+                  ? 'rounded-br-sm bg-brand-700 text-white'
+                  : 'rounded-bl-sm text-ink-700 dark:text-ink-200',
               )}
             >
               <MathText>{m.text}</MathText>

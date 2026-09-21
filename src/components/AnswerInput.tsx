@@ -48,10 +48,6 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
         ? 'border-bad-500 ring-2 ring-bad-500/35'
         : '';
 
-  // Kanten om feltet skifter tone med svaret, så man kan se det uden
-  // at læse feedbacken.
-  const edgeTone = verdict === 'correct' ? 'edge-xp' : verdict === 'wrong' ? 'edge-bad' : '';
-
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !disabled) {
       e.preventDefault();
@@ -216,7 +212,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className={clsx('w-full max-w-xs', edgeTone)}>
+      <div className="w-full max-w-xs">
       <input
         ref={ref}
         // Tal- og brøkfelter skal vise det numeriske tastatur på mobil,
