@@ -397,6 +397,19 @@ try {
     if (box.height < 500) throw new Error(`AI-panelet er kun ${box.height}px højt på en stor skærm`);
     // Opgaven skal stadig kunne læses ved siden af - derfor ingen modal.
     await page.getByText(/Løs ligningen/).first().waitFor({ timeout: 5000 });
+    // Og den må ikke ligge under panelet. Indholdet rykker til side
+    // mens panelet er åbent; gør det ikke det, forsvinder hintet ind
+    // under panelets venstre kant.
+    const clear = await page.evaluate(() => {
+      // Kortet, ikke <main>: main beholder sin bredde og skubber
+      // indholdet ind med padding, så dens egen kasse flytter sig ikke.
+      const card = document.querySelector('article.card');
+      const panel = document.querySelector('[role="dialog"][aria-label="AI-lærer"]');
+      if (!card || !panel) return null;
+      return Math.round(panel.getBoundingClientRect().left - card.getBoundingClientRect().right);
+    });
+    if (clear === null) throw new Error('fandt ikke både opgavekort og panel');
+    if (clear < 0) throw new Error(`opgavekortet ligger ${-clear}px ind under AI-panelet`);
   });
   await shot('18-ai-desktop');
   await page.setViewportSize({ width: 420, height: 900 });

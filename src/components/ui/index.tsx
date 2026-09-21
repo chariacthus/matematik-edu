@@ -404,7 +404,7 @@ export function LevelUpBanner({ level, title, onDone }: { level: number; title: 
       <div className="pointer-events-none fixed inset-x-0 top-16 z-50 flex justify-center px-4">
         <button
           onClick={onDone}
-          className="pointer-events-auto flex animate-panel-in items-center gap-3 rounded-2xl border border-xp-300/60 bg-white/85 px-4 py-3 shadow-glow-xp backdrop-blur-2xl dark:bg-ink-900/85"
+          className="glass-strong edge edge-xp pointer-events-auto flex animate-panel-in items-center gap-3 rounded-2xl px-4 py-3 shadow-lift"
         >
           <LevelBadge level={level} size="lg" celebrate />
           <span className="text-left">

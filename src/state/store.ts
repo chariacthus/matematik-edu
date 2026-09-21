@@ -98,7 +98,9 @@ function emptyProfile(): LearnerProfile {
 
 function defaultSettings(): Settings {
   return {
-    theme: 'system',
+    // Appen er tegnet til mørkt tema. Lyst og "følg system" kan stadig
+    // vælges i indstillingerne, men det mørke er udgangspunktet.
+    theme: 'dark',
     sound: true,
     reducedMotion: false,
     askConfidence: true,

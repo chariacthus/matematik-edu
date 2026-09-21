@@ -50,6 +50,22 @@ export function TutorDock({
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  /*
+    Panelet svæver over siden, og på en bred skærm lagde det sig hen
+    over højre side af opgaven - hintet forsvandt ind under det. Her
+    sættes et mærke på <body> mens panelet er åbent, så indholdet kan
+    rykke til side i CSS. Det sparer os for at trække tilstanden
+    igennem hele komponenttræet, og på telefon dækker panelet alligevel
+    med vilje.
+  */
+  useEffect(() => {
+    if (!open || narrow) return;
+    document.body.dataset.tutor = 'open';
+    return () => {
+      delete document.body.dataset.tutor;
+    };
+  }, [open, narrow]);
+
   if (!open) return null;
 
   return (
@@ -65,8 +81,7 @@ export function TutorDock({
         aria-modal={narrow}
         aria-label="AI-lærer"
         className={clsx(
-          'fixed z-50 flex animate-panel-in flex-col overflow-hidden rounded-3xl border shadow-lift',
-          'border-ink-200/80 bg-white/85 backdrop-blur-2xl dark:border-white/[0.14] dark:bg-ink-900/85',
+          'glass-strong edge edge-strong fixed z-50 flex animate-panel-in flex-col overflow-hidden rounded-3xl shadow-lift',
           narrow
             ? 'safe-bottom inset-x-2 bottom-2 top-24'
             : 'bottom-6 right-6 h-[560px] w-[400px]',

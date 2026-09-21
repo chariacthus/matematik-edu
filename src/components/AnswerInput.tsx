@@ -83,7 +83,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
                     ? 'animate-pulse-correct border-xp-500 bg-xp-100 dark:bg-xp-500/15'
                     : verdict === 'wrong'
                       ? 'animate-shake border-bad-500 bg-bad-100 dark:bg-bad-500/15'
-                      : 'border-brand-500 bg-brand-50 shadow-glow dark:bg-brand-500/15'
+                      : 'border-brand-500 bg-brand-50 dark:bg-brand-500/[0.14]'
                   : 'border-ink-200 bg-white/70 backdrop-blur-sm hover:-translate-y-0.5 hover:border-brand-300 hover:bg-white dark:border-white/[0.09] dark:bg-white/[0.04] dark:hover:border-brand-400/50 dark:hover:bg-white/[0.08]',
               )}
             >
@@ -135,7 +135,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
                 'flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left',
                 'transition-all duration-150 ease-spring active:scale-[0.98] disabled:opacity-60',
                 isSelected
-                  ? 'border-brand-500 bg-brand-50 shadow-glow dark:bg-brand-500/15'
+                  ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/[0.14]'
                   : 'border-ink-200 bg-white/70 hover:border-brand-300 dark:border-white/[0.09] dark:bg-white/[0.04]',
               )}
             >

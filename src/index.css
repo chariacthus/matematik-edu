@@ -236,6 +236,14 @@
     @apply outline-none ring-2 ring-brand-500/25 ring-offset-0;
   }
 
+  /* Plads til AI-panelet på brede skærme, jf. TutorDock. */
+  @media (min-width: 640px) {
+    body[data-tutor='open'] main {
+      padding-right: 27rem;
+      transition: padding-right 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+
   /**
    * Sidens titel.
    *
