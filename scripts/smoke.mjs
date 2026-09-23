@@ -302,6 +302,16 @@ try {
     await dialog.waitFor({ state: 'detached', timeout: 5000 });
   });
 
+  await step('viser geometrifigurer', async () => {
+    await page.goto('http://127.0.0.1:4173/#/laer/geo-vinkler');
+    const fig = page.locator('figure svg').first();
+    await fig.waitFor({ timeout: 8000 });
+    await fig.scrollIntoViewIfNeeded();
+    // Lad et eventuelt badge-pop forsvinde, så det ikke dækker figuren.
+    await page.waitForTimeout(3400);
+  });
+  await shot('21-figurer');
+
   await step('viser FP9-prøvetræning', async () => {
     await page.goto('http://127.0.0.1:4173/#/proeve');
     await page.getByRole('heading', { name: 'Prøvetræning' }).waitFor({ timeout: 8000 });
@@ -312,6 +322,11 @@ try {
   await step('kører en prøve uden hjælpemidler', async () => {
     await page.getByRole('button', { name: 'Start' }).first().click();
     await page.getByText(/Opgave 1 af 20/).waitFor({ timeout: 8000 });
+    // Formelsamlingen hører til prøven MED hjælpemidler. Slipper den ind
+    // her, tester prøven ikke længere det den skal.
+    if (await page.getByRole('button', { name: 'Formelsamling' }).count()) {
+      throw new Error('formelsamlingen er tilgængelig i prøven uden hjælpemidler');
+    }
     for (let i = 0; i < 3; i++) {
       await page.getByRole('button', { name: 'Spring over' }).click();
       await page.waitForTimeout(120);
@@ -320,6 +335,25 @@ try {
     await page.getByRole('heading', { name: /Prøven er afleveret/ }).waitFor({ timeout: 8000 });
   });
   await shot('12-proeveresultat');
+
+  await step('giver formelsamling i prøven med hjælpemidler', async () => {
+    // Prøven står på resultatskærmen. En hash-navigation genindlæser
+    // ikke siden, så her skal der en rigtig reload til.
+    await page.goto('http://127.0.0.1:4173/#/proeve');
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.getByRole('heading', { name: 'Prøvetræning' }).waitFor({ timeout: 8000 });
+    await page.getByRole('button', { name: 'Start' }).nth(1).click();
+    await page.getByText(/Opgave 1 af 12/).waitFor({ timeout: 8000 });
+    await page.getByRole('button', { name: 'Formelsamling' }).click();
+    const panel = page.getByRole('dialog', { name: 'Formelsamling' });
+    await panel.waitFor({ timeout: 5000 });
+    await page.getByLabel('Søg i formelsamlingen').fill('cirkel');
+    await page.waitForTimeout(300);
+    const rendered = await panel.evaluate((el) => el.querySelectorAll('.katex').length);
+    if (rendered === 0) throw new Error('formlerne bliver ikke sat op');
+    await page.getByText('Omkreds').first().waitFor({ timeout: 3000 });
+  });
+  await shot('22-formelsamling');
 
   await step('viser prisen på AI-læreren i indstillinger', async () => {
     await page.goto('http://127.0.0.1:4173/#/indstillinger');

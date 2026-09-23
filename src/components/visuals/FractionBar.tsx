@@ -1,5 +1,5 @@
 import type { Visual } from '../../types';
-import { TONES } from './Visual';
+import { TONES, LABEL } from './Visual';
 
 type Spec = Extract<Visual, { kind: 'fractionBar' }>;
 
@@ -18,7 +18,7 @@ export function FractionBar({ spec }: { spec: Spec }) {
   return (
     <svg
       viewBox={`0 0 ${width + labelW} ${height}`}
-      className="mx-auto h-auto w-full max-w-lg text-ink-500"
+      className="mx-auto h-auto w-full max-w-lg"
       role="img"
       aria-label="Brøker vist som bjælker"
     >
@@ -42,7 +42,7 @@ export function FractionBar({ spec }: { spec: Spec }) {
                 opacity={i < row.num ? 1 : 0.35}
               />
             ))}
-            <text x={width + 8} y={y + rowH / 2 + 5} fontSize="15" fontWeight="600" fill="currentColor">
+            <text x={width + 8} y={y + rowH / 2 + 5} fontSize="15" fontWeight="600" fill={LABEL}>
               {row.label ?? `${row.num}/${row.den}`}
             </text>
           </g>

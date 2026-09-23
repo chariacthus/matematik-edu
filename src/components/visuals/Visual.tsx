@@ -57,7 +57,7 @@ export function Visual({ spec, className }: { spec: VisualSpec; className?: stri
 
   return (
     <figure className={className}>
-      <div className="overflow-x-auto rounded-xl bg-ink-50 p-3 dark:bg-white/[0.03]">{body}</div>
+      <div className="figure-scope overflow-x-auto rounded-xl border border-ink-200 bg-white p-3 dark:border-white/10 dark:bg-ink-950">{body}</div>
       {'caption' in spec && spec.caption ? (
         <figcaption className="mt-2 text-center text-xs text-ink-500 dark:text-ink-400">{spec.caption}</figcaption>
       ) : null}
@@ -68,22 +68,28 @@ export function Visual({ spec, className }: { spec: VisualSpec; className?: stri
 /**
  * Figurernes farver.
  *
- * De skal matche brugerfladens palet præcist — ellers ser en graf ud som
- * om den er klippet ind fra et andet program. Værdierne her er de samme
- * som tokens i tailwind.config.js.
+ * Værdierne ligger som CSS-variabler på .figure-scope, så de skifter med
+ * temaet. Før var de faste hex-værdier valgt til hvid baggrund - de
+ * mørke tekstfarver forsvandt næsten i mørkt tema, og de lyse fyld
+ * lyste op som neon.
  */
 export const TONES = {
-  brand: { fill: '#8b5cf6', soft: '#ede9fe', text: '#6d28d9' },
-  accent: { fill: '#06b6d4', soft: '#cffafe', text: '#0e7490' },
-  xp: { fill: '#84cc16', soft: '#ecfccb', text: '#4d7c0f' },
-  bad: { fill: '#f43f5e', soft: '#ffe4e6', text: '#be123c' },
-  good: { fill: '#22c55e', soft: '#dcfce7', text: '#15803d' },
-  warn: { fill: '#f59e0b', soft: '#fef3c7', text: '#b45309' },
+  brand: { fill: 'var(--fig-brand)', soft: 'var(--fig-brand-soft)', text: 'var(--fig-brand-text)' },
+  accent: { fill: 'var(--fig-accent)', soft: 'var(--fig-accent-soft)', text: 'var(--fig-accent-text)' },
+  xp: { fill: 'var(--fig-xp)', soft: 'var(--fig-xp-soft)', text: 'var(--fig-xp)' },
+  bad: { fill: 'var(--fig-bad)', soft: 'var(--fig-bad-soft)', text: 'var(--fig-bad)' },
+  good: { fill: 'var(--fig-good)', soft: 'var(--fig-good-soft)', text: 'var(--fig-good)' },
+  warn: { fill: 'var(--fig-warn)', soft: 'var(--fig-warn-soft)', text: 'var(--fig-warn)' },
 } as const;
+
+/** Stregen figuren er tegnet med. Neutral - som blyant på papir. */
+export const LINE = 'var(--fig-line)';
+/** Tal og navne på figuren. */
+export const LABEL = 'var(--fig-label)';
+export const GRID = 'var(--fig-grid)';
 
 export type ToneKey = keyof typeof TONES;
 
 export const tone = (t: ToneKey | undefined, fallback: ToneKey = 'brand') => TONES[t ?? fallback];
 
-/** Aksefarve der virker i begge temaer. */
-export const AXIS = 'currentColor';
+export const AXIS = LINE;

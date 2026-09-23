@@ -1,5 +1,5 @@
 import type { Visual } from '../../types';
-import { TONES } from './Visual';
+import { TONES, LINE } from './Visual';
 
 type Spec = Extract<Visual, { kind: 'triangle' }>;
 
@@ -34,32 +34,32 @@ export function TriangleFigure({ spec }: { spec: Spec }) {
     spec.labels?.[key] ?? (fallback !== undefined ? String(fallback) : undefined);
 
   const hot = (k: 'a' | 'b' | 'c' | 'A' | 'B') => spec.highlight?.includes(k);
-  const strokeFor = (k: 'a' | 'b' | 'c') => (hot(k) ? TONES.accent.fill : TONES.brand.fill);
+  const strokeFor = (k: 'a' | 'b' | 'c') => (hot(k) ? TONES.accent.fill : LINE);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-sm text-ink-500" role="img" aria-label="Trekant">
-      <polygon points={`${Ax},${Ay} ${Bx},${By} ${Cx},${Cy}`} fill={TONES.brand.soft} opacity="0.45" />
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-sm" role="img" aria-label="Trekant">
+      <polygon points={`${Ax},${Ay} ${Bx},${By} ${Cx},${Cy}`} fill={TONES.brand.soft} />
 
       {/* Katete a (lodret), katete b (vandret), hypotenuse c */}
-      <line x1={Ax} y1={Ay} x2={Cx} y2={Cy} stroke={strokeFor('a')} strokeWidth={hot('a') ? 4 : 2.5} strokeLinecap="round" />
-      <line x1={Cx} y1={Cy} x2={Bx} y2={By} stroke={strokeFor('b')} strokeWidth={hot('b') ? 4 : 2.5} strokeLinecap="round" />
-      <line x1={Ax} y1={Ay} x2={Bx} y2={By} stroke={strokeFor('c')} strokeWidth={hot('c') ? 4 : 2.5} strokeLinecap="round" />
+      <line x1={Ax} y1={Ay} x2={Cx} y2={Cy} stroke={strokeFor('a')} strokeWidth={hot('a') ? 3.5 : 2} strokeLinecap="round" />
+      <line x1={Cx} y1={Cy} x2={Bx} y2={By} stroke={strokeFor('b')} strokeWidth={hot('b') ? 3.5 : 2} strokeLinecap="round" />
+      <line x1={Ax} y1={Ay} x2={Bx} y2={By} stroke={strokeFor('c')} strokeWidth={hot('c') ? 3.5 : 2} strokeLinecap="round" />
 
       {/* Den rette vinkel som et lille kvadrat */}
-      {right ? <path d={`M${Cx} ${Cy - 16} h16 v16 h-16 z`} fill="none" stroke="currentColor" strokeWidth="1.8" /> : null}
+      {right ? <path d={`M${Cx} ${Cy - 16} h16 v16 h-16 z`} fill="none" stroke={TONES.brand.fill} strokeWidth="2" /> : null}
 
       {/* Vinkelbue ved B */}
       {spec.angleA !== undefined ? (
         <>
-          <path d={`M${Bx - 30} ${By} A 30 30 0 0 0 ${Bx - 30 * Math.cos(Math.atan2(bh, bw))} ${By - 30 * Math.sin(Math.atan2(bh, bw))}`} fill="none" stroke={TONES.warn.fill} strokeWidth="2" />
-          <text x={Bx - 46} y={By - 12} fontSize="13" fontWeight="700" fill={TONES.warn.text}>
+          <path d={`M${Bx - 30} ${By} A 30 30 0 0 0 ${Bx - 30 * Math.cos(Math.atan2(bh, bw))} ${By - 30 * Math.sin(Math.atan2(bh, bw))}`} fill="none" stroke={TONES.brand.fill} strokeWidth="2" />
+          <text x={Bx - 46} y={By - 12} fontSize="13" fontWeight="700" fill={TONES.brand.text}>
             {label('A', spec.angleA)}
           </text>
         </>
       ) : null}
 
       {spec.angleB !== undefined ? (
-        <text x={Ax + 14} y={Ay + 22} fontSize="13" fontWeight="700" fill={TONES.warn.text}>
+        <text x={Ax + 14} y={Ay + 22} fontSize="13" fontWeight="700" fill={TONES.brand.text}>
           {label('B', spec.angleB)}
         </text>
       ) : null}

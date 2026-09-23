@@ -154,6 +154,55 @@
   }
 
   /**
+   * Figurernes farver.
+   *
+   * Tegningerne skal ligne dem i en lærebog: rolige streger, tydelige
+   * tal, og farve kun på det der spørges om. Tonerne skiftes her frem
+   * for i komponenterne, så en figur virker i begge temaer uden at
+   * kende til temaet.
+   */
+  .figure-scope {
+    --fig-line: #2c2539;
+    --fig-label: #16131f;
+    --fig-grid: rgb(15 16 18 / 0.14);
+    --fig-soft: rgb(15 16 18 / 0.05);
+    --fig-brand: #6d28d9;
+    --fig-brand-soft: rgb(109 40 217 / 0.12);
+    --fig-brand-text: #5b21b6;
+    --fig-accent: #0e7490;
+    --fig-accent-soft: rgb(14 116 144 / 0.12);
+    --fig-accent-text: #0e7490;
+    --fig-xp: #4d7c0f;
+    --fig-xp-soft: rgb(77 124 15 / 0.14);
+    --fig-bad: #be123c;
+    --fig-bad-soft: rgb(190 18 60 / 0.12);
+    --fig-good: #15803d;
+    --fig-good-soft: rgb(21 128 61 / 0.12);
+    --fig-warn: #b45309;
+    --fig-warn-soft: rgb(180 83 9 / 0.14);
+  }
+  html.dark .figure-scope {
+    --fig-line: #d8d4e2;
+    --fig-label: #f2f0f6;
+    --fig-grid: rgb(255 255 255 / 0.13);
+    --fig-soft: rgb(255 255 255 / 0.05);
+    --fig-brand: #c4b5fd;
+    --fig-brand-soft: rgb(196 181 253 / 0.14);
+    --fig-brand-text: #ddd6fe;
+    --fig-accent: #67e8f9;
+    --fig-accent-soft: rgb(103 232 249 / 0.13);
+    --fig-accent-text: #a5f3fc;
+    --fig-xp: #bef264;
+    --fig-xp-soft: rgb(190 242 100 / 0.14);
+    --fig-bad: #fda4af;
+    --fig-bad-soft: rgb(253 164 175 / 0.14);
+    --fig-good: #86efac;
+    --fig-good-soft: rgb(134 239 172 / 0.14);
+    --fig-warn: #fcd34d;
+    --fig-warn-soft: rgb(252 211 77 / 0.15);
+  }
+
+  /**
    * Sidens titel.
    *
    * Størrelsen står ét sted. Før var den skrevet i hånden på hver side,

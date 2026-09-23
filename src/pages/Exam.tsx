@@ -18,6 +18,7 @@ import { navigate } from '../lib/router';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
 import { Callout, Card, Chip, IconTile, LabelledBar, PageHeader, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
 import { Icon } from '../components/Icon';
+import { FormelsamlingButton } from '../components/Formelsamling';
 
 /**
  * FP9-prøvetræning.
@@ -98,6 +99,14 @@ export function ExamPage() {
         nextLabel="Næste"
         headerRight={<Chip tone="neutral">{session.config.part === 'uden' ? 'uden hjælpemidler' : 'med hjælpemidler'}</Chip>}
       />
+
+      {/* Til den rigtige prøve med hjælpemidler har man formelsamlingen
+          med. Uden den tester prøven udenadslære frem for det den skal. */}
+      {session.config.part === 'med' ? (
+        <div className="mt-4">
+          <FormelsamlingButton className="btn-secondary w-full sm:w-auto" />
+        </div>
+      ) : null}
 
       <div className="mt-4 flex justify-between">
         <button onClick={() => setSession((s) => (s ? answerExamItem(s, false) : s))} className="btn-ghost text-xs">

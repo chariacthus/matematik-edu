@@ -1,5 +1,5 @@
 import type { Visual } from '../../types';
-import { TONES } from './Visual';
+import { TONES, LINE, LABEL } from './Visual';
 
 type Spec = Extract<Visual, { kind: 'balance' }>;
 
@@ -18,17 +18,17 @@ export function Balance({ spec }: { spec: Spec }) {
     <svg viewBox="0 0 420 200" className="mx-auto h-auto w-full max-w-md text-ink-400" role="img" aria-label="Vægt der viser en ligning">
       {/* Vippearm */}
       <g transform={`rotate(${tilt} 210 70)`}>
-        <line x1="60" y1="70" x2="360" y2="70" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+        <line x1="60" y1="70" x2="360" y2="70" stroke={LINE} strokeWidth="4" strokeLinecap="round" />
         <Pan x={110} pan={spec.left} tone="brand" />
         <Pan x={310} pan={spec.right} tone="accent" />
       </g>
 
       {/* Søjle og fod */}
-      <path d="M210 70 L190 165 L230 165 Z" fill="currentColor" opacity="0.25" />
-      <rect x="160" y="165" width="100" height="10" rx="5" fill="currentColor" opacity="0.4" />
-      <circle cx="210" cy="70" r="7" fill="currentColor" />
+      <path d="M210 70 L190 165 L230 165 Z" fill={LABEL} opacity="0.25" />
+      <rect x="160" y="165" width="100" height="10" rx="5" fill={LABEL} opacity="0.4" />
+      <circle cx="210" cy="70" r="7" fill={LABEL} />
 
-      <text x="210" y="192" textAnchor="middle" fontSize="13" fill="currentColor" opacity="0.7">
+      <text x="210" y="192" textAnchor="middle" fontSize="13" fill={LABEL} opacity="0.7">
         {diff === 0 ? 'i balance' : 'ude af balance'}
       </text>
     </svg>
@@ -51,8 +51,8 @@ function Pan({ x, pan, tone }: { x: number; pan: Spec['left']; tone: 'brand' | '
   return (
     <g>
       {/* Snore og skål */}
-      <line x1={x} y1="70" x2={x} y2="96" stroke="currentColor" strokeWidth="2" />
-      <rect x={x - 62} y="96" width="124" height="6" rx="3" fill="currentColor" opacity="0.5" />
+      <line x1={x} y1="70" x2={x} y2="96" stroke={LINE} strokeWidth="2" />
+      <rect x={x - 62} y="96" width="124" height="6" rx="3" fill={LABEL} opacity="0.5" />
       {blocks.map((b, i) => {
         const bx = cursor;
         cursor += b.w + 3;

@@ -1,5 +1,5 @@
 import type { Visual } from '../../types';
-import { TONES } from './Visual';
+import { TONES, LINE, LABEL } from './Visual';
 
 type Spec = Extract<Visual, { kind: 'coordinate' }>;
 
@@ -59,28 +59,28 @@ export function Coordinate({ spec }: { spec: Spec }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-md text-ink-400" role="img" aria-label="Koordinatsystem">
       {/* Gitter */}
       {xTicks.map((v) => (
-        <line key={`gx${v}`} x1={sx(v)} y1={pad} x2={sx(v)} y2={H - pad} stroke="currentColor" strokeWidth="1" opacity="0.18" />
+        <line key={`gx${v}`} x1={sx(v)} y1={pad} x2={sx(v)} y2={H - pad} stroke={LINE} strokeWidth="1" opacity="0.18" />
       ))}
       {yTicks.map((v) => (
-        <line key={`gy${v}`} x1={pad} y1={sy(v)} x2={W - pad} y2={sy(v)} stroke="currentColor" strokeWidth="1" opacity="0.18" />
+        <line key={`gy${v}`} x1={pad} y1={sy(v)} x2={W - pad} y2={sy(v)} stroke={LINE} strokeWidth="1" opacity="0.18" />
       ))}
 
       {/* Akser */}
-      <line x1={pad - 6} y1={axisX} x2={W - pad + 6} y2={axisX} stroke="currentColor" strokeWidth="2" />
-      <line x1={axisY} y1={H - pad + 6} x2={axisY} y2={pad - 6} stroke="currentColor" strokeWidth="2" />
-      <path d={`M${W - pad + 6} ${axisX} l-7 -4 v8 z`} fill="currentColor" />
-      <path d={`M${axisY} ${pad - 6} l-4 7 h8 z`} fill="currentColor" />
-      <text x={W - pad + 2} y={axisX + 18} fontSize="12" fill="currentColor" fontStyle="italic">x</text>
-      <text x={axisY - 16} y={pad + 2} fontSize="12" fill="currentColor" fontStyle="italic">y</text>
+      <line x1={pad - 6} y1={axisX} x2={W - pad + 6} y2={axisX} stroke={LINE} strokeWidth="2" />
+      <line x1={axisY} y1={H - pad + 6} x2={axisY} y2={pad - 6} stroke={LINE} strokeWidth="2" />
+      <path d={`M${W - pad + 6} ${axisX} l-7 -4 v8 z`} fill={LABEL} />
+      <path d={`M${axisY} ${pad - 6} l-4 7 h8 z`} fill={LABEL} />
+      <text x={W - pad + 2} y={axisX + 18} fontSize="12" fill={LABEL} fontStyle="italic">x</text>
+      <text x={axisY - 16} y={pad + 2} fontSize="12" fill={LABEL} fontStyle="italic">y</text>
 
       {/* Talmærker — kun hver anden, så der er luft */}
       {xTicks.filter((v) => v !== 0).map((v, i) => (i % 2 === 0 ? (
-        <text key={`tx${v}`} x={sx(v)} y={axisX + 15} textAnchor="middle" fontSize="10.5" fill="currentColor" opacity="0.75">
+        <text key={`tx${v}`} x={sx(v)} y={axisX + 15} textAnchor="middle" fontSize="10.5" fill={LABEL} opacity="0.75">
           {String(v).replace('.', ',')}
         </text>
       ) : null))}
       {yTicks.filter((v) => v !== 0).map((v, i) => (i % 2 === 0 ? (
-        <text key={`ty${v}`} x={axisY - 6} y={sy(v) + 3.5} textAnchor="end" fontSize="10.5" fill="currentColor" opacity="0.75">
+        <text key={`ty${v}`} x={axisY - 6} y={sy(v) + 3.5} textAnchor="end" fontSize="10.5" fill={LABEL} opacity="0.75">
           {String(v).replace('.', ',')}
         </text>
       ) : null))}

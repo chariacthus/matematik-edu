@@ -1,5 +1,5 @@
 import type { Visual } from '../../types';
-import { TONES } from './Visual';
+import { TONES, LINE, LABEL } from './Visual';
 import { num } from '../../lib/math';
 
 type BarSpec = Extract<Visual, { kind: 'barChart' }>;
@@ -28,20 +28,20 @@ export function BarChart({ spec }: { spec: BarSpec }) {
 
   const ticks = 4;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-md text-ink-500" role="img" aria-label="Søjlediagram">
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-md" role="img" aria-label="Søjlediagram">
       {Array.from({ length: ticks + 1 }, (_, i) => {
         const v = (max / ticks) * i;
         const y = H - padB - scale(v);
         return (
           <g key={i}>
-            <line x1={padL} y1={y} x2={W - 8} y2={y} stroke="currentColor" strokeWidth="1" opacity="0.16" />
-            <text x={padL - 7} y={y + 4} textAnchor="end" fontSize="10.5" fill="currentColor" opacity="0.75">
+            <line x1={padL} y1={y} x2={W - 8} y2={y} stroke={LINE} strokeWidth="1" opacity="0.16" />
+            <text x={padL - 7} y={y + 4} textAnchor="end" fontSize="10.5" fill={LABEL} opacity="0.75">
               {num(Math.round(v))}
             </text>
           </g>
         );
       })}
-      <line x1={padL} y1={H - padB} x2={W - 8} y2={H - padB} stroke="currentColor" strokeWidth="2" />
+      <line x1={padL} y1={H - padB} x2={W - 8} y2={H - padB} stroke={LINE} strokeWidth="2" />
 
       {spec.data.map((d, i) => {
         const h = scale(d.value);
@@ -53,14 +53,14 @@ export function BarChart({ spec }: { spec: BarSpec }) {
             <text x={x + w / 2} y={H - padB - h - 6} textAnchor="middle" fontSize="11" fontWeight="700" fill={TONES.brand.text}>
               {num(d.value)}
             </text>
-            <text x={x + w / 2} y={H - padB + 16} textAnchor="middle" fontSize="10.5" fill="currentColor">
+            <text x={x + w / 2} y={H - padB + 16} textAnchor="middle" fontSize="10.5" fill={LABEL}>
               {d.label.length > 9 ? `${d.label.slice(0, 8)}.` : d.label}
             </text>
           </g>
         );
       })}
       {spec.yLabel ? (
-        <text x={6} y={12} fontSize="10.5" fill="currentColor" opacity="0.8">
+        <text x={6} y={12} fontSize="10.5" fill={LABEL} opacity="0.8">
           {spec.yLabel}
         </text>
       ) : null}
@@ -89,12 +89,12 @@ export function BoxPlot({ spec }: { spec: BoxSpec }) {
   ];
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-lg text-ink-500" role="img" aria-label="Boksplot">
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-lg" role="img" aria-label="Boksplot">
       {/* Hale */}
-      <line x1={x(spec.min)} y1={cy} x2={x(spec.q1)} y2={cy} stroke="currentColor" strokeWidth="2" />
-      <line x1={x(spec.q3)} y1={cy} x2={x(spec.max)} y2={cy} stroke="currentColor" strokeWidth="2" />
-      <line x1={x(spec.min)} y1={cy - 14} x2={x(spec.min)} y2={cy + 14} stroke="currentColor" strokeWidth="2.5" />
-      <line x1={x(spec.max)} y1={cy - 14} x2={x(spec.max)} y2={cy + 14} stroke="currentColor" strokeWidth="2.5" />
+      <line x1={x(spec.min)} y1={cy} x2={x(spec.q1)} y2={cy} stroke={LINE} strokeWidth="2" />
+      <line x1={x(spec.q3)} y1={cy} x2={x(spec.max)} y2={cy} stroke={LINE} strokeWidth="2" />
+      <line x1={x(spec.min)} y1={cy - 14} x2={x(spec.min)} y2={cy + 14} stroke={LINE} strokeWidth="2.5" />
+      <line x1={x(spec.max)} y1={cy - 14} x2={x(spec.max)} y2={cy + 14} stroke={LINE} strokeWidth="2.5" />
 
       {/* Kassen */}
       <rect x={x(spec.q1)} y={boxT} width={Math.max(2, x(spec.q3) - x(spec.q1))} height={boxH} rx="3" fill={TONES.brand.soft} stroke={TONES.brand.fill} strokeWidth="2.5" />
@@ -102,10 +102,10 @@ export function BoxPlot({ spec }: { spec: BoxSpec }) {
 
       {marks.map(([v, label], i) => (
         <g key={i}>
-          <text x={x(v)} y={cy + 40} textAnchor="middle" fontSize="11.5" fontWeight="600" fill="currentColor">
+          <text x={x(v)} y={cy + 40} textAnchor="middle" fontSize="11.5" fontWeight="600" fill={LABEL}>
             {num(v)}
           </text>
-          <text x={x(v)} y={boxT - 8} textAnchor="middle" fontSize="10" fill="currentColor" opacity="0.7">
+          <text x={x(v)} y={boxT - 8} textAnchor="middle" fontSize="10" fill={LABEL} opacity="0.7">
             {label}
           </text>
         </g>
@@ -125,7 +125,7 @@ export function PieChart({ spec }: { spec: PieSpec }) {
 
   let angle = -Math.PI / 2;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-sm text-ink-500" role="img" aria-label="Cirkeldiagram">
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-sm" role="img" aria-label="Cirkeldiagram">
       {spec.slices.map((s, i) => {
         const sweep = (s.value / total) * Math.PI * 2;
         const x1 = cx + r * Math.cos(angle);
@@ -147,7 +147,7 @@ export function PieChart({ spec }: { spec: PieSpec }) {
       {spec.slices.map((s, i) => (
         <g key={`l${i}`}>
           <rect x={218} y={40 + i * 24} width="12" height="12" rx="3" fill={palette[i % palette.length]} />
-          <text x={236} y={50 + i * 24} fontSize="11.5" fill="currentColor">
+          <text x={236} y={50 + i * 24} fontSize="11.5" fill={LABEL}>
             {s.label} ({Math.round((s.value / total) * 100)} %)
           </text>
         </g>
@@ -170,12 +170,12 @@ export function DotPlot({ spec }: { spec: DotSpec }) {
   const stacks = new Map<number, number>();
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-lg text-ink-500" role="img" aria-label="Prikdiagram over datasættet">
-      <line x1={pad - 10} y1={baseY} x2={W - pad + 10} y2={baseY} stroke="currentColor" strokeWidth="2" />
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-lg" role="img" aria-label="Prikdiagram over datasættet">
+      <line x1={pad - 10} y1={baseY} x2={W - pad + 10} y2={baseY} stroke={LINE} strokeWidth="2" />
       {[...new Set(spec.values)].sort((a, b) => a - b).map((v) => (
         <g key={`t${v}`}>
-          <line x1={x(v)} y1={baseY - 4} x2={x(v)} y2={baseY + 5} stroke="currentColor" strokeWidth="1.5" />
-          <text x={x(v)} y={baseY + 22} textAnchor="middle" fontSize="11" fill="currentColor" opacity="0.85">
+          <line x1={x(v)} y1={baseY - 4} x2={x(v)} y2={baseY + 5} stroke={LINE} strokeWidth="1.5" />
+          <text x={x(v)} y={baseY + 22} textAnchor="middle" fontSize="11" fill={LABEL} opacity="0.85">
             {num(v)}
           </text>
         </g>
@@ -197,13 +197,13 @@ export function PercentBar({ spec }: { spec: PercentSpec }) {
   const frac = Math.max(0, Math.min(1, spec.part / (spec.whole || 1)));
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-md text-ink-500" role="img" aria-label="Andel af en helhed">
-      <rect x={pad} y={28} width={barW} height={34} rx="6" fill="currentColor" opacity="0.13" />
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-md" role="img" aria-label="Andel af en helhed">
+      <rect x={pad} y={28} width={barW} height={34} rx="6" fill={LABEL} opacity="0.13" />
       <rect x={pad} y={28} width={barW * frac} height={34} rx="6" fill={TONES.brand.fill} />
       <text x={pad} y={20} fontSize="12" fontWeight="600" fill={TONES.brand.text}>
         {spec.partLabel ?? num(spec.part)}
       </text>
-      <text x={W - pad} y={20} textAnchor="end" fontSize="12" fill="currentColor" opacity="0.8">
+      <text x={W - pad} y={20} textAnchor="end" fontSize="12" fill={LABEL} opacity="0.8">
         {spec.wholeLabel ?? num(spec.whole)}
       </text>
       <text x={pad + barW * frac} y={80} textAnchor={frac > 0.85 ? 'end' : 'middle'} fontSize="12.5" fontWeight="700" fill={TONES.brand.text}>
@@ -230,8 +230,8 @@ export function ProbTree({ spec }: { spec: TreeSpec }) {
   const n1 = first.branches.length;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-md text-ink-500" role="img" aria-label="Tælletræ">
-      <circle cx={rootX} cy={rootY} r="6" fill="currentColor" />
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-md" role="img" aria-label="Tælletræ">
+      <circle cx={rootX} cy={rootY} r="6" fill={LABEL} />
       {first.branches.map((b, i) => {
         const y = ((i + 1) * H) / (n1 + 1);
         return (
@@ -241,7 +241,7 @@ export function ProbTree({ spec }: { spec: TreeSpec }) {
               {b.p}
             </text>
             <circle cx={firstXs} cy={y} r="5" fill={TONES.brand.fill} />
-            <text x={firstXs + 9} y={y + 4} fontSize="11.5" fill="currentColor">
+            <text x={firstXs + 9} y={y + 4} fontSize="11.5" fill={LABEL}>
               {b.label}
             </text>
             {second
@@ -251,7 +251,7 @@ export function ProbTree({ spec }: { spec: TreeSpec }) {
                   return (
                     <g key={j}>
                       <line x1={firstXs} y1={y} x2={x2} y2={y2} stroke={TONES.accent.fill} strokeWidth="1.6" />
-                      <text x={x2 + 6} y={y2 + 3.5} fontSize="10.5" fill="currentColor" opacity="0.9">
+                      <text x={x2 + 6} y={y2 + 3.5} fontSize="10.5" fill={LABEL} opacity="0.9">
                         {b2.label} ({b2.p})
                       </text>
                     </g>

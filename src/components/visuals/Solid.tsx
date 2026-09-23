@@ -1,5 +1,5 @@
 import type { Visual } from '../../types';
-import { TONES } from './Visual';
+import { TONES, LABEL } from './Visual';
 
 type Spec = Extract<Visual, { kind: 'solid' }>;
 
@@ -24,7 +24,7 @@ export function SolidFigure({ spec }: { spec: Spec }) {
     const isPrism = spec.type === 'prism';
 
     return (
-      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-xs text-ink-500" role="img" aria-label="Rumfigur">
+      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-xs" role="img" aria-label="Rumfigur">
         {isPrism ? (
           <>
             <polygon points={`${x},${y + h} ${x + w},${y + h} ${x + w / 2},${y}`} fill={fill} stroke={stroke} strokeWidth="2.5" />
@@ -40,9 +40,9 @@ export function SolidFigure({ spec }: { spec: Spec }) {
             <polygon points={`${x + w},${y} ${x + w + d},${y - d} ${x + w + d},${y + h - d} ${x + w},${y + h}`} fill={fill} stroke={stroke} strokeWidth="2" opacity="0.55" />
           </>
         )}
-        {lab('w') ? <text x={x + w / 2} y={y + h + 22} textAnchor="middle" fontSize="13" fontWeight="600" fill="currentColor">{lab('w')}</text> : null}
-        {lab('h') ? <text x={x - 12} y={y + h / 2 + 4} textAnchor="end" fontSize="13" fontWeight="600" fill="currentColor">{lab('h')}</text> : null}
-        {lab('d') ? <text x={x + w + d + 8} y={y - d / 2 + 4} fontSize="13" fontWeight="600" fill="currentColor">{lab('d')}</text> : null}
+        {lab('w') ? <text x={x + w / 2} y={y + h + 22} textAnchor="middle" fontSize="13" fontWeight="600" fill={LABEL}>{lab('w')}</text> : null}
+        {lab('h') ? <text x={x - 12} y={y + h / 2 + 4} textAnchor="end" fontSize="13" fontWeight="600" fill={LABEL}>{lab('h')}</text> : null}
+        {lab('d') ? <text x={x + w + d + 8} y={y - d / 2 + 4} fontSize="13" fontWeight="600" fill={LABEL}>{lab('d')}</text> : null}
       </svg>
     );
   }
@@ -54,7 +54,7 @@ export function SolidFigure({ spec }: { spec: Spec }) {
     const top = 50;
     const bottom = 175;
     return (
-      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-xs text-ink-500" role="img" aria-label="Cylinder">
+      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-xs" role="img" aria-label="Cylinder">
         <rect x={cx - rx} y={top} width={rx * 2} height={bottom - top} fill={fill} />
         <line x1={cx - rx} y1={top} x2={cx - rx} y2={bottom} stroke={stroke} strokeWidth="2.5" />
         <line x1={cx + rx} y1={top} x2={cx + rx} y2={bottom} stroke={stroke} strokeWidth="2.5" />
@@ -62,7 +62,7 @@ export function SolidFigure({ spec }: { spec: Spec }) {
         <ellipse cx={cx} cy={top} rx={rx} ry={ry} fill={fill} stroke={stroke} strokeWidth="2.5" />
         <line x1={cx} y1={top} x2={cx + rx} y2={top} stroke={TONES.accent.fill} strokeWidth="2" strokeDasharray="4 3" />
         {lab('r') ? <text x={cx + rx / 2} y={top - 8} textAnchor="middle" fontSize="13" fontWeight="700" fill={TONES.accent.text}>r = {lab('r')}</text> : null}
-        {lab('h') ? <text x={cx + rx + 12} y={(top + bottom) / 2} fontSize="13" fontWeight="600" fill="currentColor">h = {lab('h')}</text> : null}
+        {lab('h') ? <text x={cx + rx + 12} y={(top + bottom) / 2} fontSize="13" fontWeight="600" fill={LABEL}>h = {lab('h')}</text> : null}
       </svg>
     );
   }
@@ -74,12 +74,12 @@ export function SolidFigure({ spec }: { spec: Spec }) {
     const apex = 45;
     const base = 175;
     return (
-      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-xs text-ink-500" role="img" aria-label="Kegle">
+      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-xs" role="img" aria-label="Kegle">
         <polygon points={`${cx},${apex} ${cx - rx},${base} ${cx + rx},${base}`} fill={fill} stroke={stroke} strokeWidth="2.5" />
         {spec.type === 'cone' ? <ellipse cx={cx} cy={base} rx={rx} ry={ry} fill={fill} stroke={stroke} strokeWidth="2.5" /> : null}
         <line x1={cx} y1={apex} x2={cx} y2={base} stroke={TONES.accent.fill} strokeWidth="2" strokeDasharray="4 3" />
         {lab('h') ? <text x={cx + 8} y={(apex + base) / 2} fontSize="13" fontWeight="600" fill={TONES.accent.text}>h = {lab('h')}</text> : null}
-        {lab('r') ? <text x={cx - rx / 2 - 8} y={base + 24} fontSize="13" fontWeight="700" fill="currentColor">r = {lab('r')}</text> : null}
+        {lab('r') ? <text x={cx - rx / 2 - 8} y={base + 24} fontSize="13" fontWeight="700" fill={LABEL}>r = {lab('r')}</text> : null}
       </svg>
     );
   }
@@ -89,11 +89,11 @@ export function SolidFigure({ spec }: { spec: Spec }) {
   const cy = H / 2;
   const r = 72;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-xs text-ink-500" role="img" aria-label="Kugle">
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-xs" role="img" aria-label="Kugle">
       <circle cx={cx} cy={cy} r={r} fill={fill} stroke={stroke} strokeWidth="2.5" />
       <ellipse cx={cx} cy={cy} rx={r} ry={r / 3.4} fill="none" stroke={stroke} strokeWidth="1.6" strokeDasharray="5 4" opacity="0.7" />
       <line x1={cx} y1={cy} x2={cx + r} y2={cy} stroke={TONES.accent.fill} strokeWidth="2.5" />
-      <circle cx={cx} cy={cy} r="3" fill="currentColor" />
+      <circle cx={cx} cy={cy} r="3" fill={LABEL} />
       {lab('r') ? <text x={cx + r / 2} y={cy - 9} textAnchor="middle" fontSize="13.5" fontWeight="700" fill={TONES.accent.text}>r = {lab('r')}</text> : null}
     </svg>
   );

@@ -1,5 +1,5 @@
 import type { Visual } from '../../types';
-import { TONES } from './Visual';
+import { TONES, LINE, LABEL } from './Visual';
 
 type Spec = Extract<Visual, { kind: 'numberLine' }>;
 
@@ -19,7 +19,7 @@ export function NumberLine({ spec }: { spec: Spec }) {
   for (let v = first; v <= spec.max + 1e-9; v += step) ticks.push(Math.round(v * 1000) / 1000);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-xl text-ink-500" role="img" aria-label="Tallinje">
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-xl" role="img" aria-label="Tallinje">
       {/* Interval til uligheder */}
       {spec.interval ? (
         <rect
@@ -34,14 +34,14 @@ export function NumberLine({ spec }: { spec: Spec }) {
       ) : null}
 
       {/* Aksen */}
-      <line x1={pad - 10} y1={axisY} x2={W - pad + 10} y2={axisY} stroke="currentColor" strokeWidth="2" />
-      <path d={`M${W - pad + 10} ${axisY} l-8 -5 v10 z`} fill="currentColor" />
-      <path d={`M${pad - 10} ${axisY} l8 -5 v10 z`} fill="currentColor" />
+      <line x1={pad - 10} y1={axisY} x2={W - pad + 10} y2={axisY} stroke={LINE} strokeWidth="2" />
+      <path d={`M${W - pad + 10} ${axisY} l-8 -5 v10 z`} fill={LABEL} />
+      <path d={`M${pad - 10} ${axisY} l8 -5 v10 z`} fill={LABEL} />
 
       {ticks.map((v) => (
         <g key={v}>
-          <line x1={x(v)} y1={axisY - 6} x2={x(v)} y2={axisY + 6} stroke="currentColor" strokeWidth={v === 0 ? 2.5 : 1.5} />
-          <text x={x(v)} y={axisY + 24} textAnchor="middle" fontSize="12" fill="currentColor" opacity="0.8">
+          <line x1={x(v)} y1={axisY - 6} x2={x(v)} y2={axisY + 6} stroke={LINE} strokeWidth={v === 0 ? 2.5 : 1.5} />
+          <text x={x(v)} y={axisY + 24} textAnchor="middle" fontSize="12" fill={LABEL} opacity="0.8">
             {String(v).replace('.', ',')}
           </text>
         </g>
