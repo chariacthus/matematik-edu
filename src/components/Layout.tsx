@@ -42,14 +42,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
     <div className="flex min-h-full flex-col">
       <header className="sticky top-0 z-30 border-b border-ink-200 bg-ink-50/85 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/85">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-2.5">
-          <a href={hrefFor({ name: 'dashboard' })} className="flex shrink-0 items-center gap-2 font-extrabold tracking-tight">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-600 text-white shadow-inset">
-              <Icon name="sigma" size={17} />
-            </span>
-            <span className="hidden text-[15px] sm:inline">MatematikAI</span>
-          </a>
-
-          <nav className="ml-auto hidden items-center gap-1 sm:flex" aria-label="Hovedmenu">
+          <nav className="hidden items-center gap-1 sm:flex" aria-label="Hovedmenu">
             {NAV.map((item) => {
               const on = isActive(item.route);
               return (
@@ -76,7 +69,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
           </nav>
 
           {profile.onboarded ? (
-            <div className="ml-auto flex items-center gap-2.5 sm:ml-3">
+            <div className="ml-auto flex items-center gap-2.5">
               {gamification.streakDays > 0 ? (
                 <span
                   className="flex items-center gap-1 rounded-lg bg-warn-100 px-2 py-1 text-xs font-extrabold tabular-nums text-warn-700 dark:bg-warn-500/15 dark:text-warn-300"

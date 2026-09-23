@@ -204,7 +204,7 @@ export function abilityToLevel(ability: number): Difficulty {
 /* Ny færdighedstilstand                                               */
 /* ------------------------------------------------------------------ */
 
-export function newSkillState(skillId: string, startAbility = 1.6): SkillState {
+export function newSkillState(skillId: string, startAbility = 1): SkillState {
   return {
     skillId,
     pKnown: BKT.pInit,

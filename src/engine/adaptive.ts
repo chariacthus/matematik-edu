@@ -34,44 +34,32 @@ export interface LevelDecision {
 export function chooseLevel(state: SkillState, attempts: Attempt[], phase: LessonPhase): LevelDecision {
   const base = abilityToLevel(state.ability);
   const skillAttempts = attempts.filter((a) => a.skillId === state.skillId);
+  const previous = skillAttempts.length ? (skillAttempts[skillAttempts.length - 1] as Attempt).level : null;
+  const decide = (level: number, reason: LevelDecision['reason']): LevelDecision => ({
+    level: clamp(level, 1, 5) as Difficulty,
+    reason,
+    changed: previous !== null && clamp(level, 1, 5) !== previous,
+  });
 
-  if (skillAttempts.length === 0) {
-    return { level: clamp(base, 1, 3) as Difficulty, reason: 'start', changed: false };
-  }
+  // Fasen sætter gulvet og loftet, også på den allerførste opgave.
+  // Ellers blev den første guidede opgave sværere end den næste.
+  if (phase === 'guided') return decide(clamp(base - 1, 1, 4), 'fase-guidet');
+  if (phase === 'challenge') return decide(clamp(base + 1, 2, 5), 'fase-udfordring');
+
+  if (skillAttempts.length === 0) return decide(clamp(base, 1, 3), 'start');
 
   const behaviour = readBehaviour(skillAttempts, 6);
-  const previous = (skillAttempts[skillAttempts.length - 1] as Attempt).level;
-
-  // Fasen sætter et gulv og et loft. Guided practice skal aldrig være
-  // den sværeste opgave, og en challenge skal altid være et hak op.
-  if (phase === 'guided') {
-    const level = clamp(base - 1, 1, 4) as Difficulty;
-    return { level, reason: 'fase-guidet', changed: level !== previous };
-  }
-  if (phase === 'challenge') {
-    const level = clamp(base + 1, 2, 5) as Difficulty;
-    return { level, reason: 'fase-udfordring', changed: level !== previous };
-  }
 
   // Tre rigtige i træk uden hints: eleven keder sig, sæt niveauet op.
-  if (state.cleanStreak >= 3 && behaviour.cruising) {
-    const level = clamp(base + 1, 1, 5) as Difficulty;
-    return { level, reason: 'op-klarer-let', changed: level !== previous };
-  }
+  if (state.cleanStreak >= 3 && behaviour.cruising) return decide(base + 1, 'op-klarer-let');
 
   // Under 45 % rigtige for nylig: gå et trin tilbage.
-  if (behaviour.struggling) {
-    const level = clamp(base - 1, 1, 5) as Difficulty;
-    return { level, reason: 'ned-mange-fejl', changed: level !== previous };
-  }
+  if (behaviour.struggling) return decide(base - 1, 'ned-mange-fejl');
 
   // Eleven klarer den, men kun med hints. Det er ikke forståelse endnu.
-  if (behaviour.hintDependent && behaviour.recentAccuracy < 0.8) {
-    const level = clamp(base - 1, 1, 5) as Difficulty;
-    return { level, reason: 'ned-for-mange-hints', changed: level !== previous };
-  }
+  if (behaviour.hintDependent && behaviour.recentAccuracy < 0.8) return decide(base - 1, 'ned-for-mange-hints');
 
-  return { level: base, reason: 'hold-stabil', changed: base !== previous };
+  return decide(base, 'hold-stabil');
 }
 
 /* ------------------------------------------------------------------ */

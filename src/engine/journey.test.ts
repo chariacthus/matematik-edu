@@ -3,7 +3,7 @@ import { getSkill } from '../content';
 import { applyAttempt, newSkillState } from './mastery';
 import { chooseLevel, nextProblem } from './adaptive';
 import { startingAbility } from './diagnostic';
-import type { Attempt } from '../types';
+import type { Attempt, LessonPhase } from '../types';
 
 const skill = getSkill('ligning-totrin')!;
 
@@ -83,5 +83,50 @@ describe('et helt forløb', () => {
     const avg = late.reduce((a, b) => a + b, 0) / late.length;
     expect(avg).toBeGreaterThan(2);
     expect(avg).toBeLessThan(4.5);
+  });
+});
+
+describe('fra bunden og opad', () => {
+  const run = (correct: (i: number) => boolean, steps = 12) => {
+    let state = newSkillState(skill.id);
+    const attempts: Attempt[] = [];
+    const levels: number[] = [];
+    const phases: LessonPhase[] = ['guided', 'guided', 'independent', 'independent', 'variation', 'variation', 'challenge', 'mastery', 'mastery', 'mastery', 'mastery', 'mastery'];
+
+    for (let i = 0; i < steps; i++) {
+      const phase = phases[Math.min(i, phases.length - 1)]!;
+      const { problem, decision } = nextProblem(skill, state, attempts, phase, 1000 + i);
+      levels.push(decision.level);
+      const ok = correct(i);
+      attempts.push({
+        id: String(i), ts: Date.now(), skillId: skill.id, domainId: skill.domainId,
+        generatorId: problem.generatorId, problemId: problem.id, level: decision.level,
+        correct: ok, hints: 0, tries: 1, seconds: problem.seconds, phase,
+      } as Attempt);
+      state = applyAttempt(state, problem, { correct: ok, hints: 0, tries: 1, seconds: problem.seconds, phase });
+    }
+    return { levels, state };
+  };
+
+  it('giver en helt ny elev den letteste opgave først', () => {
+    const state = newSkillState(skill.id);
+    expect(chooseLevel(state, [], 'guided').level).toBe(1);
+    expect(chooseLevel(state, [], 'independent').level).toBe(1);
+  });
+
+  it('bliver aldrig lettere mens eleven svarer rigtigt', () => {
+    const { levels, state } = run(() => true);
+    for (let i = 1; i < levels.length; i++) {
+      expect(levels[i]!).toBeGreaterThanOrEqual(levels[i - 1]!);
+    }
+    expect(levels[0]).toBe(1);
+    expect(levels[levels.length - 1]!).toBeGreaterThanOrEqual(4);
+    expect(state.ability).toBeGreaterThan(3);
+  });
+
+  it('holder en elev der svarer forkert nede på det letteste niveau', () => {
+    const { levels, state } = run(() => false);
+    expect(Math.max(...levels)).toBeLessThanOrEqual(2);
+    expect(state.ability).toBeLessThan(1.5);
   });
 });
