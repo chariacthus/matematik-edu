@@ -56,7 +56,7 @@ export function ProfilePage() {
       <section>
         <SectionTitle hint={`${overall.percent} % samlet`}>Din profil, emne for emne</SectionTitle>
         <Card>
-          <ul className="space-y-3">
+          <ul className="stagger space-y-3">
             {domains.map((d) => (
               <li key={d.domainId}>
                 <LabelledBar

@@ -117,7 +117,20 @@ function AngleMark({ cx, cy, from, to, r = 30 }: { cx: number; cy: number; from:
       />
     );
   }
-  return <path d={arcPath(cx, cy, r, from, to)} fill="none" stroke={TONES.brand.fill} strokeWidth="2" />;
+  // Buen svinges op fra det faste ben. Det er ikke pynt: man ser vinklen
+  // blive målt, i den retning man selv ville måle den med en vinkelmåler.
+  const len = Math.abs(to - from) * r;
+  return (
+    <path
+      d={arcPath(cx, cy, r, from, to)}
+      fill="none"
+      stroke={TONES.brand.fill}
+      strokeWidth="2"
+      strokeDasharray={len}
+      className="animate-arc-draw"
+      style={{ ['--arc-len' as string]: len }}
+    />
+  );
 }
 
 /** Tekst placeret på vinklens halveringslinje, så den altid ligger i vinklen. */

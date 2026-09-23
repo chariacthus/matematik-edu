@@ -162,7 +162,7 @@ export function SkillMap({
             }),
         )}
 
-        {nodes.map((n) => {
+        {nodes.map((n, i) => {
           const st = STATUS_STYLE[n.status];
           const r = 26;
           const circumference = 2 * Math.PI * (r - 3);
@@ -185,6 +185,7 @@ export function SkillMap({
                 { locked: 'låst', ready: 'klar', learning: 'i gang', review: 'til repetition', mastered: 'mestret' }[n.status]
               }`}
             >
+              <g className="animate-pop" style={{ animationDelay: `${Math.min(i, 10) * 55}ms` }}>
               <circle r={r} className={clsx(st.fill, st.ring)} strokeWidth="2" />
 
               {/* Fremdriftsring for det man er i gang med */}
@@ -230,6 +231,7 @@ export function SkillMap({
                   </tspan>
                 ))}
               </text>
+              </g>
             </g>
           );
         })}

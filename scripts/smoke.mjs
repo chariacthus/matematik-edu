@@ -355,6 +355,39 @@ try {
   });
   await shot('22-formelsamling');
 
+  await step('animationerne kører, og kan slås fra', async () => {
+    await page.goto('http://127.0.0.1:4173/');
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.getByText('Dagens Missioner').waitFor({ timeout: 8000 });
+    const running = await page.evaluate(() => {
+      const main = document.querySelector('main');
+      return main ? getComputedStyle(main).animationName : null;
+    });
+    if (!running || running === 'none') throw new Error('sideskiftet animerer ikke');
+
+    await page.goto('http://127.0.0.1:4173/#/indstillinger');
+    await page.getByText('Mindre bevægelse').waitFor({ timeout: 5000 });
+    await page.getByRole('switch', { name: 'Mindre bevægelse' }).click();
+    await page.goto('http://127.0.0.1:4173/');
+    await page.getByText('Dagens Missioner').waitFor({ timeout: 8000 });
+    // Indstillingen lå i typerne og i standardværdierne, men blev aldrig
+    // brugt til noget. Her tjekkes at den faktisk stopper bevægelsen.
+    const calm = await page.evaluate(() => {
+      const main = document.querySelector('main');
+      return {
+        flag: document.documentElement.classList.contains('calm'),
+        dur: main ? getComputedStyle(main).animationDuration : null,
+      };
+    });
+    if (!calm.flag) throw new Error('"Mindre bevægelse" sætter ikke klassen på <html>');
+    // Chromium skriver 0,00001s som "1e-05s", så tallet parses frem for
+    // at sammenlignes som tekst.
+    if (parseFloat(calm.dur ?? '1') > 0.01) throw new Error(`animationen kører stadig (${calm.dur})`);
+
+    await page.goto('http://127.0.0.1:4173/#/indstillinger');
+    await page.getByRole('switch', { name: 'Mindre bevægelse' }).click();
+  });
+
   await step('viser prisen på AI-læreren i indstillinger', async () => {
     await page.goto('http://127.0.0.1:4173/#/indstillinger');
     await page.getByText(/Den indbyggede AI-lærer er gratis/).waitFor({ timeout: 8000 });

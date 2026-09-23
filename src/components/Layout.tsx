@@ -34,6 +34,10 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
     return () => media.removeEventListener('change', apply);
   }, [settings.theme]);
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('calm', settings.reducedMotion);
+  }, [settings.reducedMotion]);
+
   const isActive = (r: Route) =>
     r.name === route.name ||
     (r.name === 'library' && (route.name === 'domain' || route.name === 'lesson'));
@@ -59,7 +63,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
                   {item.label}
                   {on ? (
                     <span
-                      className="absolute inset-x-2 -bottom-px h-px bg-brand-400 shadow-[0_0_8px_1px_rgba(167,139,250,0.7)]"
+                      className="absolute inset-x-2 -bottom-px h-px animate-tab-slide bg-brand-400 shadow-[0_0_8px_1px_rgba(167,139,250,0.7)]"
                       aria-hidden
                     />
                   ) : null}
@@ -96,7 +100,14 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-5 sm:pb-12">{children}</main>
+      <main
+        // key på ruten: React monterer indholdet på ny ved sideskift, så
+        // indtoningen spilles forfra i stedet for kun første gang.
+        key={route.name}
+        className="mx-auto w-full max-w-5xl flex-1 animate-swap-in px-4 pb-28 pt-5 sm:pb-12"
+      >
+        {children}
+      </main>
 
       {/* Mobilnavigation i bunden — tommelfingervenlig */}
       {profile.onboarded ? (

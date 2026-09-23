@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import type { Misconception, Problem, Skill, SkillState } from '../types';
 import { checkAnswer, emptyResponse, findTrap, isBlank, answerToString, type Response } from '../lib/answer';
 import { MathBlock, MathText } from './MathText';
+import { Tick } from './Tick';
 import { Icon } from './Icon';
 import { Visual } from './visuals/Visual';
 import { AnswerInput, InputHint, type Verdict } from './AnswerInput';
@@ -211,7 +212,7 @@ export function ProblemCard({
         {hintsShown > 0 ? (
           <div className="mt-4 space-y-2">
             {problem.hints.slice(0, hintsShown).map((h, i) => (
-              <Callout key={i} tone="warn" icon="bulb">
+              <Callout key={i} className="roll-in" tone="warn" icon="bulb">
                 <MathText>{h}</MathText>
               </Callout>
             ))}
@@ -233,10 +234,15 @@ export function ProblemCard({
         ) : null}
 
         {verdict === 'correct' ? (
-          <div className="mt-4">
-            <Callout tone="good" title={hintsShown > 0 ? 'Rigtigt — og du fandt selv vejen derhen' : 'Rigtigt!'}>
-              {problem.concept ? <MathText>{`Husk reglen: ${problem.concept}`}</MathText> : <span>Godt klaret.</span>}
-            </Callout>
+          <div className="mt-4 flex items-start gap-3">
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-good-500/15 text-good-600 dark:text-good-300">
+              <Tick />
+            </span>
+            <div className="min-w-0 flex-1">
+              <Callout tone="good" title={hintsShown > 0 ? 'Rigtigt — og du fandt selv vejen derhen' : 'Rigtigt!'}>
+                {problem.concept ? <MathText>{`Husk reglen: ${problem.concept}`}</MathText> : <span>Godt klaret.</span>}
+              </Callout>
+            </div>
           </div>
         ) : null}
 

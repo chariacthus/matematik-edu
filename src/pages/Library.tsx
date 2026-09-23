@@ -111,7 +111,7 @@ export function LibraryPage() {
                     {areaName(area)}
                   </h3>
                 ) : null}
-                <div className="grid gap-2.5 sm:grid-cols-2">
+                <div className="stagger grid gap-2.5 sm:grid-cols-2">
                   {inArea.map((d) => {
                     const p = byId.get(d.id);
                     return (

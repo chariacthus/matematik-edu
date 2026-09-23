@@ -82,6 +82,22 @@ export default {
       borderRadius: { xl: '0.75rem', '2xl': '1rem', '3xl': '1.375rem' },
       backdropBlur: { xs: '2px' },
       keyframes: {
+        /* Fluebenet tegner sig selv - kvitteringen for et rigtigt svar. */
+        'tick-draw': { from: { strokeDashoffset: '26' }, to: { strokeDashoffset: '0' } },
+        /* Vinkelbuen svinges op, så man ser vinklen blive målt. */
+        'arc-draw': { from: { strokeDashoffset: 'var(--arc-len)' }, to: { strokeDashoffset: '0' } },
+        'rise-in': { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        'swap-in': {
+          from: { opacity: '0', transform: 'translateY(10px) scale(.985)' },
+          to: { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        nudge: { '0%,100%': { transform: 'translateX(0)' }, '35%': { transform: 'translateX(3px)' }, '70%': { transform: 'translateX(-2px)' } },
+        'bar-grow': { from: { transform: 'scaleX(0)' }, to: { transform: 'scaleX(1)' } },
+        'combo-beat': { '0%,100%': { transform: 'scale(1)' }, '40%': { transform: 'scale(1.18)' } },
+        'tab-slide': { from: { opacity: '0', transform: 'scaleX(.4)' }, to: { opacity: '1', transform: 'scaleX(1)' } },
+        'streak-lift': { from: { transform: 'translateY(4px) scale(.8)', opacity: '0' }, to: { transform: 'translateY(0) scale(1)', opacity: '1' } },
+        'ring-fill': { from: { strokeDashoffset: 'var(--ring-len)' }, to: { strokeDashoffset: 'var(--ring-off)' } },
+
         /* Niveauskift: ringen sprænger udad og forsvinder. */
         'level-burst': {
           '0%': { transform: 'scale(0.6)', opacity: '0.9' },
@@ -156,6 +172,17 @@ export default {
         'count-up': { from: { transform: 'translateY(60%)', opacity: '0' }, to: { transform: 'translateY(0)', opacity: '1' } },
       },
       animation: {
+        'tick-draw': 'tick-draw .5s cubic-bezier(.16,1,.3,1) forwards',
+        'arc-draw': 'arc-draw .8s cubic-bezier(.16,1,.3,1) forwards',
+        'rise-in': 'rise-in .42s cubic-bezier(.16,1,.3,1) both',
+        'swap-in': 'swap-in .34s cubic-bezier(.16,1.1,.3,1) both',
+        'nudge': 'nudge .5s cubic-bezier(.16,1,.3,1)',
+        'bar-grow': 'bar-grow .6s cubic-bezier(.16,1,.3,1) both',
+        'combo-beat': 'combo-beat .45s cubic-bezier(.16,1.3,.4,1)',
+        'tab-slide': 'tab-slide .3s cubic-bezier(.16,1,.3,1) both',
+        'streak-lift': 'streak-lift .5s cubic-bezier(.16,1.2,.3,1) both',
+        'ring-fill': 'ring-fill 1s cubic-bezier(.16,1,.3,1) forwards',
+
         'level-burst': 'level-burst .9s cubic-bezier(.16,1,.3,1) forwards',
         'level-pop': 'level-pop .7s cubic-bezier(.16,1.2,.3,1) both',
         'pulse-correct': 'pulse-correct 1s cubic-bezier(.16,1,.3,1)',

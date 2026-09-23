@@ -218,7 +218,9 @@ export function LessonPage({ skillId }: { skillId: string }) {
           onBack={() => setPhase(skillId, 'explain')}
         />
       ) : problem ? (
-        <>
+        // key på fasen og opgaven: hver ny opgave glider ind i stedet for
+        // at bytte tekst ud på stedet, så man kan se at der ER en ny.
+        <div key={`${state.phase}-${problem.id}`} className="animate-swap-in space-y-4">
           <p className="-mt-1 text-sm text-ink-500 dark:text-ink-400">{PHASE_HELP[state.phase]}</p>
           <ProblemCard
             problem={problem}
@@ -237,7 +239,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
             }
           />
           {summary.length >= 3 ? <SessionStrip skillId={skillId} /> : null}
-        </>
+        </div>
       ) : (
         <Card>
           <p className="text-sm text-ink-500">Henter opgave …</p>

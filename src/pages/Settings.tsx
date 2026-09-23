@@ -65,6 +65,13 @@ export function SettingsPage() {
             checked={settings.askConfidence}
             onChange={(v) => update({ askConfidence: v })}
           />
+
+          <Toggle
+            label="Mindre bevægelse"
+            help="Slår animationerne fra. Vælg den hvis bevægelse på skærmen forstyrrer din koncentration."
+            checked={settings.reducedMotion}
+            onChange={(v) => update({ reducedMotion: v })}
+          />
         </Card>
       </section>
 

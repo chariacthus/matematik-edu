@@ -163,7 +163,7 @@ function DiagnosticResult({
 
       <Card>
         <CardTitle>Din profil, emne for emne</CardTitle>
-        <ul className="space-y-3">
+        <ul className="stagger space-y-3">
           {rows.map((r) => (
             <li key={r.id}>
               {r.tested ? (

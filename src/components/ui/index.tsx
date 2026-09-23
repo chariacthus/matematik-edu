@@ -210,7 +210,10 @@ export function ProgressBar({
       aria-valuemax={100}
       aria-label={label}
     >
-      <div className={clsx('h-full rounded-full transition-[width] duration-700 ease-spring', bar)} style={{ width: `${pct}%` }} />
+      <div
+        className={clsx('h-full origin-left animate-bar-grow rounded-full transition-[width] duration-700 ease-spring', bar)}
+        style={{ width: `${pct}%` }}
+      />
     </div>
   );
 }
@@ -442,7 +445,7 @@ export function StreakStrip({ days, active }: { days: boolean[]; active: number 
         {days.map((on, i) => {
           const isToday = i === today;
           return (
-            <span key={i} className="flex flex-col items-center gap-1">
+            <span key={i} className="flex animate-streak-lift flex-col items-center gap-1" style={{ animationDelay: `${i * 45}ms` }}>
               <span
                 className={clsx(
                   'flex h-7 w-7 items-center justify-center rounded-lg border transition-all duration-300',
@@ -484,8 +487,9 @@ export function ComboMeter({ streak }: { streak: number }) {
   if (streak < 2) return null;
   return (
     <span
+      key={streak}
       className={clsx(
-        'inline-flex animate-pop items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-extrabold',
+        'inline-flex animate-combo-beat items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-extrabold',
         streak >= 5 ? 'bg-warn-500 text-ink-950' : 'bg-xp-500 text-ink-950',
       )}
     >
@@ -652,11 +656,13 @@ export function Callout({
   title,
   children,
   icon,
+  className,
 }: {
   tone?: 'brand' | 'good' | 'warn' | 'bad' | 'neutral' | 'xp';
   title?: string;
   children: ReactNode;
   icon?: IconName;
+  className?: string;
 }) {
   const tones = {
     brand: 'border-brand-200 bg-brand-50 text-brand-950 dark:border-brand-500/25 dark:bg-brand-500/10 dark:text-brand-100',
@@ -668,7 +674,7 @@ export function Callout({
   }[tone];
   const fallback: IconName = tone === 'warn' ? 'warning' : tone === 'bad' ? 'close' : tone === 'good' || tone === 'xp' ? 'check' : 'info';
   return (
-    <div className={clsx('rounded-xl border px-3.5 py-3 text-sm leading-relaxed', tones)}>
+    <div className={clsx('rounded-xl border px-3.5 py-3 text-sm leading-relaxed', tones, className)}>
       <div className="flex items-start gap-2.5">
         <Icon name={icon ?? fallback} size={16} className="mt-0.5 shrink-0" />
         <div className="min-w-0">
