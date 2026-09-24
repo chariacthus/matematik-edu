@@ -93,7 +93,7 @@ export function OnboardingPage() {
     /* 2 — selvvurdering */
     <div key="2" className="space-y-5">
       <Heading title="Hvor sikker føler du dig i matematik?" sub="Der er ikke noget rigtigt svar. Det hjælper os bare med at vælge det første niveau." />
-      <div className="grid gap-2">
+      <div className="grid grid-cols-1 gap-2">
         {[
           [1, 'Slet ikke sikker', 'Jeg er tit i tvivl om det meste'],
           [2, 'Lidt usikker', 'Nogle ting kan jeg, andre er svære'],

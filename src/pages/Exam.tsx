@@ -18,9 +18,12 @@ import { Visual } from '../components/visuals/Visual';
 import { CATEGORIES } from '../content';
 import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
-import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, ChoiceCard, Disclosure, LabelledBar, MetaChip, PageHeader, ProgressBar, ProgressRing, SectionTitle, StatTile } from '../components/ui';
+import { ProblemCard, SolutionSteps, type SubmitInfo } from '../components/ProblemCard';
+import { choiceText } from '../components/AnswerInput';
+import { answerToString } from '../lib/answer';
+import { Callout, Card, ChoiceCard, Disclosure, EmptyState, LabelledBar, ListRow, MetaChip, PageHeader, ProgressBar, ProgressRing, SectionTitle, Segmented, StatTile } from '../components/ui';
 import { Icon } from '../components/Icon';
+import { useFocusMode } from '../components/Layout';
 import { FormelsamlingButton } from '../components/Formelsamling';
 
 /**
@@ -37,6 +40,7 @@ export function ExamPage() {
   const [finished, setFinished] = useState(false);
   const [, setTick] = useState(0);
   const running = session !== null && !finished;
+  useFocusMode(running && !examFinished(session));
 
   // Tiden regnes altid ud fra prøvens starttidspunkt. Uret tikker kun for
   // at tegne siden igen; det startede før på 0:00, og et forsinket tik
@@ -87,7 +91,7 @@ export function ExamPage() {
         sounds={false}
         onSubmit={(info: SubmitInfo) => {
           recordAttempt({ problem: item.problem, ...info, phase: 'practice' });
-          setSession((s) => (s ? answerExamItem(s, info.correct) : s));
+          setSession((s) => (s ? answerExamItem(s, info.correct, info.answer) : s));
         }}
         onNext={() => undefined}
         nextLabel="Næste"
@@ -118,7 +122,7 @@ export function ExamPage() {
     <div className={clsx('mx-auto', theme ? 'max-w-5xl' : 'max-w-2xl')}>
       {/* Uret og fremgangen bliver stående øverst, også når en lang opgave
           skal rulles - man skal kunne se tiden uden at lede efter den. */}
-      <div className="sticky top-14 z-20 -mx-4 mb-4 border-b border-ink-200 bg-ink-50/90 px-4 py-3 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/90 lg:top-0 lg:-mx-8 lg:px-8">
+      <div className="sticky top-0 z-20 -mx-4 mb-4 border-b border-ink-200 bg-ink-50/90 px-4 py-3 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/90 lg:top-0 lg:-mx-8 lg:px-8">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="eyebrow">{session.config.title}</p>
@@ -198,7 +202,7 @@ function ExamPicker({ onStart }: { onStart: (part: ExamPart) => void }) {
         back={{ label: 'Forsiden', onClick: () => navigate({ name: 'dashboard' }) }}
       />
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {(['uden', 'med'] as const).map((part) => {
           const c = EXAM_PARTS[part];
           return (
@@ -233,18 +237,21 @@ function ExamPicker({ onStart }: { onStart: (part: ExamPart) => void }) {
 function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: () => void }) {
   const result = useMemo(() => summariseExam(session), [session]);
   const grade = gradeIndication(result.percent);
+  const [reviewing, setReviewing] = useState(false);
 
   // Resultatet er ikke en ny rute, så routeren ruller ikke op. Uden det
   // her åbner det midt på siden, der hvor man sidst stod i prøven.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
-  }, []);
+  }, [reviewing]);
+
+  if (reviewing) return <ExamReview session={session} onBack={() => setReviewing(false)} />;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl space-y-5">
       <PageHeader title="Prøven er afleveret" subtitle={session.config.title} />
 
-      <Card pad="lg" className="mb-5 mt-6 flex items-center gap-5 rounded-3xl">
+      <Card pad="lg" className="flex items-center gap-5 rounded-3xl">
         <ProgressRing value={result.percent} size={80} stroke={8} />
         <div className="min-w-0">
           <p className="text-3xl font-bold leading-none">{grade.grade}</p>
@@ -253,62 +260,176 @@ function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: (
         </div>
       </Card>
 
-      <div className="stagger mb-5 grid grid-cols-3 gap-2 sm:gap-3">
+      <div className="stagger grid grid-cols-3 gap-2 sm:gap-3">
         <StatTile label="Rigtige" icon="check" tone="xp" value={result.correct} suffix={`/ ${result.total}`} />
         <StatTile label="Besvaret" icon="pencil" value={result.answered} suffix={`/ ${result.total}`} />
         <StatTile label="Tid" icon="clock" value={result.minutesUsed} suffix="min" />
       </div>
 
-      <Callout tone="neutral" icon="info">
-        Karakteren er en grov indikation ud fra hvor mange opgaver du fik rigtige. Den rigtige prøve bedømmes af en
-        censor efter flere kriterier end det.
-      </Callout>
-
-      <section className="mt-5">
-        <SectionTitle>Sådan gik det pr. kompetenceområde</SectionTitle>
-        <Card>
-          <ul className="space-y-3">
-            {result.byCategory.map((c) => {
-              const name = CATEGORIES.find((x) => x.id === c.category)?.name ?? c.category;
-              const pct = c.total ? Math.round((c.correct / c.total) * 100) : 0;
-              return (
-                <li key={c.category}>
-                  <LabelledBar label={name} value={pct} right={`${c.correct}/${c.total}`} />
-                </li>
-              );
-            })}
-          </ul>
-        </Card>
-      </section>
-
       {result.weakSkills.length ? (
-        <section className="mt-5">
-          <SectionTitle>Det du skal øve</SectionTitle>
-          <ul className="space-y-2">
-            {result.weakSkills.slice(0, 6).map((w) => (
-              <Card key={w.skillId} as="li" pad="sm">
-                <button
-                  onClick={() => navigate({ name: 'lesson', skillId: w.skillId })}
-                  className="flex w-full items-center gap-3 text-left"
-                >
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold">{w.name}</span>
-                  <MetaChip tone="warn">{w.wrong} forkert</MetaChip>
-                  <Icon name="chevron" size={16} className="text-ink-500 dark:text-ink-400" />
-                </button>
-              </Card>
+        <section data-practice-these>
+          <SectionTitle>Øv disse</SectionTitle>
+          <Card pad="none" className="divide-y divide-ink-100 p-1.5 dark:divide-white/[0.05]">
+            {result.weakSkills.slice(0, 3).map((w) => (
+              <ListRow
+                key={w.skillId}
+                variant="plain"
+                icon="target"
+                tone="warn"
+                title={w.name}
+                trailing={<MetaChip tone="warn">{w.wrong} forkert</MetaChip>}
+                onClick={() => navigate({ name: 'lesson', skillId: w.skillId })}
+              />
             ))}
-          </ul>
+          </Card>
         </section>
       ) : null}
 
-      <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-        <button onClick={onRetry} className="btn-secondary flex-1">
-          Tag en prøve mere
+      <Disclosure summary="Detaljer">
+        <p className="eyebrow mb-3">Pr. kompetenceområde</p>
+        <ul className="space-y-3">
+          {result.byCategory.map((c) => {
+            const name = CATEGORIES.find((x) => x.id === c.category)?.name ?? c.category;
+            const pct = c.total ? Math.round((c.correct / c.total) * 100) : 0;
+            return (
+              <li key={c.category}>
+                <LabelledBar label={name} value={pct} right={`${c.correct}/${c.total}`} />
+              </li>
+            );
+          })}
+        </ul>
+        <p className="mt-4 text-xs leading-relaxed text-ink-500 dark:text-ink-400">
+          Karakteren er en grov indikation ud fra hvor mange opgaver du fik rigtige. Den rigtige prøve bedømmes af en
+          censor efter flere kriterier end det.
+        </p>
+      </Disclosure>
+
+      <div className="flex flex-col gap-2">
+        <button onClick={() => setReviewing(true)} className="btn-primary w-full py-3">
+          <Icon name="eye" size={16} />
+          Gennemgå opgaverne
         </button>
-        <button onClick={() => navigate({ name: 'dashboard' })} className="btn-primary flex-1 py-3">
-          Tilbage til forsiden
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <button onClick={onRetry} className="btn-secondary flex-1">
+            Tag en prøve mere
+          </button>
+          <button onClick={() => navigate({ name: 'dashboard' })} className="btn-ghost flex-1">
+            Til forsiden
+          </button>
+        </div>
       </div>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Gennemgang: hver opgave med elevens svar og det rigtige              */
+/* ------------------------------------------------------------------ */
+
+function ExamReview({ session, onBack }: { session: ExamSession; onBack: () => void }) {
+  const rows = session.items.map((item, i) => ({
+    item,
+    number: item.label ?? String(i + 1),
+    correct: session.answers[i] === true,
+    reached: session.answers[i] !== null,
+    response: session.responses?.[i] ?? null,
+  }));
+  // Opgaver man ikke nåede før afleveringen, står kun under Alle.
+  const wrong = rows.filter((r) => r.reached && !r.correct);
+  const [show, setShow] = useState<'forkerte' | 'alle'>(wrong.length ? 'forkerte' : 'alle');
+  const list = show === 'forkerte' ? wrong : rows;
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-5">
+      <PageHeader
+        title="Gennemgang"
+        subtitle={`${session.config.title} · ${rows.filter((r) => r.correct).length} af ${rows.length} rigtige`}
+        back={{ label: 'Resultatet', onClick: onBack }}
+      />
+
+      <Segmented
+        value={show}
+        onChange={setShow}
+        options={[
+          { id: 'forkerte', label: 'Forkerte', count: wrong.length || undefined },
+          { id: 'alle', label: 'Alle', count: rows.length },
+        ]}
+      />
+
+      {list.length ? (
+        <ol className="space-y-3">
+          {list.map((r) => (
+            <ReviewItem key={r.number} {...r} />
+          ))}
+        </ol>
+      ) : (
+        <EmptyState icon="check" title="Ingen forkerte" body="Alle de opgaver du nåede, fik du rigtige." />
+      )}
+    </div>
+  );
+}
+
+function ReviewItem({
+  item,
+  number,
+  correct,
+  reached,
+  response,
+}: {
+  item: ExamSession['items'][number];
+  number: string;
+  correct: boolean;
+  reached: boolean;
+  response: string | null;
+}) {
+  const status = correct ? 'Rigtigt' : response ? 'Forkert' : reached ? 'Sprunget over' : 'Ikke nået';
+  const p = item.problem;
+  const hasChoices = Boolean(p.choices?.length);
+  const shown = (text: string) =>
+    hasChoices ? <MathText>{choiceText(text)}</MathText> : <span className="num">{text}</span>;
+
+  return (
+    <Card as="li" data-review-item>
+      <div className="flex items-center gap-2">
+        <span className="num text-sm font-semibold">Opgave {number}</span>
+        <MetaChip tone={correct ? 'good' : response ? 'bad' : 'neutral'}>{status}</MetaChip>
+      </div>
+      {item.theme ? <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{item.theme.title}</p> : null}
+
+      <div className="prose-math mt-3 leading-relaxed text-ink-900 dark:text-ink-50">
+        <MathText>{p.prompt}</MathText>
+      </div>
+      {p.visual && !p.visualAid ? <Visual spec={p.visual} mode="problem" className="mt-3" /> : null}
+
+      <dl className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+        <div
+          className={clsx(
+            'rounded-xl border px-3.5 py-2.5',
+            correct
+              ? 'border-good-500/30 bg-good-500/[0.06]'
+              : response
+                ? 'border-bad-400/30 bg-bad-500/[0.06]'
+                : 'border-ink-200 dark:border-white/10',
+          )}
+        >
+          <dt className="text-xs text-ink-500 dark:text-ink-400">Dit svar</dt>
+          <dd className="mt-0.5 font-semibold">{response ? shown(response) : status}</dd>
+        </div>
+        {correct ? null : (
+          <div className="rounded-xl border border-ink-200 px-3.5 py-2.5 dark:border-white/10">
+            <dt className="text-xs text-ink-500 dark:text-ink-400">Rigtigt svar</dt>
+            <dd className="mt-0.5 font-semibold">{shown(answerToString(p.answer, p.choices))}</dd>
+          </div>
+        )}
+      </dl>
+
+      {p.solution.length ? (
+        <div className="mt-3">
+          <Disclosure summary="Sådan regnes den">
+            <SolutionSteps problem={p} />
+          </Disclosure>
+        </div>
+      ) : null}
+    </Card>
   );
 }

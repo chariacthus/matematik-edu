@@ -413,6 +413,56 @@ export function PageHeader({
   );
 }
 
+/**
+ * Den smalle bjælke øverst mens man arbejder: luk, hvad man er i gang
+ * med, og hvor langt man er. Den står i stedet for menuerne.
+ */
+export function FocusBar({
+  title,
+  meta,
+  progress,
+  progressLabel,
+  tone = 'brand',
+  onExit,
+  exitLabel,
+  right,
+  track,
+}: {
+  title: string;
+  meta?: ReactNode;
+  progress: number;
+  progressLabel: string;
+  /** I stedet for den almindelige streg, fx lektionens syv trin. */
+  track?: ReactNode;
+  tone?: 'brand' | 'accent' | 'xp';
+  onExit: () => void;
+  exitLabel: string;
+  right?: ReactNode;
+}) {
+  return (
+    <div
+      data-focusbar
+      className="sticky top-0 z-20 -mx-4 border-b border-ink-200 bg-ink-50/90 px-4 py-2 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/85 lg:top-4 lg:mx-0 lg:rounded-2xl lg:border lg:px-3"
+    >
+      <div className="flex items-center gap-2.5">
+        <button onClick={onExit} className="btn-ghost -ml-2 h-10 w-10 shrink-0 p-0 lg:ml-0" aria-label={exitLabel} title={exitLabel}>
+          <Icon name="close" size={18} />
+        </button>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="truncate text-sm font-semibold">{title}</span>
+            {meta ? <span className="num shrink-0 text-xs text-ink-500 dark:text-ink-400">{meta}</span> : null}
+          </div>
+          <div className="mt-1.5">
+            {track ?? <ProgressBar value={progress} size="sm" tone={tone} label={progressLabel} />}
+          </div>
+        </div>
+        {right ? <span className="flex shrink-0 items-center gap-2">{right}</span> : null}
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Tal der tæller op                                                   */
 /* ------------------------------------------------------------------ */

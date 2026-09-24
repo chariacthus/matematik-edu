@@ -16,7 +16,7 @@ export type Route =
   | { name: 'lesson'; skillId: string }
   | { name: 'library' }
   | { name: 'domain'; domainId: string }
-  | { name: 'practice' }
+  | { name: 'practice'; skillId: string }
   | { name: 'review' }
   | { name: 'exam' }
   | { name: 'profile' }
@@ -39,7 +39,9 @@ export function parseHash(hash: string): Route {
     case 'bibliotek':
       return parts[1] ? { name: 'domain', domainId: parts[1] } : { name: 'library' };
     case 'traen':
-      return { name: 'practice' };
+      // Træning ligger nu under Emner. Et gammelt link uden færdighed
+      // lander der.
+      return parts[1] ? { name: 'practice', skillId: parts[1] } : { name: 'library' };
     case 'repeter':
       return { name: 'review' };
     case 'proeve':
@@ -68,7 +70,7 @@ export function hrefFor(route: Route): string {
     case 'domain':
       return `#/bibliotek/${encodeURIComponent(route.domainId)}`;
     case 'practice':
-      return '#/traen';
+      return `#/traen/${encodeURIComponent(route.skillId)}`;
     case 'review':
       return '#/repeter';
     case 'exam':

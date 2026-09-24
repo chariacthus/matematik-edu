@@ -237,7 +237,7 @@ async function walkTour() {
     await page.waitForTimeout(500);
   }
   await tour.waitFor({ state: 'detached', timeout: 5000 });
-  if (spotlights < 6) throw new Error(`kun ${spotlights} trin i rundvisningen markerer noget på skærmen`);
+  if (spotlights < 5) throw new Error(`kun ${spotlights} trin i rundvisningen markerer noget på skærmen`);
 }
 
 try {
@@ -415,31 +415,59 @@ try {
   });
   await shot('08-hjaelp');
 
-  await step('viser Træn med ét valg ad gangen', async () => {
+  // Menuerne skal være væk på en telefon mens der svares: ingen fast
+  // topbjælke og ingen bundmenu, kun opgavens egen smalle bjælke.
+  async function assertFocus(where) {
+    const chrome = await page.evaluate(() => ({
+      bar: Boolean(document.querySelector('[data-focusbar]')),
+      header: [...document.querySelectorAll('header')].some(
+        (h) => getComputedStyle(h).position === 'sticky' && h.getBoundingClientRect().height > 0,
+      ),
+      nav: [...document.querySelectorAll('nav[aria-label="Hovedmenu"]')].some((n) => n.getBoundingClientRect().height > 0),
+    }));
+    if (!chrome.bar) throw new Error(`${where}: fokusbjælken mangler`);
+    if (chrome.header) throw new Error(`${where}: topbjælken står der stadig mens man svarer`);
+    if (chrome.nav) throw new Error(`${where}: bundmenuen står der stadig mens man svarer`);
+  }
+
+  await step('lektionen er i fokus mens man svarer', async () => {
     await page.getByRole('button', { name: 'Luk hjælpen' }).click();
-    await page.goto('http://127.0.0.1:4173/#/traen');
-    await page.getByRole('heading', { name: 'Træn', exact: true }).waitFor({ timeout: 8000 });
-    await shot('24-traen');
-
-    // Kun ét kompetenceområde ad gangen.
-    const main = page.locator('main');
-    await main.getByRole('button', { name: /^Brøker/ }).waitFor({ timeout: 5000 });
-    await page.getByRole('button', { name: /^Geometri og måling/ }).click();
-    await main.getByRole('button', { name: /^Trigonometri/ }).waitFor({ timeout: 5000 });
-    if (await main.getByRole('button', { name: /^Brøker/ }).count()) throw new Error('emnerne fra de andre områder står der stadig');
-    await page.getByRole('button', { name: /^Tal og algebra/ }).click();
-
-    // Emnet åbner på sin egen side, ikke nederst på listen.
-    await main.getByRole('button', { name: /^Brøker/ }).click();
-    await page.getByRole('heading', { name: 'Brøker', exact: true }).waitFor({ timeout: 5000 });
-    const rows = await page.locator('main button.card-interactive').count();
-    if (rows < 3) throw new Error(`emnet viser kun ${rows} færdigheder`);
-    if (await page.getByRole('heading', { name: 'Træn', exact: true }).count()) throw new Error('emnet åbner under listen i stedet for på sin egen side');
-    await page.getByRole('button', { name: 'Træn', exact: true }).click();
-    await page.getByRole('heading', { name: 'Træn', exact: true }).waitFor({ timeout: 5000 });
+    await assertFocus('lektionen');
+    // Færdighedens navn står i bjælken og ikke en gang til i opgavekortet.
+    const inCard = await page.locator('main article.card').first().innerText();
+    if (inCard.includes('Ligninger i to trin')) throw new Error('opgavekortet gentager færdighedens navn');
   });
 
-  await step('Træn løber ikke over, heller ikke med mange emner i gang', async () => {
+  await step('træning ligger under Emner, og menuen har fire faner', async () => {
+    await page.goto('http://127.0.0.1:4173/#/traen');
+    await page.getByRole('heading', { name: 'Emner', exact: true }).waitFor({ timeout: 8000 });
+    const tabs = await page.evaluate(
+      () => [...document.querySelectorAll('nav[aria-label="Hovedmenu"] a')].filter((a) => a.getBoundingClientRect().height > 0).length,
+    );
+    if (tabs !== 4) throw new Error(`bundmenuen har ${tabs} faner, ikke 4`);
+
+    await page.goto('http://127.0.0.1:4173/#/bibliotek/broeker');
+    await page.getByRole('heading', { name: 'Brøker', exact: true }).waitFor({ timeout: 8000 });
+    await page.getByRole('button', { name: /^Lær: / }).waitFor({ timeout: 5000 });
+    await page.getByRole('button', { name: 'Træn 10 opgaver' }).click();
+    const pick = page.getByRole('dialog', { name: 'Træn 10 opgaver' });
+    await pick.waitFor({ timeout: 5000 });
+    await shot('24-traen-valg');
+    await pick.getByRole('button', { name: /^Forkorte og udvide/ }).click();
+    await page.locator('[data-focusbar]').getByText('0 af 10').waitFor({ timeout: 8000 });
+    await assertFocus('træningsrunden');
+    await shot('41-runde');
+
+    // Luk uden at have svaret: tilbage til emnet, og menuerne er der igen.
+    await page.getByRole('button', { name: 'Stop runden' }).click();
+    await page.getByRole('heading', { name: 'Brøker', exact: true }).waitFor({ timeout: 5000 });
+    const nav = await page.evaluate(() =>
+      [...document.querySelectorAll('nav[aria-label="Hovedmenu"]')].some((n) => n.getBoundingClientRect().height > 0),
+    );
+    if (!nav) throw new Error('bundmenuen kommer ikke igen efter runden');
+  });
+
+  await step('Emner og forsiden løber ikke over, heller ikke med mange emner i gang', async () => {
     const ctx = await browser.newContext({ viewport: { width: 420, height: 900 } });
     await ctx.addInitScript(() => {
       if (sessionStorage.getItem('seeded')) return;
@@ -467,24 +495,41 @@ try {
       sessionStorage.setItem('seeded', '1');
     });
     const p = await ctx.newPage();
-    p.on('pageerror', (e) => errors.push(`pageerror (træn): ${e.message}`));
+    p.on('pageerror', (e) => errors.push(`pageerror (mange emner): ${e.message}`));
     try {
-      await p.goto('http://127.0.0.1:4173/#/traen', { waitUntil: 'networkidle' });
-      await p.getByRole('heading', { name: 'Træn', exact: true }).waitFor({ timeout: 8000 });
-      await p.getByRole('button', { name: 'Vis alle 30' }).waitFor({ timeout: 5000 });
-      const size = await p.evaluate(() => ({
-        height: document.documentElement.scrollHeight,
-        rows: document.querySelectorAll('main button.group').length,
+      await p.goto('http://127.0.0.1:4173/#/bibliotek', { waitUntil: 'networkidle' });
+      await p.getByRole('heading', { name: 'Emner', exact: true }).waitFor({ timeout: 8000 });
+      const rows = await p.locator('[data-continue] button').count();
+      if (rows !== 3) throw new Error(`Fortsæt viser ${rows} rækker, ikke 3`);
+      await p.waitForTimeout(600);
+      await p.screenshot({ path: '/tmp/claude-0/shot-37-emner-fortsaet.png' });
+      shots.push('/tmp/claude-0/shot-37-emner-fortsaet.png');
+
+      // Lange undertekster må ikke skubbe siden ud til siden på en telefon.
+      for (const route of ['#/', '#/bibliotek', '#/bibliotek/broeker', '#/profil']) {
+        await p.goto(`http://127.0.0.1:4173/${route}`);
+        await p.waitForTimeout(500);
+        const wide = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+        if (wide > 0) throw new Error(`${route} er ${wide}px for bred på en telefon`);
+      }
+
+      // Forsiden: stime og mål i ét kort, stimen kun én gang, intet ekstra niveaukort.
+      await p.goto('http://127.0.0.1:4173/#/');
+      await p.getByText('Dagens Missioner').waitFor({ timeout: 8000 });
+      const home = await p.evaluate(() => ({
+        streaks: [...document.querySelectorAll('[title$="dage i træk"], [title$="dag i træk"]')].filter((el) => el.getBoundingClientRect().height > 0).length,
+        tiles: document.querySelectorAll('[data-tour="hud"]').length,
+        level: document.querySelectorAll('main [aria-label^="Fremgang mod niveau"]').length,
       }));
-      if (size.height > 900 * 2.2) throw new Error(`Træn er ${size.height}px høj med 30 emner i gang`);
-      if (size.rows > 14) throw new Error(`Træn viser ${size.rows} rækker på én gang`);
-      await p.waitForTimeout(600);
-      await p.screenshot({ path: '/tmp/claude-0/shot-37-traen-mange.png', fullPage: true });
-      shots.push('/tmp/claude-0/shot-37-traen-mange.png');
+      if (home.streaks > 0) throw new Error('stimen står både i topbjælken og på forsiden');
+      if (home.tiles !== 1) throw new Error('stime og dagens mål er ikke samlet i ét kort');
+      if (home.level) throw new Error('niveauet står på forsiden, selvom det allerede står i topbjælken');
+
       await p.setViewportSize({ width: 1280, height: 860 });
+      await p.goto('http://127.0.0.1:4173/#/bibliotek');
       await p.waitForTimeout(600);
-      await p.screenshot({ path: '/tmp/claude-0/shot-38-traen-computer.png' });
-      shots.push('/tmp/claude-0/shot-38-traen-computer.png');
+      await p.screenshot({ path: '/tmp/claude-0/shot-38-emner-computer.png' });
+      shots.push('/tmp/claude-0/shot-38-emner-computer.png');
     } finally {
       await ctx.close();
     }
@@ -599,7 +644,7 @@ try {
       top: Math.round(document.querySelector('[role="timer"]').getBoundingClientRect().top),
     }));
     if (pos.y < 50) throw new Error(`siden rullede ikke (scrollY ${pos.y}) - tjekket beviser intet`);
-    if (pos.top < 0 || pos.top > 140) throw new Error(`uret er rullet ud af syne (top ${pos.top}px)`);
+    if (pos.top < 0 || pos.top > 60) throw new Error(`uret er rullet ud af syne (top ${pos.top}px)`);
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.setViewportSize({ width: 420, height: 900 });
     // Formelsamlingen hører til prøven MED hjælpemidler. Slipper den ind
@@ -609,7 +654,16 @@ try {
     }
     // Som på et rigtigt opgaveark: ingen hjælpetegninger (vægtskål,
     // procentbjælke) og ingen hints.
-    for (let i = 0; i < 12; i++) {
+    // Den første besvares med et forkert tal, så gennemgangen har et svar at vise.
+    const first = page.getByLabel('Dit svar');
+    let typed = false;
+    if (await first.count()) {
+      await first.fill('999');
+      await page.getByRole('button', { name: 'Tjek svar' }).click();
+      await page.getByText(/Opgave 2 af 20/).waitFor({ timeout: 5000 });
+      typed = true;
+    }
+    for (let i = typed ? 1 : 0; i < 12; i++) {
       const aids = await page.locator('main article svg[aria-label="Vægt der viser en ligning"], main article svg[aria-label="Andel af en helhed"], main [data-aid]').count();
       if (aids) throw new Error(`opgave ${i + 1} i prøven viser en hjælpetegning`);
       if (await page.getByRole('button', { name: /^Hint/ }).count()) throw new Error('prøven tilbyder hints');
@@ -620,8 +674,38 @@ try {
     }
     await page.getByRole('button', { name: 'Aflevér prøven' }).click();
     await page.getByRole('heading', { name: /Prøven er afleveret/ }).waitFor({ timeout: 8000 });
+
+    // Kort først: karakter, tre tal og det man skal øve. Resten er foldet sammen.
+    const order = await page.evaluate(() => {
+      // textContent: overskriften står med versaler på skærmen.
+      const text = document.querySelector('main').textContent;
+      return { practice: text.indexOf('Øv disse'), details: text.indexOf('Detaljer') };
+    });
+    if (order.practice < 0) throw new Error('resultatet viser ikke hvad der skal øves');
+    if (order.details < order.practice) throw new Error('detaljerne står før det man skal øve');
+    const rows = await page.locator('[data-practice-these] button').count();
+    if (rows > 3) throw new Error(`"Øv disse" viser ${rows} rækker`);
+    if ((await page.getByRole('button', { name: 'Detaljer' }).getAttribute('aria-expanded')) !== 'false') {
+      throw new Error('detaljerne er foldet ud fra start');
+    }
+    await shot('12-proeveresultat');
+
+    await page.getByRole('button', { name: 'Gennemgå opgaverne' }).click();
+    await page.getByRole('heading', { name: 'Gennemgang' }).waitFor({ timeout: 5000 });
+    const wrong = await page.locator('[data-review-item]').count();
+    if (wrong !== 12) throw new Error(`gennemgangen viser ${wrong} forkerte, ikke de 12 besvarede`);
+    const review = await page.locator('main').innerText();
+    if (!review.includes('Rigtigt svar') || !review.includes('Sprunget over')) {
+      throw new Error('gennemgangen viser ikke både elevens svar og det rigtige');
+    }
+    if (typed && !/Dit svar\s*999/.test(review)) throw new Error('gennemgangen viser ikke det eleven skrev');
+    await shot('42-gennemgang');
+    await page.getByRole('tab', { name: /Alle/ }).click();
+    await page.waitForTimeout(300);
+    const all = await page.locator('[data-review-item]').count();
+    if (all !== 20) throw new Error(`"Alle" viser ${all} opgaver, ikke 20`);
+    if (!(await page.locator('main').innerText()).includes('Ikke nået')) throw new Error('opgaver man ikke nåede, står ikke som ikke nået');
   });
-  await shot('12-proeveresultat');
 
   await step('giver formelsamling i prøven med hjælpemidler', async () => {
     // Prøven står på resultatskærmen. En hash-navigation genindlæser
@@ -882,14 +966,15 @@ try {
     await page.getByText('Dagens Missioner').waitFor({ timeout: 8000 });
 
     // Det ternede papir hører til overskrifter - aldrig inde i en opgave.
+    if (!(await page.locator('main .paper-head').count())) throw new Error('det ternede papir mangler bag overskriften');
     await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
     await page.locator('main article.card').first().waitFor({ timeout: 8000 });
-    const paper = await page.evaluate(() => ({
-      total: document.querySelectorAll('.paper-head').length,
-      inside: document.querySelectorAll('article .paper-head, figure .paper-head').length,
-    }));
-    if (paper.total === 0) throw new Error('det ternede papir mangler bag overskriften');
-    if (paper.inside > 0) throw new Error('det ternede papir ligger inde i en opgave');
+    const inside = await page.evaluate(() => document.querySelectorAll('article .paper-head, figure .paper-head').length);
+    if (inside > 0) throw new Error('det ternede papir ligger inde i en opgave');
+    // Fokus i en lektion skjuler kun telefonens menuer; sidemenuen bliver.
+    const side = await page.evaluate(() => document.querySelector('aside[aria-label="Sidemenu"]')?.getBoundingClientRect().width ?? 0);
+    if (side < 200) throw new Error('sidemenuen forsvinder i en lektion på en computer');
+    await shot('40-fokus-computer');
     if (await page.getByRole('group', { name: 'Ekstra taster' }).count()) {
       throw new Error('tastrækken vises på en computer med mus');
     }
@@ -1114,11 +1199,10 @@ try {
   });
 
   await step('en runde fri træning slutter med en opsamling', async () => {
-    await page.goto('http://127.0.0.1:4173/#/traen');
+    await page.goto('http://127.0.0.1:4173/#/bibliotek/broeker');
     await page.reload({ waitUntil: 'networkidle' });
-    await page.locator('main').getByRole('button', { name: /^Brøker/ }).click();
-    await page.getByRole('heading', { name: 'Brøker', exact: true }).waitFor({ timeout: 5000 });
-    await page.locator('main button.card-interactive').first().click();
+    await page.getByRole('button', { name: 'Træn 10 opgaver' }).click();
+    await page.getByRole('dialog', { name: 'Træn 10 opgaver' }).getByRole('button').nth(1).click();
     for (let i = 0; i < 10; i++) {
       await page.locator('main article.card').first().waitFor({ timeout: 5000 });
       await settleWrong();
@@ -1135,14 +1219,21 @@ try {
   });
   await shot('32-runde-slut');
 
+  await step('efter runden kommer man tilbage til emnet', async () => {
+    await page.getByRole('button', { name: 'Tilbage til brøker' }).click();
+    await page.getByRole('heading', { name: 'Brøker', exact: true }).waitFor({ timeout: 5000 });
+  });
+
   await step('Stop for nu i en lektion viser hvad man nåede', async () => {
     await page.setViewportSize({ width: 1280, height: 860 });
     await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('main article.card').first().waitFor({ timeout: 8000 });
-    if (await page.getByRole('button', { name: 'Stop for nu' }).count()) {
-      throw new Error('Stop for nu står der før eleven har svaret på noget');
-    }
+    // Uden svar er der intet at samle op på: krydset går tilbage til emnet.
+    await page.getByRole('button', { name: 'Stop for nu' }).click();
+    await page.getByRole('heading', { name: 'Ligninger', exact: true }).waitFor({ timeout: 5000 });
+    await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
+    await page.locator('main article.card').first().waitFor({ timeout: 8000 });
     await settleWrong();
     await page.getByRole('button', { name: 'Stop for nu' }).click();
     await page.getByRole('heading', { name: 'Stop for nu' }).waitFor({ timeout: 5000 });
@@ -1159,7 +1250,7 @@ try {
     for (const theme of ['Mørkt', 'Lyst']) {
       await page.goto('http://127.0.0.1:4173/#/indstillinger');
       await page.getByRole('tab', { name: theme }).click();
-      for (const route of ['#/', '#/bibliotek', '#/bibliotek/ligninger', '#/laer/ligning-totrin', '#/traen', '#/proeve', '#/profil', '#/indstillinger']) {
+      for (const route of ['#/', '#/bibliotek', '#/bibliotek/ligninger', '#/laer/ligning-totrin', '#/traen/broek-forkort', '#/proeve', '#/profil', '#/indstillinger']) {
         await page.goto(`http://127.0.0.1:4173/${route}`);
         await page.waitForTimeout(900);
         for (const f of await lowContrast()) found.push(`${theme} ${route}: ${f}`);

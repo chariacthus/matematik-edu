@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import clsx from "clsx";
 import type { DomainId, Skill, SkillState } from "../types";
-import { CATEGORIES, DOMAINS, areaName, getDomain, groupByArea, skillsOf } from "../content";
+import { ALL_SKILLS, CATEGORIES, DOMAINS, areaName, domainName, getDomain, groupByArea, skillsOf } from "../content";
 import { DOMAIN_SIGNATURES } from "../content/signatures";
 import { useStore } from "../state/store";
-import { domainProgress, prerequisitesMet } from "../engine/planner";
-import { skillStatus } from "../engine/mastery";
+import { domainProgress, nextSkillInDomain, prerequisitesMet } from "../engine/planner";
+import { abilityToLevel, skillStatus } from "../engine/mastery";
 import { retention } from "../engine/srs";
 import { navigate } from "../lib/router";
 import { relativeDays } from "../lib/dates";
@@ -15,7 +15,9 @@ import {
   EmptyState,
   FormulaTile,
   LevelDots,
+  ListRow,
   MetaChip,
+  Modal,
   PageHeader,
   ProgressBar,
   ProgressRing,
@@ -25,7 +27,7 @@ import { SkillMap } from "../components/SkillMap";
 import { Icon, domainIcon } from "../components/Icon";
 import { MathText } from "../components/MathText";
 
-/** Biblioteket: hele pensum, grupperet i de fem hovedkategorier. */
+/** Emner: hele pensum, grupperet i kompetenceområderne. */
 export function LibraryPage() {
   const skills = useStore((s) => s.skills);
   const profile = useStore((s) => s.profile);
@@ -36,6 +38,13 @@ export function LibraryPage() {
     [skills, profile],
   );
   const byId = new Map(progress.map((p) => [p.domainId, p]));
+  const recent = useMemo(
+    () =>
+      ALL_SKILLS.filter((s) => (skills[s.id]?.attempts ?? 0) > 0)
+        .sort((a, b) => (skills[b.id]?.lastSeen ?? 0) - (skills[a.id]?.lastSeen ?? 0))
+        .slice(0, 3),
+    [skills],
+  );
 
   const q = query.trim().toLowerCase();
   const matches = (id: DomainId) => {
@@ -58,6 +67,29 @@ export function LibraryPage() {
         title="Emner"
         subtitle={`Pensum efter Fælles Mål: ${DOMAINS.length} emner, ${DOMAINS.reduce((n, d) => n + d.skills.length, 0)} færdigheder`}
       />
+
+      {recent.length && !q ? (
+        <section data-continue>
+          <h2 className="eyebrow mb-2.5">Fortsæt</h2>
+          <Card pad="none" className="divide-y divide-ink-100 p-1.5 dark:divide-white/[0.05]">
+            {recent.map((s) => {
+              const st = skills[s.id]!;
+              return (
+                <ListRow
+                  key={s.id}
+                  variant="plain"
+                  icon={domainIcon(s.domainId)}
+                  tone={st.masteredAt ? "xp" : "brand"}
+                  title={s.name}
+                  subtitle={domainName(s.domainId)}
+                  trailing={st.masteredAt ? <MetaChip tone="good" icon="star">Mestret</MetaChip> : null}
+                  onClick={() => navigate({ name: "lesson", skillId: s.id })}
+                />
+              );
+            })}
+          </Card>
+        </section>
+      ) : null}
 
       <div className="relative">
         <Icon name="search" size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500 dark:text-ink-400" />
@@ -158,6 +190,7 @@ export function DomainPage({ domainId }: { domainId: string }) {
   const skills = useStore((s) => s.skills);
   const profile = useStore((s) => s.profile);
   const [view, setView] = useState<"kort" | "liste">("kort");
+  const [picking, setPicking] = useState(false);
 
   if (!domain) {
     return (
@@ -181,6 +214,7 @@ export function DomainPage({ domainId }: { domainId: string }) {
   const mastered = list.filter((s) => skills[s.id]?.masteredAt).length;
   const percent = list.length ? Math.round((mastered / list.length) * 100) : 0;
   const diagnostic = profile.diagnostic[domain.id];
+  const next = nextSkillInDomain(domain.id, skills);
 
   return (
     <div>
@@ -202,6 +236,51 @@ export function DomainPage({ domainId }: { domainId: string }) {
           </MetaChip>
         ) : null}
       </div>
+
+      {/* Lær følger de syv trin. Træn er ti opgaver uden faser. */}
+      <div className="mb-6 flex flex-col gap-2 sm:flex-row" data-domain-actions>
+        {next ? (
+          <button
+            onClick={() => navigate({ name: "lesson", skillId: next.id })}
+            className="btn-primary min-w-0 flex-1"
+          >
+            <Icon name="book" size={16} className="shrink-0" />
+            <span className="truncate">Lær: {next.name}</span>
+          </button>
+        ) : null}
+        <button onClick={() => setPicking(true)} className="btn-secondary flex-1">
+          <Icon name="pencil" size={16} />
+          Træn 10 opgaver
+        </button>
+      </div>
+
+      <Modal open={picking} onClose={() => setPicking(false)} title="Træn 10 opgaver">
+        <p className="-mt-2 mb-3 text-sm text-ink-500 dark:text-ink-400">
+          Vælg hvad du vil øve. Opgaverne passer til dit niveau.
+        </p>
+        <div className="divide-y divide-ink-100 dark:divide-white/[0.05]">
+          {list.map((sk) => {
+            const st = skills[sk.id];
+            const tried = (st?.attempts ?? 0) > 0;
+            return (
+              <ListRow
+                key={sk.id}
+                variant="plain"
+                icon="pencil"
+                tone={st?.masteredAt ? "xp" : tried ? "brand" : "neutral"}
+                title={sk.name}
+                subtitle={
+                  st && tried
+                    ? `Niveau ${abilityToLevel(st.ability)} · ${Math.round(st.pKnown * 100)} % sikker`
+                    : "Ikke prøvet endnu"
+                }
+                trailing={st?.masteredAt ? <MetaChip tone="good" icon="star">Mestret</MetaChip> : null}
+                onClick={() => navigate({ name: "practice", skillId: sk.id })}
+              />
+            );
+          })}
+        </div>
+      </Modal>
 
       <Segmented
         value={view}

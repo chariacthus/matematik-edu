@@ -76,3 +76,10 @@ export function describeResponse(r: Response): string {
       return `(${r.x.trim()}, ${r.y.trim()})`;
   }
 }
+
+/** Svaret til en gennemgang bagefter: en valgmulighed med sin tekst, ikke kun bogstavet. */
+export function responseText(r: Response, choices?: string[]): string {
+  if (r.kind === 'choice') return r.index === null ? '' : choices?.[r.index] ?? describeResponse(r);
+  if (r.kind === 'multi') return r.indices.map((i) => choices?.[i] ?? String.fromCharCode(65 + i)).join(', ');
+  return describeResponse(r);
+}

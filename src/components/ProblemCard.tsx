@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import type { Misconception, Problem, Skill, SkillState } from '../types';
 import { checkAnswer, emptyResponse, findTrap, isBlank, answerToString, type Response } from '../lib/answer';
-import { describeResponse, findSlip } from '../lib/slips';
+import { describeResponse, findSlip, responseText } from '../lib/slips';
 import { play } from '../lib/sound';
 import { MathBlock, MathText } from './MathText';
 import { Tick } from './Tick';
 import { Icon } from './Icon';
 import { Visual } from './visuals/Visual';
 import { AnswerInput, InputHint, type Verdict } from './AnswerInput';
-import { Callout, MetaChip, Disclosure, LevelDots, XpPop } from './ui';
+import { Callout, Disclosure, LevelDots, XpPop } from './ui';
 import { TutorDock } from './TutorDock';
 import { feedbackForWrongAnswer } from '../tutor/tutor';
 import { getMisconception } from '../content/misconceptions';
@@ -21,6 +21,8 @@ export interface SubmitInfo {
   seconds: number;
   misconceptionId?: string;
   confidence?: 1 | 2 | 3;
+  /** Det eleven skrev eller valgte, som tekst. */
+  answer?: string;
 }
 
 /**
@@ -112,7 +114,7 @@ export function ProblemCard({
       setSettled(true);
       setFeedback(null);
       if (xpOnCorrect) setXpPop(true);
-      onSubmit({ correct: true, hints: hintsShown, tries: nextTries, seconds: elapsed(), confidence });
+      onSubmit({ correct: true, hints: hintsShown, tries: nextTries, seconds: elapsed(), confidence, answer: responseText(response, problem.choices) });
       if (autoAdvance) setTimeout(onNext, 1100);
       return;
     }
@@ -142,6 +144,7 @@ export function ProblemCard({
       seconds: elapsed(),
       misconceptionId: trap?.misconceptionId,
       confidence,
+      answer: responseText(response, problem.choices),
     });
   }
 
@@ -165,10 +168,7 @@ export function ProblemCard({
         {label ? (
           <span className="num text-sm font-semibold">{label}</span>
         ) : (
-          <>
-            <MetaChip tone="neutral">{skill.name}</MetaChip>
-            <LevelDots level={problem.level} />
-          </>
+          <LevelDots level={problem.level} />
         )}
         <span className="ml-auto flex items-center gap-2">{headerRight}</span>
       </div>
@@ -282,20 +282,7 @@ export function ProblemCard({
         {(settled && verdict === 'wrong') || showSolution ? (
           <div className="mt-4">
             <Disclosure summary="Se løsningen trin for trin" defaultOpen={settled && verdict === 'wrong'}>
-              <ol className="space-y-3">
-                {problem.solution.map((step, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-xs font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-200">
-                      {i + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <MathText className="text-sm">{step.text}</MathText>
-                      {step.math ? <MathBlock tex={step.math} className="mt-1" /> : null}
-                      {step.why ? <p className="mt-1 text-xs italic text-ink-500 dark:text-ink-400">{step.why}</p> : null}
-                    </div>
-                  </li>
-                ))}
-              </ol>
+              <SolutionSteps problem={problem} />
               <p className="mt-3 border-t border-ink-200 pt-3 text-sm font-bold dark:border-ink-800">
                 Svar: <span className="num">{facit}</span>
               </p>
@@ -368,4 +355,23 @@ function inputKind(problem: Problem): Response['kind'] {
     default:
       return 'text';
   }
+}
+
+export function SolutionSteps({ problem }: { problem: Problem }) {
+  return (
+    <ol className="space-y-3">
+      {problem.solution.map((step, i) => (
+        <li key={i} className="flex gap-3">
+          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-xs font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-200">
+            {i + 1}
+          </span>
+          <div className="min-w-0 flex-1">
+            <MathText className="text-sm">{step.text}</MathText>
+            {step.math ? <MathBlock tex={step.math} className="mt-1" /> : null}
+            {step.why ? <p className="mt-1 text-xs italic text-ink-500 dark:text-ink-400">{step.why}</p> : null}
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
 }

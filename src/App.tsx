@@ -90,7 +90,7 @@ export default function App() {
       case 'domain':
         return <DomainPage domainId={route.domainId} />;
       case 'practice':
-        return <PracticePage />;
+        return <PracticePage key={route.skillId} skillId={route.skillId} />;
       case 'review':
         return <ReviewPage />;
       case 'exam':

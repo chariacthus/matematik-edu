@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, createContext, useContext, useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { hrefFor, navigate, type Route } from '../lib/router';
 import { useStore } from '../state/store';
@@ -9,16 +9,34 @@ import { ProgressBar } from './ui';
 const NAV: { route: Route; label: string; icon: IconName }[] = [
   { route: { name: 'dashboard' }, label: 'I dag', icon: 'home' },
   { route: { name: 'library' }, label: 'Emner', icon: 'book' },
-  { route: { name: 'practice' }, label: 'Træn', icon: 'pencil' },
   { route: { name: 'exam' }, label: 'Prøve', icon: 'exam' },
   { route: { name: 'profile' }, label: 'Profil', icon: 'user' },
 ];
+
+/**
+ * Fokus: mens eleven svarer på opgaver, forsvinder menuerne på en
+ * telefon, så der kun er opgaven og en smal bjælke tilbage. Siden der
+ * arbejdes på slår det til med useFocusMode.
+ */
+const FocusContext = createContext<(delta: number) => void>(() => {});
+
+export function useFocusMode(active: boolean) {
+  const change = useContext(FocusContext);
+  useEffect(() => {
+    if (!active) return;
+    change(1);
+    return () => change(-1);
+  }, [active, change]);
+}
 
 export function Layout({ route, children }: { route: Route; children: ReactNode }) {
   const gamification = useStore((s) => s.gamification);
   const profile = useStore((s) => s.profile);
   const settings = useStore((s) => s.settings);
   const progress = levelProgress(gamification.xp);
+  const [focusCount, setFocusCount] = useState(0);
+  const [changeFocus] = useState(() => (delta: number) => setFocusCount((n) => n + delta));
+  const focus = focusCount > 0;
 
   // Temaet sættes på <html>, så Tailwinds dark-klasse virker overalt —
   // også på elementer uden for React-roden.
@@ -41,7 +59,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
 
   const isActive = (r: Route) =>
     r.name === route.name ||
-    (r.name === 'library' && (route.name === 'domain' || route.name === 'lesson'));
+    (r.name === 'library' && (route.name === 'domain' || route.name === 'lesson' || route.name === 'practice'));
   const activeIndex = NAV.findIndex((n) => isActive(n.route));
   const section = activeIndex >= 0 ? NAV[activeIndex]!.label : route.name === 'settings' ? 'Indstillinger' : '';
 
@@ -144,12 +162,18 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
       ) : null}
 
       {/* Under 1024px: en smal topbjælke der siger hvor man er, og en fanebjælke i bunden. */}
-      <header className="sticky top-0 z-30 border-b border-ink-200 bg-ink-50/85 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/85 lg:hidden">
+      <header
+        className={clsx(
+          'sticky top-0 z-30 border-b border-ink-200 bg-ink-50/85 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/85 lg:hidden',
+          focus && 'hidden',
+        )}
+      >
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
           <span className="text-sm font-semibold text-ink-900 dark:text-white">{profile.onboarded ? section : ''}</span>
           {profile.onboarded ? (
             <div className="ml-auto flex items-center gap-2">
-              {gamification.streakDays > 0 ? (
+              {/* Forsiden har sin egen stime, så den står ikke to gange. */}
+              {gamification.streakDays > 0 && route.name !== 'dashboard' ? (
                 <span
                   className="num flex items-center gap-1 rounded-lg bg-warn-500/15 px-2 py-1 text-xs font-semibold text-warn-800 dark:text-warn-300"
                   title={`${gamification.streakDays} dage i træk`}
@@ -189,13 +213,16 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
           // key på ruten: React monterer indholdet på ny ved sideskift, så
           // indtoningen spilles forfra i stedet for kun første gang.
           key={route.name}
-          className="mx-auto w-full max-w-5xl flex-1 animate-swap-in px-4 pb-28 pt-5 focus:outline-none lg:px-8 lg:pb-12 lg:pt-10"
+          className={clsx(
+            'mx-auto w-full max-w-5xl flex-1 animate-swap-in px-4 focus:outline-none lg:px-8 lg:pb-12 lg:pt-10',
+            focus ? 'pb-10 pt-0' : 'pb-28 pt-5',
+          )}
         >
-          {children}
+          <FocusContext.Provider value={changeFocus}>{children}</FocusContext.Provider>
         </main>
       </div>
 
-      {profile.onboarded ? (
+      {profile.onboarded && !focus ? (
         <nav
           className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-ink-200 bg-white/90 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/90 lg:hidden"
           aria-label="Hovedmenu"
@@ -205,7 +232,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
               // Stregen glider hen over den aktive fane. Fanerne er lige
               // brede, så dens egen bredde er et helt fanefelt.
               <span
-                className="absolute left-0 top-0 flex h-0.5 w-1/5 justify-center transition-transform duration-300 ease-spring"
+                className="absolute left-0 top-0 flex h-0.5 w-1/4 justify-center transition-transform duration-300 ease-spring"
                 style={{ transform: `translateX(${activeIndex * 100}%)` }}
                 aria-hidden
               >

@@ -14,7 +14,8 @@ import { randomSeed } from '../lib/math';
 import { MathBlock, MathText } from './../components/MathText';
 import { Visual } from '../components/visuals/Visual';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, CardTitle, MetaChip, ComboMeter, EmptyState, Page, PageHeader, Skeleton } from '../components/ui';
+import { Callout, Card, CardTitle, MetaChip, ComboMeter, EmptyState, FocusBar, Page, PageHeader, Skeleton } from '../components/ui';
+import { useFocusMode } from '../components/Layout';
 import { Icon } from '../components/Icon';
 import { SessionSummary } from '../components/SessionSummary';
 import { xpForAttempt } from '../engine/gamification';
@@ -136,6 +137,11 @@ export function LessonPage({ skillId }: { skillId: string }) {
     [attempts, skillId],
   );
 
+  // Mens der løses opgaver, er der kun opgaven og en smal bjælke.
+  // Forklaring og eksempel læses med menuerne fremme.
+  const working = Boolean(skill) && isPracticePhase(state.phase) && !clinic && !justMastered && !stopped;
+  useFocusMode(working);
+
   if (!skill) {
     return (
       <EmptyState
@@ -201,31 +207,38 @@ export function LessonPage({ skillId }: { skillId: string }) {
 
   return (
     <Page>
-      <div className="space-y-4">
-        <PageHeader
+      {working ? (
+        <FocusBar
           title={skill.name}
-          subtitle={skill.goal}
-          back={{ label: domainName(skill.domainId), onClick: () => navigate({ name: 'domain', domainId: skill.domainId }) }}
+          meta={`Trin ${phaseIdx + 1} af 7`}
+          progress={((phaseIdx + state.phaseProgress / PHASE_TARGETS[state.phase]) / LESSON_PHASES.length) * 100}
+          progressLabel="Fremgang i forløbet"
+          track={<PhaseSegments phase={state.phase} progress={state.phaseProgress} />}
+          onExit={() => (answered ? setStopped(true) : navigate({ name: 'domain', domainId: skill.domainId }))}
+          exitLabel="Stop for nu"
           right={
-            <span className="flex flex-col items-end gap-1.5">
+            <>
               <ComboMeter streak={combo} />
               {xpGained > 0 ? (
                 <span className="num flex items-center gap-1 text-xs font-bold text-xp-600 dark:text-xp-400">
-                  <Icon name="bolt" size={12} />+{xpGained} XP
+                  <Icon name="bolt" size={12} />+{xpGained}
                 </span>
               ) : null}
-              {answered ? (
-                <button onClick={() => setStopped(true)} className="btn-secondary btn-sm mt-1">
-                  Stop for nu
-                </button>
-              ) : null}
-            </span>
+            </>
           }
         />
-        {/* Trinstriben hører til overskriften, ikke til indholdet - derfor
-            tættere på den end sidens almindelige afstand. */}
-        <PhaseTrack phase={state.phase} progress={state.phaseProgress} />
-      </div>
+      ) : (
+        <div className="space-y-4">
+          <PageHeader
+            title={skill.name}
+            subtitle={skill.goal}
+            back={{ label: domainName(skill.domainId), onClick: () => navigate({ name: 'domain', domainId: skill.domainId }) }}
+          />
+          {/* Trinstriben hører til overskriften, ikke til indholdet - derfor
+              tættere på den end sidens almindelige afstand. */}
+          <PhaseTrack phase={state.phase} progress={state.phaseProgress} />
+        </div>
+      )}
 
       {levelNote ? (
         <Callout tone="brand" icon="chart">
@@ -248,7 +261,10 @@ export function LessonPage({ skillId }: { skillId: string }) {
         // key på fasen og opgaven: hver ny opgave glider ind i stedet for
         // at bytte tekst ud på stedet, så man kan se at der ER en ny.
         <div key={`${state.phase}-${problem.id}`} className="animate-swap-in space-y-4">
-          <p className="-mt-1 text-sm text-ink-500 dark:text-ink-400">{PHASE_HELP[state.phase]}</p>
+          <p className="text-sm text-ink-500 dark:text-ink-400">
+            <span className="font-semibold text-ink-800 dark:text-ink-100">{PHASE_LABELS[state.phase]}.</span>{' '}
+            {PHASE_HELP[state.phase]}
+          </p>
           <ProblemCard
             problem={problem}
             skill={skill}
@@ -445,46 +461,48 @@ function ExampleStep({ skill, onDone, onBack }: { skill: Skill; onDone: () => vo
 
 function PhaseTrack({ phase, progress }: { phase: LessonPhase; progress: number }) {
   const idx = LESSON_PHASES.indexOf(phase);
+  return (
+    <div>
+      <p className="mb-2 text-xs font-bold text-brand-700 dark:text-brand-300" aria-hidden>
+        Trin {idx + 1} af 7 · {PHASE_LABELS[phase]}
+      </p>
+      <PhaseSegments phase={phase} progress={progress} />
+    </div>
+  );
+}
+
+/**
+ * Syv felter, ét pr. trin. Det trin man står på fyldes op mens man
+ * løser opgaver, så stregen bevæger sig mens man arbejder.
+ */
+function PhaseSegments({ phase, progress }: { phase: LessonPhase; progress: number }) {
+  const idx = LESSON_PHASES.indexOf(phase);
   const target = PHASE_TARGETS[phase];
   const within = target > 0 ? progress / target : 0;
-  const overall = ((idx + within) / LESSON_PHASES.length) * 100;
-
   return (
-    <div
-      role="group"
-      aria-label={`Trin ${idx + 1} af 7: ${PHASE_LABELS[phase]}, ${Math.round(overall)} procent af forløbet`}
+    <ol
+      className="flex gap-1"
+      role="img"
+      aria-label={`Trin ${idx + 1} af 7: ${PHASE_LABELS[phase]}, ${progress} af ${target} opgaver`}
     >
-      <div className="mb-2 flex items-baseline justify-between text-xs">
-        <span className="font-bold text-brand-700 dark:text-brand-300">
-          Trin {idx + 1} af 7 · {PHASE_LABELS[phase]}
-        </span>
-      </div>
-      {/*
-        Syv felter — ét pr. trin. Det trin man står på fyldes op mens
-        man løser opgaver, så stregen bevæger sig mens man arbejder.
-        Tidligere var der både en samlet procentlinje og de syv felter;
-        de sagde det samme, og den ene kunne undværes.
-      */}
-      <ol className="flex gap-1" aria-hidden>
-        {LESSON_PHASES.map((p, i) => (
-          <li
-            key={p}
-            className={clsx(
-              'h-1.5 flex-1 overflow-hidden rounded-full',
-              i < idx ? 'bg-good-500' : 'bg-ink-200 dark:bg-white/[0.08]',
-            )}
-            title={PHASE_LABELS[p]}
-          >
-            {i === idx ? (
-              <span
-                className="neon-xp block h-full rounded-full transition-[width] duration-500 ease-spring"
-                style={{ width: `${Math.max(8, within * 100)}%` }}
-              />
-            ) : null}
-          </li>
-        ))}
-      </ol>
-    </div>
+      {LESSON_PHASES.map((p, i) => (
+        <li
+          key={p}
+          className={clsx(
+            'h-1.5 flex-1 overflow-hidden rounded-full',
+            i < idx ? 'bg-good-500' : 'bg-ink-200 dark:bg-white/[0.08]',
+          )}
+          title={PHASE_LABELS[p]}
+        >
+          {i === idx ? (
+            <span
+              className="neon-xp block h-full rounded-full transition-[width] duration-500 ease-spring"
+              style={{ width: `${Math.max(8, within * 100)}%` }}
+            />
+          ) : null}
+        </li>
+      ))}
+    </ol>
   );
 }
 

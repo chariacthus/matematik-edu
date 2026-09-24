@@ -13,7 +13,8 @@ import { DOMAINS, domainName, getSkill } from '../content';
 import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, CardTitle, LabelledBar, ProgressBar, ProgressRing } from '../components/ui';
+import { Callout, Card, CardTitle, FocusBar, LabelledBar, ProgressRing } from '../components/ui';
+import { useFocusMode } from '../components/Layout';
 import { Icon } from '../components/Icon';
 
 /**
@@ -39,6 +40,7 @@ export function DiagnosticPage() {
   const done = isComplete(session) || stopped;
   const total = totalItems();
   const progress = (session.index / total) * 100;
+  useFocusMode(!done);
 
   const handleSubmit = (info: SubmitInfo) => {
     if (!item || outcome !== null) return;
@@ -64,15 +66,14 @@ export function DiagnosticPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <header>
-        <div className="mb-2 flex items-center justify-between text-xs">
-          <span className="font-bold text-brand-700 dark:text-brand-300">
-            Opgave {session.index + 1} af {total}
-          </span>
-          <span className="text-ink-500 dark:text-ink-400">{domainName(item.domainId)}</span>
-        </div>
-        <ProgressBar value={progress} label="Fremgang i niveautesten" />
-      </header>
+      <FocusBar
+        title={domainName(item.domainId)}
+        meta={`Opgave ${session.index + 1} af ${total}`}
+        progress={progress}
+        progressLabel="Fremgang i niveautesten"
+        onExit={() => setStopped(true)}
+        exitLabel="Afslut testen her"
+      />
 
       <Callout tone="neutral" icon="info">
         Det gør ikke noget at svare forkert. Testen skal finde ud af hvad du ikke kan endnu, så gæt hellere end at
@@ -91,18 +92,13 @@ export function DiagnosticPage() {
         />
       ) : null}
 
-      <div className="flex flex-wrap justify-between gap-2">
-        {outcome === null ? (
+      {outcome === null ? (
+        <div className="flex justify-center">
           <button onClick={() => advance(false)} className="btn-ghost text-xs">
             Ved ikke, spring over
           </button>
-        ) : (
-          <span />
-        )}
-        <button onClick={() => setStopped(true)} className="btn-ghost text-xs">
-          Afslut testen her
-        </button>
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

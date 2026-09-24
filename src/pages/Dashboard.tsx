@@ -4,7 +4,6 @@ import { useStore } from '../state/store';
 import { buildPlan, domainProgress, overallProgress, type PlanItem } from '../engine/planner';
 import { activeMisconceptions, readBehaviour } from '../engine/diagnosis';
 import { dueSkills } from '../engine/srs';
-import { levelProgress, levelTitle } from '../engine/gamification';
 import { CATEGORIES, getSkill } from '../content';
 import { CATEGORY_SIGNATURES, skillSignature } from '../content/signatures';
 import { navigate } from '../lib/router';
@@ -14,7 +13,7 @@ import { Icon, type IconName } from '../components/Icon';
 import { Tour, type TourStep } from '../components/Tour';
 import {
   Callout, Card, ChoiceCard, EmptyState, FormulaTile, IconTile, ListRow, MetaChip, Page,
-  ProgressBar, Section, Segmented, StatTile, XpBar,
+  ProgressBar, Section, Segmented,
 } from '../components/ui';
 import { LESSON_PHASES } from '../types';
 
@@ -34,7 +33,7 @@ const TOUR: TourStep[] = [
     title: 'Stime og dagens mål',
     body:
       'Stimen tæller hvor mange dage i træk du har lavet noget. Dagens mål er cirka ti minutters arbejde. ' +
-      'Dit niveau og din XP står ved dit navn i menuen.',
+      'Dit niveau og din XP ligger i menuen og på din profil.',
   },
   {
     target: 'mission',
@@ -54,13 +53,8 @@ const TOUR: TourStep[] = [
     target: 'nav-library',
     title: 'Emner',
     body:
-      'Hele pensum efter Fælles Mål: 21 emner og 70 færdigheder. Hvert emne har et kort, hvor du kan se ' +
-      'hvad der er låst op, hvad du er i gang med, og hvad du kan.',
-  },
-  {
-    target: 'nav-practice',
-    title: 'Fri træning',
-    body: 'Her kan du øve et bestemt emne, uden faser og uden at miste noget.',
+      'Hele pensum efter Fælles Mål: 21 emner og 70 færdigheder. I hvert emne kan du lære det næste trin ' +
+      'eller træne 10 opgaver i noget du allerede er i gang med.',
   },
   {
     target: 'nav-exam',
@@ -93,8 +87,6 @@ export function DashboardPage() {
   const anyMastered = useMemo(() => Object.values(skills).some((s) => s.masteredAt !== null), [skills]);
   const errors = useMemo(() => activeMisconceptions(misconceptions).filter((m) => m.state.count >= 2), [misconceptions]);
   const behaviour = useMemo(() => readBehaviour(attempts, 10), [attempts]);
-  const level = levelProgress(gamification.xp);
-  const pendingLevelUp = useStore((s) => s.pendingLevelUp);
 
   // De seneste syv dage. Vi tæller både registrerede forsøg og dagens
   // optjente XP med - ellers kan striben sige 1 dag mens kalenderen står
@@ -143,22 +135,28 @@ export function DashboardPage() {
           </div>
         ) : null}
 
-        <div data-tour="hud" className={clsx('grid grid-cols-2 gap-3 lg:grid-cols-1 lg:content-start', first && 'lg:pt-[26px]')}>
-          <StatTile
-            label="Stime"
-            icon="flame"
-            tone="warn"
-            value={gamification.streakDays}
-            suffix={gamification.streakDays === 1 ? 'dag' : 'dage'}
-            hint={
-              gamification.streakDays === 0
-                ? 'Start i dag. Én opgave er nok.'
-                : gamification.streakDays === 1
-                  ? 'Kom igen i morgen.'
-                  : 'Kom igen i morgen.'
-            }
-          >
-            <span className="flex gap-1" aria-label="De sidste syv dage">
+        {/* Stime og mål i ét kort. Niveauet står i menuen og topbjælken,
+            så det skal ikke stå her en gang til. */}
+        <Card
+          pad="none"
+          data-tour="hud"
+          className={clsx(
+            'grid grid-cols-2 divide-x divide-ink-100 dark:divide-white/[0.06] lg:grid-cols-1 lg:content-start lg:divide-x-0 lg:divide-y lg:self-start',
+            first && 'lg:mt-[26px]',
+          )}
+        >
+          <div className="p-4">
+            <p className="eyebrow flex items-center gap-1.5">
+              <Icon name="flame" size={13} className="text-orange-400" />
+              Stime
+            </p>
+            <p className="num mt-2 flex items-baseline gap-1 text-3xl font-semibold leading-none tracking-tight">
+              {gamification.streakDays}
+              <span className="text-sm font-medium text-ink-500 dark:text-ink-400">
+                {gamification.streakDays === 1 ? 'dag' : 'dage'}
+              </span>
+            </p>
+            <span className="mt-3 flex gap-1" aria-label="De sidste syv dage">
               {week.map((on, i) => (
                 <span key={i} className="flex flex-1 flex-col items-center gap-1">
                   <span
@@ -172,25 +170,28 @@ export function DashboardPage() {
                 </span>
               ))}
             </span>
-          </StatTile>
-          <StatTile
-            label="Dagens mål"
-            icon="target"
-            tone="xp"
-            value={gamification.todayXp}
-            suffix={`/ ${gamification.dailyGoalXp} XP`}
-            hint={goalPct >= 100 ? 'Nået. Resten er bonus.' : 'Cirka ti minutter.'}
-          >
-            <ProgressBar value={goalPct} tone="xp" size="sm" label="Dagens mål" />
-          </StatTile>
-        </div>
+            {gamification.streakDays === 0 ? (
+              <p className="mt-2 text-xs leading-snug text-ink-500 dark:text-ink-400">Start i dag. Én opgave er nok.</p>
+            ) : null}
+          </div>
+          <div className="p-4">
+            <p className="eyebrow flex items-center gap-1.5">
+              <Icon name="target" size={13} className="text-xp-400" />
+              Dagens mål
+            </p>
+            <p className="num mt-2 flex items-baseline gap-1 text-3xl font-semibold leading-none tracking-tight">
+              {gamification.todayXp}
+              <span className="text-sm font-medium text-ink-500 dark:text-ink-400">/ {gamification.dailyGoalXp} XP</span>
+            </p>
+            <span className="mt-3 block">
+              <ProgressBar value={goalPct} tone="xp" size="sm" label="Dagens mål" />
+            </span>
+            <p className="mt-2 text-xs leading-snug text-ink-500 dark:text-ink-400">
+              {goalPct >= 100 ? 'Nået. Resten er bonus.' : 'Cirka ti minutter.'}
+            </p>
+          </div>
+        </Card>
       </div>
-
-      {/* Niveauet står i sidemenuen på en computer; på telefon får det sin egen række. */}
-      <Card pad="md" className="lg:hidden">
-        <p className="eyebrow mb-3">{levelTitle(level.level)}</p>
-        <XpBar level={level.level} into={level.into} needed={level.needed} levelUp={pendingLevelUp !== null} />
-      </Card>
 
       <section>
         {/* Rundvisningen peger på fanebjælken alene - hele sektionen er for
@@ -210,7 +211,7 @@ export function DashboardPage() {
 
         {tab === 'plan' ? (
           rest.length ? (
-            <div className="stagger grid gap-2 sm:grid-cols-2">
+            <div className="stagger grid grid-cols-1 gap-2 sm:grid-cols-2">
               {rest.slice(0, 4).map((item) => {
                 const k = KIND[item.kind];
                 return (
@@ -287,7 +288,7 @@ export function DashboardPage() {
       </section>
 
       <Section title="Kompetenceområder" hint={`${overall.percent} % af pensum`}>
-        <div className="stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="stagger grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {CATEGORIES.map((cat) => {
             const inCat = domains.filter((d) => d.category === cat.id);
             if (!inCat.length) return null;

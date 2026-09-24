@@ -76,6 +76,8 @@ export interface ExamSession {
   items: ExamItem[];
   /** Elevens svar pr. opgave; null = ikke besvaret. */
   answers: (boolean | null)[];
+  /** Det eleven skrev, til gennemgangen bagefter; null = sprunget over. */
+  responses: (string | null)[];
   index: number;
   startedAt: number;
   finishedAt: number | null;
@@ -108,7 +110,15 @@ export function createExam(part: ExamPart, states: Record<string, SkillState>, s
 
   if (part === 'med') {
     const items = themedItems(rng, seed);
-    return { config, items, answers: items.map(() => null), index: 0, startedAt: Date.now(), finishedAt: null };
+    return {
+      config,
+      items,
+      answers: items.map(() => null),
+      responses: items.map(() => null),
+      index: 0,
+      startedAt: Date.now(),
+      finishedAt: null,
+    };
   }
 
   // Kun færdigheder med mindst én generator der hører til denne prøvedel.
@@ -156,6 +166,7 @@ export function createExam(part: ExamPart, states: Record<string, SkillState>, s
     config,
     items: shuffled,
     answers: shuffled.map(() => null),
+    responses: shuffled.map(() => null),
     index: 0,
     startedAt: Date.now(),
     finishedAt: null,
@@ -190,10 +201,13 @@ function themedItems(rng: ReturnType<typeof makeRng>, seed: number): ExamItem[] 
   return items;
 }
 
-export function answerExamItem(session: ExamSession, correct: boolean): ExamSession {
+/** Uden svar tæller opgaven som sprunget over. */
+export function answerExamItem(session: ExamSession, correct: boolean, response?: string): ExamSession {
   const answers = [...session.answers];
   answers[session.index] = correct;
-  return { ...session, answers, index: session.index + 1 };
+  const responses = session.items.map((_, i) => session.responses?.[i] ?? null);
+  responses[session.index] = response?.trim() ? response.trim() : null;
+  return { ...session, answers, responses, index: session.index + 1 };
 }
 
 export function currentExamItem(session: ExamSession): ExamItem | null {

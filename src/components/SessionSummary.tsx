@@ -24,6 +24,7 @@ export function SessionSummary({
   mastered,
   skillId,
   again,
+  exit,
   children,
 }: {
   title: string;
@@ -35,6 +36,7 @@ export function SessionSummary({
   mastered?: boolean;
   skillId?: string;
   again?: { label: string; onClick: () => void };
+  exit?: { label: string; onClick: () => void };
   children?: ReactNode;
 }) {
   const skills = useStore((s) => s.skills);
@@ -105,8 +107,8 @@ export function SessionSummary({
             {again.label}
           </button>
         ) : null}
-        <button onClick={() => navigate({ name: 'dashboard' })} className="btn-ghost flex-1">
-          Til forsiden
+        <button onClick={exit?.onClick ?? (() => navigate({ name: 'dashboard' }))} className="btn-ghost flex-1">
+          {exit?.label ?? 'Til forsiden'}
         </button>
       </div>
     </div>

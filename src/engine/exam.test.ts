@@ -96,6 +96,25 @@ describe('prøveresultat', () => {
   });
 });
 
+describe('gennemgang af prøven', () => {
+  it('gemmer det eleven svarede, og markerer overspring', () => {
+    let exam = createExam('med', {}, 21);
+    exam = answerExamItem(exam, true, ' 42 ');
+    exam = answerExamItem(exam, false, 'B');
+    exam = answerExamItem(exam, false);
+    expect(exam.responses.slice(0, 3)).toEqual(['42', 'B', null]);
+    expect(exam.responses).toHaveLength(exam.items.length);
+    expect(exam.responses.slice(3).every((r) => r === null)).toBe(true);
+  });
+
+  it('klarer en session gemt før svarene blev husket', () => {
+    const { responses: _, ...old } = createExam('uden', {}, 3);
+    const exam = answerExamItem(old as ReturnType<typeof createExam>, false, '7');
+    expect(exam.responses[0]).toBe('7');
+    expect(exam.responses).toHaveLength(exam.items.length);
+  });
+});
+
 describe('karakterindikation', () => {
   it('følger 7-trinsskalaen opad', () => {
     const grades = [0, 35, 50, 70, 85, 95].map((p) => gradeIndication(p).grade);

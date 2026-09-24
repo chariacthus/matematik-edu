@@ -18,7 +18,7 @@ export type Verdict = 'idle' | 'correct' | 'wrong';
 
 // Svarmuligheder er enten en formel ("2x + 3") eller almindelig tekst
 // ("Et bogstav S"). Sat som formel mister tekst sine mellemrum.
-function choiceText(c: string): string {
+export function choiceText(c: string): string {
   if (c.includes('$')) return c;
   if (/[A-Za-zÆØÅæøå]{2,}/.test(c) && !/[\\^_{}=]/.test(c)) return c;
   return `$${c}$`;
@@ -130,7 +130,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
   if (spec.kind === 'choice') {
     const selected = value.kind === 'choice' ? value.index : null;
     return (
-      <div className="grid gap-2.5" role="radiogroup" aria-label="Svarmuligheder">
+      <div className="grid grid-cols-1 gap-2.5" role="radiogroup" aria-label="Svarmuligheder">
         {(choices ?? []).map((c, i) => {
           const isSelected = selected === i;
           return (
@@ -181,7 +181,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
   if (spec.kind === 'multi') {
     const selected = value.kind === 'multi' ? value.indices : [];
     return (
-      <div className="grid gap-2.5">
+      <div className="grid grid-cols-1 gap-2.5">
         <p className="text-xs text-ink-500 dark:text-ink-400">Der kan være flere rigtige svar.</p>
         {(choices ?? []).map((c, i) => {
           const isSelected = selected.includes(i);
