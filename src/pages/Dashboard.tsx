@@ -9,6 +9,7 @@ import { CATEGORIES, getSkill } from '../content';
 import { navigate } from '../lib/router';
 import { DAY_MS, dayKey, relativeDays } from '../lib/dates';
 import { Icon, type IconName } from '../components/Icon';
+import { Tour, type TourStep } from '../components/Tour';
 import {
   Callout, Card, Chip, CountUp, EmptyState, IconTile, Page,
   ProgressBar, ProgressRing, Section, Segmented, StreakStrip, XpBar,
@@ -23,12 +24,64 @@ type Tab = 'plan' | 'repetition' | 'fejl';
  * kan trykke på. Resten ligger bag en vælger, så siden har ét
  * fokuspunkt frem for otte konkurrerende kasser.
  */
+
+const TOUR: TourStep[] = [
+  {
+    target: 'hud',
+    title: 'Din fremgang',
+    body:
+      'XP og niveau viser hvor langt du er kommet i alt. Stimen tæller de dage i træk du har lavet noget — ' +
+      'og dagens mål er det du skal nå i dag. Det tager omkring ti minutter.',
+  },
+  {
+    target: 'mission',
+    title: 'Dagens mission',
+    body:
+      'Her ligger det du skal lave nu. Appen vælger det ud fra din niveautest, hvad du er i gang med, ' +
+      'og hvad der er ved at glide ud igen. Du skal ikke selv finde ud af hvor du begynder — tryk bare.',
+  },
+  {
+    target: 'tabs',
+    title: 'Missioner, repetition og fejl',
+    body:
+      'Missioner er resten af dagens plan. Repetition er emner du har lært, men som er ved at blive glemt. ' +
+      'Fejl samler de misforståelser du er faldet i mere end én gang, så du kan få dem ryddet af vejen.',
+  },
+  {
+    target: 'nav-library',
+    title: 'Kortet',
+    body:
+      'Hele pensum efter Fælles Mål — 21 emner og 70 færdigheder. Hvert emne er et kort hvor du kan se ' +
+      'hvad der er låst op, hvad du er i gang med, og hvad du har mestret.',
+  },
+  {
+    target: 'nav-practice',
+    title: 'Fri træning',
+    body: 'Vil du bare øve et bestemt emne, uden faser og uden at kunne miste noget, er det her du gør det.',
+  },
+  {
+    target: 'nav-exam',
+    title: 'Prøvetræning',
+    body:
+      'FP9 som den rigtige prøve: en del uden hjælpemidler på tid, og en del med — hvor du har formelsamlingen ' +
+      'ved hånden, ligesom til den rigtige prøve.',
+  },
+  {
+    title: 'Sådan lærer du her',
+    body:
+      'Hvert emne går gennem syv trin: forklaring, eksempel, guidet træning, selvstændig opgave, variation, ' +
+      'udfordring og mestringstjek. Sidder du fast undervejs, er der hints og en AI-lærer — den giver dig ' +
+      'ikke svaret, men hjælper dig et skridt videre ad gangen.',
+  },
+];
+
 export function DashboardPage() {
   const profile = useStore((s) => s.profile);
   const skills = useStore((s) => s.skills);
   const misconceptions = useStore((s) => s.misconceptions);
   const attempts = useStore((s) => s.attempts);
   const gamification = useStore((s) => s.gamification);
+  const setTourDone = useStore((s) => s.setTourDone);
 
   const plan = useMemo(() => buildPlan({ states: skills, misconceptions, profile }, 8), [skills, misconceptions, profile]);
   const overall = useMemo(() => overallProgress(skills), [skills]);
@@ -57,16 +110,19 @@ export function DashboardPage() {
 
   return (
     <Page className="animate-fade-in">
+      {profile.onboarded && !profile.tourDone ? <Tour steps={TOUR} onDone={() => setTourDone(true)} /> : null}
+
       {/* HUD */}
       <section>
         <p className="eyebrow mb-1">{hour < 10 ? 'Godmorgen' : hour < 17 ? 'Eftermiddag' : 'Godaften'}</p>
         <h1 className="title-page mb-3 truncate">{profile.name || 'Kom i gang'}</h1>
 
+        <div data-tour="hud">
         <Card pad="lg" className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <span className="min-w-0">
               <span className="eyebrow block">{levelTitle(level.level)}</span>
-              <span className="mt-0.5 block text-lg font-extrabold tabular-nums">
+              <span className="num mt-0.5 block text-lg font-extrabold">
                 <CountUp value={gamification.xp} /> <span className="text-sm text-ink-400">XP i alt</span>
               </span>
             </span>
@@ -75,16 +131,34 @@ export function DashboardPage() {
 
           <XpBar level={level.level} into={level.into} needed={level.needed} levelUp={pendingLevelUp !== null} />
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-200/60 pt-3.5 dark:border-white/[0.07]">
-            <StreakStrip days={week} active={gamification.streakDays} />
-            <span className="shrink-0 text-right">
-              <span className="block text-[10px] font-bold uppercase tracking-wide text-ink-400">I dag</span>
-              <span className={clsx('block text-base font-extrabold tabular-nums', goalPct >= 100 && 'text-xp-500')}>
-                {gamification.todayXp}/{gamification.dailyGoalXp}
-              </span>
-            </span>
+          <div className="grid gap-3 border-t border-ink-200/60 pt-4 dark:border-white/[0.07] sm:grid-cols-2">
+            <div>
+              <p className="eyebrow mb-2">Din stime</p>
+              <StreakStrip days={week} active={gamification.streakDays} />
+              <p className="mt-2 text-xs text-ink-500 dark:text-ink-400">
+                {gamification.streakDays === 0
+                  ? 'Løs én opgave i dag, så er stimen i gang.'
+                  : gamification.streakDays === 1
+                    ? 'Første dag. Kom igen i morgen, så vokser den.'
+                    : `${gamification.streakDays} dage i træk. Hold fast.`}
+              </p>
+            </div>
+            <div className="sm:border-l sm:border-ink-200/60 sm:pl-4 sm:dark:border-white/[0.07]">
+              <p className="eyebrow mb-2">Dagens mål</p>
+              <p className={clsx('num text-2xl font-extrabold leading-none', goalPct >= 100 && 'text-xp-500')}>
+                {gamification.todayXp}
+                <span className="text-base text-ink-400">/{gamification.dailyGoalXp} XP</span>
+              </p>
+              <div className="mt-2">
+                <ProgressBar value={goalPct} tone="xp" size="sm" label="Dagens mål" />
+              </div>
+              <p className="mt-2 text-xs text-ink-500 dark:text-ink-400">
+                {goalPct >= 100 ? 'Målet er nået i dag. Alt herfra er bonus.' : 'Cirka ti minutters arbejde.'}
+              </p>
+            </div>
           </div>
         </Card>
+        </div>
       </section>
 
       {behaviour.rushing ? (
@@ -103,13 +177,15 @@ export function DashboardPage() {
 
       {/* Dagens mål */}
       {first ? (
-        <Section title="Dagens Missioner">
-          <MissionCard item={first} />
+        <Section title="Dagens Missioner" className="scroll-mt-24" >
+          <div data-tour="mission">
+            <MissionCard item={first} />
+          </div>
         </Section>
       ) : null}
 
       {/* Resten */}
-      <section>
+      <section data-tour="tabs">
         <Segmented
           value={tab}
           onChange={setTab}

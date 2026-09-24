@@ -53,6 +53,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
                 <a
                   key={item.label}
                   href={hrefFor(item.route)}
+                  data-tour={`nav-${item.route.name}`}
                   className={clsx(
                     'relative flex items-center gap-1.5 px-3 py-2 text-[13px] font-semibold transition-colors',
                     on ? 'text-ink-950 dark:text-white' : 'text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white',
@@ -122,6 +123,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
                 <a
                   key={item.label}
                   href={hrefFor(item.route)}
+                  data-tour={`nav-${item.route.name}`}
                   className="flex flex-1 flex-col items-center gap-1 pb-1.5 pt-2"
                   aria-current={on ? 'page' : undefined}
                 >

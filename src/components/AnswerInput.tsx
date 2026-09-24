@@ -157,7 +157,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
             <input
               ref={i === 0 ? ref : undefined}
               inputMode="decimal"
-              className={clsx('field max-w-[7rem] font-mono', ring)}
+              className={clsx('field max-w-[7rem] num', ring)}
               value={v[key]}
               disabled={disabled}
               onChange={(e) => onChange({ kind: 'pair', a: key === 'a' ? e.target.value : v.a, b: key === 'b' ? e.target.value : v.b })}
@@ -174,12 +174,12 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
   if (spec.kind === 'point') {
     const v = value.kind === 'point' ? value : { x: '', y: '' };
     return (
-      <div className="flex items-center gap-1.5 font-mono text-lg">
+      <div className="num flex items-center gap-1.5 text-lg">
         <span aria-hidden>(</span>
         <input
           ref={ref}
           inputMode="decimal"
-          className={clsx('field max-w-[5.5rem] text-center font-mono', ring)}
+          className={clsx('field max-w-[5.5rem] num text-center', ring)}
           value={v.x}
           disabled={disabled}
           onChange={(e) => onChange({ kind: 'point', x: e.target.value, y: v.y })}
@@ -189,7 +189,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
         <span aria-hidden>,</span>
         <input
           inputMode="decimal"
-          className={clsx('field max-w-[5.5rem] text-center font-mono', ring)}
+          className={clsx('field max-w-[5.5rem] num text-center', ring)}
           value={v.y}
           disabled={disabled}
           onChange={(e) => onChange({ kind: 'point', x: v.x, y: e.target.value })}
@@ -221,7 +221,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
-        className={clsx('field w-full font-mono text-lg', ring)}
+        className={clsx('field w-full num text-lg', ring)}
         placeholder={placeholder}
         value={v}
         disabled={disabled}

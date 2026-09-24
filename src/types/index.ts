@@ -459,6 +459,8 @@ export interface LearnerProfile {
   createdAt: number;
   onboarded: boolean;
   diagnosticDone: boolean;
+  /** Har eleven set rundvisningen på forsiden? */
+  tourDone: boolean;
   /** Procent pr. emne fra diagnosen. */
   diagnostic: Partial<Record<DomainId, number>>;
   recommended: DomainId[];

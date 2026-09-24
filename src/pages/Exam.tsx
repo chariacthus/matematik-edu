@@ -73,7 +73,7 @@ export function ExamPage() {
             Opgave {session.index + 1} af {session.items.length}
           </p>
         </div>
-        <div className={clsx('rounded-xl px-3 py-1.5 font-mono text-lg font-bold tabular-nums', lowTime ? 'bg-bad-100 text-bad-700 dark:bg-bad-900/40 dark:text-bad-200' : 'bg-ink-100 dark:bg-ink-800')}>
+        <div className={clsx('num rounded-xl px-3 py-1.5 text-lg font-bold', lowTime ? 'bg-bad-100 text-bad-700 dark:bg-bad-900/40 dark:text-bad-200' : 'bg-ink-100 dark:bg-ink-800')}>
           {mm}:{String(ss).padStart(2, '0')}
         </div>
       </div>

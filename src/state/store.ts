@@ -74,6 +74,7 @@ export interface AppState {
   clearBadges: () => void;
   dismissBadge: () => void;
   clearLevelUp: () => void;
+  setTourDone: (done: boolean) => void;
   addMinutes: (minutes: number) => void;
   resetAll: () => void;
   importState: (json: string) => boolean;
@@ -91,6 +92,7 @@ function emptyProfile(): LearnerProfile {
     createdAt: Date.now(),
     onboarded: false,
     diagnosticDone: false,
+    tourDone: false,
     diagnostic: {},
     recommended: [],
   };
@@ -389,6 +391,14 @@ export const useStore = create<AppState>((set, get) => {
     dismissBadge: () => set((s) => ({ pendingBadges: s.pendingBadges.slice(1) })),
 
     clearLevelUp: () => set({ pendingLevelUp: null }),
+
+    setTourDone: (done) => {
+      set((s) => {
+        const profile = { ...s.profile, tourDone: done };
+        persist({ ...s, profile });
+        return { profile };
+      });
+    },
 
     addMinutes: (minutes) => {
       set((s) => {

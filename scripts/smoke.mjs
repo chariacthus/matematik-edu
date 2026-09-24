@@ -145,6 +145,59 @@ try {
   });
   await shot('04-forside');
 
+  await step('rundvisningen kører hele vejen igennem', async () => {
+    const tour = page.getByRole('dialog', { name: 'Rundvisning' });
+    await tour.waitFor({ timeout: 8000 });
+    await shot('23-rundvisning');
+    let spotlights = 0;
+    // Gå hele vejen igennem. Hvert trin skal have en overskrift og en
+    // tekst - et trin der peger på et element der ikke findes, ville
+    // ellers bare vise et tomt kort.
+    for (let i = 0; i < 12; i++) {
+      const heading = (await tour.locator('h2').textContent())?.trim() ?? '';
+      if (!heading) throw new Error(`trin ${i + 1} i rundvisningen har ingen overskrift`);
+
+      // Peger trinnet på noget, skal der være et hul i dæmpningen, og
+      // kortet må ikke ligge oven på det. data-tour på en komponent der
+      // ikke sender ukendte props videre til DOM'en gav ellers et trin
+      // uden markering, uden at noget fejlede.
+      const geo = await page.evaluate(() => {
+        const root = document.querySelector('[role="dialog"][aria-label="Rundvisning"]');
+        const hole = [...root.children].find((el) => getComputedStyle(el).boxShadow.includes('9999px'));
+        const card = root.querySelector('.glass-strong').getBoundingClientRect();
+        if (!hole) return { spotlight: false };
+        const h = hole.getBoundingClientRect();
+        return {
+          spotlight: true,
+          full: h.height >= window.innerHeight,
+          overlap: h.top < card.bottom && card.top < h.top + h.height,
+        };
+      });
+      if (geo.spotlight) {
+        spotlights++;
+        if (geo.full) throw new Error(`trin ${i + 1} ("${heading}") markerer hele skærmen`);
+        if (geo.overlap) throw new Error(`trin ${i + 1} ("${heading}") har kortet oven på markeringen`);
+      }
+      const done = page.getByRole('button', { name: 'Så er jeg klar' });
+      if (await done.count()) {
+        await done.click();
+        break;
+      }
+      await page.getByRole('button', { name: 'Videre' }).click();
+      await page.waitForTimeout(500);
+    }
+    await tour.waitFor({ state: 'detached', timeout: 5000 });
+    if (spotlights < 6) throw new Error(`kun ${spotlights} trin i rundvisningen markerer noget på skærmen`);
+
+    // Den må ikke komme igen når man vender tilbage til forsiden.
+    await page.goto('http://127.0.0.1:4173/#/bibliotek');
+    await page.goto('http://127.0.0.1:4173/');
+    await page.getByText('Dagens Missioner').waitFor({ timeout: 8000 });
+    if (await page.getByRole('dialog', { name: 'Rundvisning' }).count()) {
+      throw new Error('rundvisningen starter forfra efter den er gennemført');
+    }
+  });
+
   await step('kort har kant og skygge', async () => {
     const card = page.locator('.card-interactive').first();
     await card.waitFor({ timeout: 5000 });

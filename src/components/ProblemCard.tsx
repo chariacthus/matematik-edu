@@ -265,7 +265,7 @@ export function ProblemCard({
                 ))}
               </ol>
               <p className="mt-3 border-t border-ink-200 pt-3 text-sm font-bold dark:border-ink-800">
-                Svar: <span className="font-mono">{facit}</span>
+                Svar: <span className="num">{facit}</span>
               </p>
             </Disclosure>
           </div>

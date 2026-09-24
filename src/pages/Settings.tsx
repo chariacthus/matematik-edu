@@ -10,6 +10,7 @@ import { Icon } from '../components/Icon';
 /** Indstillinger, dataeksport og nulstilling. */
 export function SettingsPage() {
   const settings = useStore((s) => s.settings);
+  const setTourDone = useStore((s) => s.setTourDone);
   const update = useStore((s) => s.updateSettings);
   const resetAll = useStore((s) => s.resetAll);
   const importState = useStore((s) => s.importState);
@@ -65,6 +66,22 @@ export function SettingsPage() {
             checked={settings.askConfidence}
             onChange={(v) => update({ askConfidence: v })}
           />
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">Rundvisning</p>
+              <p className="text-xs text-ink-500 dark:text-ink-400">Gennemgangen af forsiden og menuen.</p>
+            </div>
+            <button
+              onClick={() => {
+                setTourDone(false);
+                navigate({ name: 'dashboard' });
+              }}
+              className="btn-secondary shrink-0 text-xs"
+            >
+              Vis den igen
+            </button>
+          </div>
 
           <Toggle
             label="Mindre bevægelse"
