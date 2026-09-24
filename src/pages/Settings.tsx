@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { useStore } from '../state/store';
 import { exportAll } from '../lib/storage';
 import { navigate } from '../lib/router';
-import { Card, CardTitle, Chip, Modal, PageHeader, Section, SectionTitle, Segmented } from '../components/ui';
+import { Card, CardTitle, MetaChip, Modal, PageHeader, Section, SectionTitle, Segmented } from '../components/ui';
 import { MODELS, costOfUsageDkk, costPerQuestionDkk, formatDkk, getModel } from '../tutor/models';
 import { Icon } from '../components/Icon';
 
@@ -129,12 +129,12 @@ export function SettingsPage() {
                         <span className="min-w-0 flex-1">
                           <span className="flex flex-wrap items-center gap-2">
                             <span className="font-bold">{m.name}</span>
-                            <Chip tone={m.id === MODELS[0]!.id ? 'good' : 'neutral'}>
+                            <MetaChip tone={m.id === MODELS[0]!.id ? 'good' : 'neutral'}>
                               {formatDkk(costPerQuestionDkk(m))} pr. spørgsmål
-                            </Chip>
+                            </MetaChip>
                           </span>
                           <span className="mt-1 block text-xs text-ink-500 dark:text-ink-400">{m.blurb}</span>
-                          <span className="mt-1 block text-[11px] tabular-nums text-ink-400 dark:text-ink-500">
+                          <span className="mt-1 block text-2xs num text-ink-400 dark:text-ink-500">
                             ${m.inputPerM}/mio. input · ${m.outputPerM}/mio. output
                           </span>
                         </span>

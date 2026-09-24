@@ -147,7 +147,7 @@ export function Tour({ steps, onDone }: { steps: TourStep[]; onDone: () => void 
           <p className="eyebrow mb-1.5">
             Trin {i + 1} af {steps.length}
           </p>
-          <h2 className="mb-1.5 text-lg font-extrabold">{step.title}</h2>
+          <h2 className="mb-1.5 text-lg font-bold">{step.title}</h2>
           <p className="text-sm leading-relaxed text-ink-600 dark:text-ink-300">{step.body}</p>
 
           <div className="mt-3.5 flex items-center gap-2">

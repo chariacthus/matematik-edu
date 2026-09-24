@@ -215,7 +215,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
                   >
                     <Icon name={item.icon} size={19} />
                   </span>
-                  <span className={clsx('text-[11px] font-medium', on ? 'text-ink-900 dark:text-white' : 'text-ink-400 dark:text-ink-500')}>
+                  <span className={clsx('text-2xs font-medium', on ? 'text-ink-900 dark:text-white' : 'text-ink-400 dark:text-ink-500')}>
                     {item.label}
                   </span>
                 </a>

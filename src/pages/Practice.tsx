@@ -7,7 +7,7 @@ import { abilityToLevel, newSkillState } from '../engine/mastery';
 import { navigate } from '../lib/router';
 import { randomSeed } from '../lib/math';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, ChoiceCard, Chip, EmptyState, ListRow, Page, PageHeader, ProgressBar, Section } from '../components/ui';
+import { Callout, Card, ChoiceCard, MetaChip, EmptyState, ListRow, Page, PageHeader, ProgressBar, Section } from '../components/ui';
 import { Icon, domainIcon } from '../components/Icon';
 
 /**
@@ -57,21 +57,22 @@ export function PracticePage() {
     const accuracy = round.total ? Math.round((round.correct / round.total) * 100) : 0;
     return (
       <div className="mx-auto max-w-2xl space-y-4">
-        <button
-          onClick={() => {
-            setSelected(null);
-            setProblem(null);
-            setRound({ correct: 0, total: 0 });
+        <PageHeader
+          title={skill.name}
+          back={{
+            label: 'Fri træning',
+            onClick: () => {
+              setSelected(null);
+              setProblem(null);
+              setRound({ correct: 0, total: 0 });
+            },
           }}
-          className="btn-ghost -ml-2 px-2 py-1 text-xs"
-        >
-          ← Vælg et andet emne
-        </button>
+        />
 
         <Card>
           <div className="flex items-center justify-between text-sm">
-            <span className="font-bold">{skill.name}</span>
-            <span className="tabular-nums text-ink-500 dark:text-ink-400">
+            <span className="font-semibold">Denne runde</span>
+            <span className="num text-ink-500 dark:text-ink-400">
               {round.correct}/{round.total} rigtige{round.total ? ` · ${accuracy} %` : ''}
             </span>
           </div>
@@ -116,7 +117,7 @@ export function PracticePage() {
                   tone={st.masteredAt ? 'xp' : 'brand'}
                   title={s.name}
                   subtitle={`Niveau ${abilityToLevel(st.ability)} · ${Math.round(st.pKnown * 100)} % sikker`}
-                  trailing={st.masteredAt ? <Chip tone="good" icon="star">Mestret</Chip> : null}
+                  trailing={st.masteredAt ? <MetaChip tone="good" icon="star">Mestret</MetaChip> : null}
                   onClick={() => start(s)}
                 />
               );
@@ -229,7 +230,7 @@ export function ReviewPage() {
         <div className="mx-auto flex h-16 w-16 animate-pop items-center justify-center rounded-3xl bg-accent-500 text-white shadow-glow">
           <Icon name="refresh" size={30} />
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Repetition gennemført</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Repetition gennemført</h1>
         <p className="text-ink-600 dark:text-ink-300">
           {correct} af {results.length} rigtige. Emner der drillede, kommer hurtigere igen.
         </p>
@@ -238,7 +239,7 @@ export function ReviewPage() {
             {results.map((r, i) => (
               <li key={i} className="flex items-center justify-between gap-3 text-sm">
                 <span className="truncate">{getSkill(r.skillId)?.name}</span>
-                <Chip tone={r.correct ? 'good' : 'warn'}>{r.correct ? 'sidder fast' : 'tages op igen'}</Chip>
+                <MetaChip tone={r.correct ? 'good' : 'warn'}>{r.correct ? 'sidder fast' : 'tages op igen'}</MetaChip>
               </li>
             ))}
           </ul>

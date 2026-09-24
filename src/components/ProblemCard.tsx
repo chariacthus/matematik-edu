@@ -7,7 +7,7 @@ import { Tick } from './Tick';
 import { Icon } from './Icon';
 import { Visual } from './visuals/Visual';
 import { AnswerInput, InputHint, type Verdict } from './AnswerInput';
-import { Callout, Chip, Disclosure, LevelDots, XpPop } from './ui';
+import { Callout, MetaChip, Disclosure, LevelDots, XpPop } from './ui';
 import { TutorDock } from './TutorDock';
 import { feedbackForWrongAnswer } from '../tutor/tutor';
 import { getMisconception } from '../content/misconceptions';
@@ -145,7 +145,7 @@ export function ProblemCard({
       {xpPop && xpOnCorrect ? <XpPop amount={xpOnCorrect} onDone={() => setXpPop(false)} /> : null}
       {/* Hoved */}
       <div className="flex flex-wrap items-center gap-2 rounded-t-3xl border-b border-ink-200 px-5 py-3 dark:border-white/[0.07] sm:px-6">
-        <Chip tone="neutral">{skill.name}</Chip>
+        <MetaChip tone="neutral">{skill.name}</MetaChip>
         <LevelDots level={problem.level} />
         <span className="ml-auto flex items-center gap-2">{headerRight}</span>
       </div>

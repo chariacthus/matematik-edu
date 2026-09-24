@@ -11,7 +11,6 @@ import { relativeDays } from "../lib/dates";
 import {
   Card,
   ChoiceCard,
-  Chip,
   EmptyState,
   LevelDots,
   MetaChip,
@@ -112,7 +111,7 @@ export function LibraryPage() {
               <div key={area} className="mb-4 last:mb-0">
                 {/* Kun værd at skrive når området deler sig i flere. */}
                 {groupByArea(domains).length > 1 ? (
-                  <h3 className="mb-2 text-[11px] font-semibold text-ink-500 dark:text-ink-400">
+                  <h3 className="mb-2 text-2xs font-semibold text-ink-500 dark:text-ink-400">
                     {areaName(area)}
                   </h3>
                 ) : null}
@@ -306,7 +305,7 @@ function SkillRow({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold">{skill.name}</span>
-              <Chip tone={badge.tone}>{badge.label}</Chip>
+              <MetaChip tone={badge.tone}>{badge.label}</MetaChip>
               <LevelDots level={skill.tier} className="ml-auto" />
             </div>
             <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
@@ -321,7 +320,7 @@ function SkillRow({
                   tone={state.masteredAt ? "good" : "brand"}
                   label={`Sikkerhed i ${skill.name}`}
                 />
-                <p className="mt-1 text-[11px] text-ink-500 dark:text-ink-400">
+                <p className="mt-1 text-2xs text-ink-500 dark:text-ink-400">
                   {state.correct}/{state.attempts} rigtige
                   {state.masteredAt && state.due
                     ? ` · næste repetition ${relativeDays(state.due)}${retention(state) < 0.6 ? " (begynder at falme)" : ""}`

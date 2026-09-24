@@ -4,6 +4,11 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontSize: {
+        '2xs': ['0.6875rem', { lineHeight: '0.875rem' }],
+        md: ['0.9375rem', { lineHeight: '1.375rem' }],
+        display: ['1.75rem', { lineHeight: '1.1' }],
+      },
       fontFamily: {
         sans: ['"Geist Variable"', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
         display: ['"Geist Variable"', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],

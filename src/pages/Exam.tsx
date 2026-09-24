@@ -16,7 +16,7 @@ import { CATEGORIES } from '../content';
 import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, ChoiceCard, Chip, StatTile, LabelledBar, PageHeader, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
+import { Callout, Card, ChoiceCard, MetaChip, StatTile, LabelledBar, PageHeader, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { FormelsamlingButton } from '../components/Formelsamling';
 
@@ -110,7 +110,7 @@ export function ExamPage() {
         }}
         onNext={() => undefined}
         nextLabel="Næste"
-        headerRight={<Chip tone="neutral">{session.config.part === 'uden' ? 'uden hjælpemidler' : 'med hjælpemidler'}</Chip>}
+        headerRight={<MetaChip tone="neutral">{session.config.part === 'uden' ? 'uden hjælpemidler' : 'med hjælpemidler'}</MetaChip>}
       />
 
       {/* Til den rigtige prøve med hjælpemidler har man formelsamlingen
@@ -193,7 +193,7 @@ function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: (
       <Card pad="lg" className="mb-5 mt-6 flex items-center gap-5 rounded-3xl">
         <ProgressRing value={result.percent} size={80} stroke={8} />
         <div className="min-w-0">
-          <p className="text-3xl font-extrabold leading-none">{grade.grade}</p>
+          <p className="text-3xl font-bold leading-none">{grade.grade}</p>
           <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink-400">karakterindikation</p>
           <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">{grade.note}</p>
         </div>
@@ -238,7 +238,7 @@ function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: (
                   className="flex w-full items-center gap-3 text-left"
                 >
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold">{w.name}</span>
-                  <Chip tone="warn">{w.wrong} forkert</Chip>
+                  <MetaChip tone="warn">{w.wrong} forkert</MetaChip>
                   <Icon name="chevron" size={16} className="text-ink-400" />
                 </button>
               </Card>

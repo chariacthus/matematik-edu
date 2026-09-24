@@ -89,10 +89,10 @@ export function TutorDock({
       >
         <header className="flex items-center gap-3 border-b border-ink-200 px-4 py-3 dark:border-white/10">
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.16em] text-ink-900 dark:text-white">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-900 dark:text-white">
               Hjælp
             </p>
-            <p className="truncate text-[11px] text-ink-500 dark:text-ink-400">{skill.name}</p>
+            <p className="truncate text-2xs text-ink-500 dark:text-ink-400">{skill.name}</p>
           </div>
           <button onClick={onClose} className="btn-ghost p-1.5" aria-label="Luk hjælpen">
             <Icon name="close" size={18} />

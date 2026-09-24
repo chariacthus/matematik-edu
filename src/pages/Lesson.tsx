@@ -14,7 +14,7 @@ import { randomSeed } from '../lib/math';
 import { MathBlock, MathText } from './../components/MathText';
 import { Visual } from '../components/visuals/Visual';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, CardTitle, Chip, ComboMeter, EmptyState, Page, PageHeader, Skeleton } from '../components/ui';
+import { Callout, Card, CardTitle, MetaChip, ComboMeter, EmptyState, Page, PageHeader, Skeleton } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { xpForAttempt } from '../engine/gamification';
 
@@ -188,7 +188,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
             <span className="flex flex-col items-end gap-1.5">
               <ComboMeter streak={combo} />
               {xpGained > 0 ? (
-                <span className="num flex items-center gap-1 text-xs font-extrabold text-xp-600 dark:text-xp-400">
+                <span className="num flex items-center gap-1 text-xs font-bold text-xp-600 dark:text-xp-400">
                   <Icon name="bolt" size={12} />+{xpGained} XP
                 </span>
               ) : null}
@@ -233,9 +233,9 @@ export function LessonPage({ skillId }: { skillId: string }) {
             showConfidence={state.phase === 'mastery'}
             xpOnCorrect={xpForAttempt({ correct: true, level: problem.level, hints: 0, tries: 1, phase: state.phase })}
             headerRight={
-              <Chip tone="brand">
+              <MetaChip tone="brand">
                 {state.phaseProgress}/{PHASE_TARGETS[state.phase]} i denne fase
-              </Chip>
+              </MetaChip>
             }
           />
           {summary.length >= 3 ? <SessionStrip skillId={skillId} /> : null}
@@ -271,7 +271,7 @@ function ExplainStep({ skill, onDone }: { skill: Skill; onDone: () => void }) {
           case 'idea':
             return (
               <Card key={i} className="border-l-4 !border-l-brand-500">
-                <p className="mb-1 text-sm font-extrabold text-brand-700 dark:text-brand-300">{block.title}</p>
+                <p className="mb-1 text-sm font-bold text-brand-700 dark:text-brand-300">{block.title}</p>
                 <p className="leading-relaxed"><MathText>{block.body}</MathText></p>
               </Card>
             );
@@ -353,7 +353,7 @@ function ExampleStep({ skill, onDone, onBack }: { skill: Skill; onDone: () => vo
   return (
     <div className="space-y-4">
       <Card>
-        <p className="text-sm font-extrabold text-ink-500 dark:text-ink-400">{example.title}</p>
+        <p className="text-sm font-bold text-ink-500 dark:text-ink-400">{example.title}</p>
         <MathBlock tex={example.prompt} className="my-3 text-center text-lg" />
         {example.visual ? <Visual spec={example.visual} className="mb-4" /> : null}
 
@@ -387,7 +387,7 @@ function ExampleStep({ skill, onDone, onBack }: { skill: Skill; onDone: () => vo
 
       {skill.worked.length > 1 && allShown ? (
         <Card>
-          <p className="text-sm font-extrabold text-ink-500">{skill.worked[1]!.title}</p>
+          <p className="text-sm font-bold text-ink-500">{skill.worked[1]!.title}</p>
           <MathBlock tex={skill.worked[1]!.prompt} className="my-2 text-center" />
           <ol className="mt-2 space-y-2">
             {skill.worked[1]!.steps.map((s, i) => (
@@ -477,7 +477,7 @@ function MisconceptionClinic({ misconception, onDone }: { misconception: Misconc
           <Icon name="search" size={22} />
         </span>
         <div>
-          <h1 className="text-xl font-extrabold tracking-tight">Stop lige et øjeblik</h1>
+          <h1 className="text-xl font-bold tracking-tight">Stop lige et øjeblik</h1>
           <p className="text-sm text-ink-500 dark:text-ink-400">Den samme fejl er dukket op flere gange</p>
         </div>
       </div>
@@ -556,8 +556,8 @@ function MasteredScreen({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-lg font-extrabold tabular-nums">{value}</p>
-      <p className="text-[11px] uppercase tracking-wide text-ink-500 dark:text-ink-400">{label}</p>
+      <p className="text-lg font-bold num">{value}</p>
+      <p className="text-2xs uppercase tracking-wide text-ink-500 dark:text-ink-400">{label}</p>
     </div>
   );
 }

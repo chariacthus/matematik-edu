@@ -52,10 +52,10 @@ function FormelsamlingPanel({ open, onClose }: { open: boolean; onClose: () => v
       >
         <header className="flex items-center gap-3 border-b border-ink-200 px-4 py-3 dark:border-white/10">
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.16em] text-ink-900 dark:text-white">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-900 dark:text-white">
               Formelsamling
             </p>
-            <p className="text-[11px] text-ink-500 dark:text-ink-400">Må bruges til prøven med hjælpemidler</p>
+            <p className="text-2xs text-ink-500 dark:text-ink-400">Må bruges til prøven med hjælpemidler</p>
           </div>
           <button onClick={onClose} className="btn-ghost p-1.5" aria-label="Luk formelsamling">
             <Icon name="close" size={18} />
@@ -83,7 +83,7 @@ function FormelsamlingPanel({ open, onClose }: { open: boolean; onClose: () => v
                     <li key={e.name} className="card px-3 py-2.5">
                       <p className="text-xs font-semibold text-ink-600 dark:text-ink-300">{e.name}</p>
                       <MathBlock tex={e.tex} className="overflow-x-auto py-1" />
-                      {e.note ? <p className="text-[11px] text-ink-500 dark:text-ink-400">{e.note}</p> : null}
+                      {e.note ? <p className="text-2xs text-ink-500 dark:text-ink-400">{e.note}</p> : null}
                     </li>
                   ))}
                 </ul>

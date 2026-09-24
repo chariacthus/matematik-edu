@@ -6,7 +6,7 @@ import { domainProgress, overallProgress } from '../engine/planner';
 import { activeMisconceptions } from '../engine/diagnosis';
 import { formatMinutes } from '../lib/dates';
 import { navigate } from '../lib/router';
-import { Card, Chip, IconTile, LabelledBar, ListRow, Section, SectionTitle, StatTile, XpBar } from '../components/ui';
+import { Card, MetaChip, IconTile, LabelledBar, ListRow, Section, SectionTitle, StatTile, XpBar } from '../components/ui';
 import { Icon, domainIcon } from '../components/Icon';
 
 /** Elevens profil: fremgang, styrker, svagheder og badges. */
@@ -130,7 +130,7 @@ export function ProfilePage() {
                     <p className="text-sm font-bold">{def.name}</p>
                     <p className="text-xs text-ink-600 dark:text-ink-300">{def.tip}</p>
                   </div>
-                  <Chip tone={state.resolved ? 'good' : 'warn'}>{state.count}×</Chip>
+                  <MetaChip tone={state.resolved ? 'good' : 'warn'}>{state.count}×</MetaChip>
                 </li>
               ))}
             </ul>
@@ -152,7 +152,7 @@ export function ProfilePage() {
                 <IconTile name={a.icon} tone={earned ? 'xp' : 'neutral'} size="sm" />
                 <span className="min-w-0">
                   <span className="block text-sm font-bold">{a.name}</span>
-                  <span className="block text-[11px] leading-snug text-ink-500 dark:text-ink-400">{a.description}</span>
+                  <span className="block text-2xs leading-snug text-ink-500 dark:text-ink-400">{a.description}</span>
                 </span>
               </div>
             );

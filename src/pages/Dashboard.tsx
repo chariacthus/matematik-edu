@@ -11,7 +11,7 @@ import { DAY_MS, dayKey, relativeDays } from '../lib/dates';
 import { Icon, type IconName } from '../components/Icon';
 import { Tour, type TourStep } from '../components/Tour';
 import {
-  Callout, Card, ChoiceCard, Chip, EmptyState, IconTile, ListRow, Page,
+  Callout, Card, ChoiceCard, EmptyState, IconTile, ListRow, MetaChip, Page,
   ProgressBar, Section, Segmented, StatTile, XpBar,
 } from '../components/ui';
 import { LESSON_PHASES } from '../types';
@@ -165,7 +165,7 @@ export function DashboardPage() {
                     )}
                     style={{ animationDelay: `${i * 40}ms` }}
                   />
-                  <span className="text-[9px] font-medium text-ink-400">{daysLabel[(new Date(Date.now() - (6 - i) * DAY_MS).getDay() + 6) % 7]}</span>
+                  <span className="text-2xs font-medium text-ink-400">{daysLabel[(new Date(Date.now() - (6 - i) * DAY_MS).getDay() + 6) % 7]}</span>
                 </span>
               ))}
             </span>
@@ -264,7 +264,7 @@ export function DashboardPage() {
                       <p className="mt-0.5 text-sm text-ink-600 dark:text-ink-300">{def.correction}</p>
                       <p className="mt-1.5 text-xs font-medium text-brand-600 dark:text-brand-300">{def.tip}</p>
                     </div>
-                    <Chip tone="warn">{state.count}×</Chip>
+                    <MetaChip tone="warn">{state.count}×</MetaChip>
                   </div>
                 </Card>
               ))}

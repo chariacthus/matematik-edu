@@ -148,7 +148,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
             >
               <span
                 className={clsx(
-                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-extrabold transition-colors',
+                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-colors',
                   isSelected
                     ? verdict === 'correct'
                       ? 'bg-xp-500 text-ink-950'

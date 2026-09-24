@@ -125,7 +125,7 @@ export function TutorPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <p className="flex items-center gap-1.5 border-b border-ink-200/70 pb-2.5 text-[11px] text-ink-500 dark:border-white/[0.08] dark:text-ink-400">
+      <p className="flex items-center gap-1.5 border-b border-ink-200/70 pb-2.5 text-2xs text-ink-500 dark:border-white/[0.08] dark:text-ink-400">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-xp-400 opacity-60" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-xp-500" />

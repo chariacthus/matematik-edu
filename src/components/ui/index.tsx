@@ -71,16 +71,30 @@ export function IconTile({
 }
 
 /** Et kort faktum: "8 min", "20 opgaver", "0/5 mestret". */
-export function MetaChip({ icon, children, tone = 'neutral' }: { icon?: IconName; children: ReactNode; tone?: 'neutral' | 'brand' | 'xp' }) {
+export function MetaChip({
+  icon,
+  children,
+  tone = 'neutral',
+  className,
+}: {
+  icon?: IconName;
+  children: ReactNode;
+  tone?: 'neutral' | 'brand' | 'xp' | 'good' | 'warn' | 'bad' | 'accent';
+  className?: string;
+}) {
   // Udfyldt som chipsene på prøvevalget, med en hårfin kant så de står
   // skarpt på både lyst og mørkt.
   const tones = {
     neutral: 'border-ink-200 bg-ink-100 text-ink-600 dark:border-white/[0.06] dark:bg-white/[0.06] dark:text-ink-300',
     brand: 'border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-400/20 dark:bg-brand-500/15 dark:text-brand-300',
     xp: 'border-xp-200 bg-xp-100 text-xp-700 dark:border-xp-400/20 dark:bg-xp-500/15 dark:text-xp-300',
+    good: 'border-good-200 bg-good-100 text-good-700 dark:border-good-400/20 dark:bg-good-500/15 dark:text-good-300',
+    warn: 'border-warn-200 bg-warn-100 text-warn-700 dark:border-warn-400/20 dark:bg-warn-500/15 dark:text-warn-300',
+    bad: 'border-bad-200 bg-bad-100 text-bad-700 dark:border-bad-400/20 dark:bg-bad-500/15 dark:text-bad-300',
+    accent: 'border-accent-200 bg-accent-100 text-accent-700 dark:border-accent-400/20 dark:bg-accent-500/15 dark:text-accent-300',
   }[tone];
   return (
-    <span className={clsx('num inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs font-medium', tones)}>
+    <span className={clsx('num inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs font-medium', tones, className)}>
       {icon ? <Icon name={icon} size={13} /> : null}
       {children}
     </span>
@@ -140,9 +154,9 @@ export function ChoiceCard({
         {icon ? <IconTile name={icon} tone={tone} size={lg ? 'lg' : 'md'} /> : null}
         {eyebrow && !selected ? <span className="eyebrow pt-1 text-right">{eyebrow}</span> : null}
       </span>
-      <Title className={clsx('block font-semibold tracking-tight', lg ? 'mt-4 text-lg' : 'mt-3 text-[15px]')}>{title}</Title>
+      <Title className={clsx('block font-semibold tracking-tight', lg ? 'mt-4 text-lg' : 'mt-3 text-md')}>{title}</Title>
       {description ? (
-        <span className={clsx('mt-1.5 block leading-relaxed text-ink-600 dark:text-ink-400', lg ? 'text-sm' : 'line-clamp-2 text-[13px]')}>
+        <span className={clsx('mt-1.5 block leading-relaxed text-ink-600 dark:text-ink-400', lg ? 'text-sm' : 'line-clamp-2 text-sm')}>
           {description}
         </span>
       ) : null}
@@ -343,7 +357,7 @@ export function Section({
  * tre forskellige bundmargener.
  */
 export function CardTitle({ children, className }: { children: ReactNode; className?: string }) {
-  return <h3 className={clsx('mb-2.5 text-sm font-extrabold', className)}>{children}</h3>;
+  return <h3 className={clsx('mb-2.5 text-sm font-bold', className)}>{children}</h3>;
 }
 
 export function PageHeader({
@@ -490,7 +504,7 @@ export function ProgressRing({
           className={clsx('animate-ring-fill transition-[stroke-dashoffset] duration-[900ms] ease-spring', colour)}
         />
       </svg>
-      <span className="absolute text-[11px] num font-extrabold">{children ?? `${Math.round(pct)}%`}</span>
+      <span className="absolute text-2xs num font-bold">{children ?? `${Math.round(pct)}%`}</span>
     </div>
   );
 }
@@ -512,7 +526,7 @@ export function LabelledBar({
     <>
       <span className="mb-1.5 flex items-baseline justify-between gap-3">
         <span className="min-w-0 truncate text-sm font-semibold">{label}</span>
-        <span className="shrink-0 text-xs font-bold tabular-nums text-ink-500 dark:text-ink-400">{right}</span>
+        <span className="shrink-0 text-xs font-bold num text-ink-500 dark:text-ink-400">{right}</span>
       </span>
       <ProgressBar value={value} size="sm" tone={tone ?? (value >= 70 ? 'xp' : value >= 35 ? 'brand' : 'warn')} label={label} />
     </>
@@ -584,7 +598,7 @@ export function XpBar({
         </div>
 
         {!compact ? (
-          <p className="mt-1.5 text-[11px] font-bold tabular-nums text-ink-400 dark:text-ink-500">
+          <p className="mt-1.5 text-2xs font-bold num text-ink-400 dark:text-ink-500">
             <CountUp value={into} /> / {needed} XP
           </p>
         ) : null}
@@ -606,7 +620,7 @@ export function LevelBadge({
   dim?: boolean;
   celebrate?: boolean;
 }) {
-  const box = { sm: 'h-7 w-7 text-[11px]', md: 'h-9 w-9 text-sm', lg: 'h-12 w-12 text-lg' }[size];
+  const box = { sm: 'h-7 w-7 text-2xs', md: 'h-9 w-9 text-sm', lg: 'h-12 w-12 text-lg' }[size];
   return (
     <span className="relative inline-flex shrink-0">
       {/* Ringen der sprænger udad ved niveauskift. */}
@@ -615,7 +629,7 @@ export function LevelBadge({
       ) : null}
       <span
         className={clsx(
-          'flex items-center justify-center rounded-xl num font-extrabold',
+          'flex items-center justify-center rounded-xl num font-bold',
           box,
           celebrate && 'animate-level-pop',
           dim
@@ -647,10 +661,10 @@ export function LevelUpBanner({ level, title, onDone }: { level: number; title: 
         >
           <LevelBadge level={level} size="lg" celebrate />
           <span className="text-left">
-            <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-xp-600 dark:text-xp-400">
+            <span className="block text-2xs font-bold uppercase tracking-[0.14em] text-xp-600 dark:text-xp-400">
               Niveau {level} nået
             </span>
-            <span className="block text-base font-extrabold">{title}</span>
+            <span className="block text-base font-bold">{title}</span>
           </span>
         </button>
       </div>
@@ -676,7 +690,7 @@ export function StreakStrip({ days, active }: { days: boolean[]; active: number 
           size={20}
           className={clsx(active > 0 ? 'animate-flame-glow text-orange-400' : 'text-ink-300 dark:text-ink-600')}
         />
-        <span className="num text-xl font-extrabold leading-none">{active}</span>
+        <span className="num text-xl font-bold leading-none">{active}</span>
       </span>
 
       <div className="flex gap-1">
@@ -696,7 +710,7 @@ export function StreakStrip({ days, active }: { days: boolean[]; active: number 
               >
                 <Icon name={on ? 'flame' : 'bolt'} size={14} />
               </span>
-              <span className={clsx('text-[9px] font-bold', isToday ? 'text-ink-700 dark:text-ink-200' : 'text-ink-400 dark:text-ink-500')}>
+              <span className={clsx('text-2xs font-bold', isToday ? 'text-ink-700 dark:text-ink-200' : 'text-ink-400 dark:text-ink-500')}>
                 {names[i]}
               </span>
             </span>
@@ -714,7 +728,7 @@ export function XpPop({ amount, onDone }: { amount: number; onDone: () => void }
     return () => clearTimeout(t);
   }, [onDone]);
   return (
-    <span className="pointer-events-none absolute -top-1 left-1/2 z-20 -translate-x-1/2 animate-xp-rise text-lg font-extrabold text-xp-500 drop-shadow">
+    <span className="pointer-events-none absolute -top-1 left-1/2 z-20 -translate-x-1/2 animate-xp-rise text-lg font-bold text-xp-500 drop-shadow">
       +{amount} XP
     </span>
   );
@@ -727,7 +741,7 @@ export function ComboMeter({ streak }: { streak: number }) {
     <span
       key={streak}
       className={clsx(
-        'inline-flex animate-combo-beat items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-extrabold',
+        'inline-flex animate-combo-beat items-center gap-1 rounded-lg px-2 py-1 text-2xs font-bold',
         streak >= 5 ? 'bg-warn-500 text-ink-950' : 'bg-xp-500 text-ink-950',
       )}
     >
@@ -740,34 +754,6 @@ export function ComboMeter({ streak }: { streak: number }) {
 /* ------------------------------------------------------------------ */
 /* Mærkater og navigation                                              */
 /* ------------------------------------------------------------------ */
-
-export function Chip({
-  children,
-  tone = 'neutral',
-  className,
-  icon,
-}: {
-  children: ReactNode;
-  tone?: 'neutral' | 'brand' | 'xp' | 'good' | 'warn' | 'bad' | 'accent';
-  className?: string;
-  icon?: IconName;
-}) {
-  const tones = {
-    neutral: 'bg-ink-100 text-ink-600 dark:bg-white/[0.06] dark:text-ink-300',
-    brand: 'bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300',
-    xp: 'bg-xp-100 text-xp-700 dark:bg-xp-500/15 dark:text-xp-300',
-    good: 'bg-good-100 text-good-700 dark:bg-good-500/15 dark:text-good-300',
-    warn: 'bg-warn-100 text-warn-700 dark:bg-warn-500/15 dark:text-warn-300',
-    bad: 'bg-bad-100 text-bad-700 dark:bg-bad-500/15 dark:text-bad-300',
-    accent: 'bg-accent-100 text-accent-700 dark:bg-accent-500/15 dark:text-accent-300',
-  }[tone];
-  return (
-    <span className={clsx('chip', tones, className)}>
-      {icon ? <Icon name={icon} size={11} /> : null}
-      {children}
-    </span>
-  );
-}
 
 export function LevelDots({ level, className }: { level: number; className?: string }) {
   return (
@@ -828,7 +814,7 @@ export function Segmented<T extends string>({
             aria-selected={on}
             onClick={() => onChange(t.id)}
             className={clsx(
-              'relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors duration-150',
+              'relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors duration-150',
               on ? 'text-ink-900 dark:text-white' : 'text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-ink-200',
             )}
           >
@@ -837,7 +823,7 @@ export function Segmented<T extends string>({
             {t.count ? (
               <span
                 className={clsx(
-                  'num rounded-md px-1.5 text-[10px] font-semibold',
+                  'num rounded-md px-1.5 text-2xs font-semibold',
                   on ? 'bg-brand-600 text-white' : 'bg-ink-200 text-ink-600 dark:bg-white/10 dark:text-ink-300',
                 )}
               >
@@ -902,7 +888,7 @@ export function Modal({
               stående i stedet for at rulle op med indholdet. */}
           <div className="min-h-0 flex-1 overflow-y-auto p-5">
             <div className="mb-4 flex items-start justify-between gap-4">
-              <h3 className="text-lg font-extrabold">{title}</h3>
+              <h3 className="text-lg font-bold">{title}</h3>
               <button onClick={onClose} className="btn-ghost -mr-2 -mt-1 p-1.5" aria-label="Luk">
                 <Icon name="close" size={18} />
               </button>
@@ -1033,7 +1019,7 @@ export function StatRow({ stats }: { stats: { label: string; value: string; tone
         <div key={s.label} className="px-2 py-3 text-center">
           <p
             className={clsx(
-              'num text-lg font-extrabold leading-none',
+              'num text-lg font-bold leading-none',
               s.tone === 'xp' && 'text-xp-600 dark:text-xp-400',
               s.tone === 'good' && 'text-good-600 dark:text-good-400',
               s.tone === 'warn' && 'text-warn-600 dark:text-warn-400',
@@ -1043,7 +1029,7 @@ export function StatRow({ stats }: { stats: { label: string; value: string; tone
           >
             {s.value}
           </p>
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-ink-400 dark:text-ink-500">{s.label}</p>
+          <p className="mt-1 text-2xs font-bold uppercase tracking-wide text-ink-400 dark:text-ink-500">{s.label}</p>
         </div>
       ))}
     </div>

@@ -193,8 +193,8 @@ function DiagnosticResult({
         {outcome.strongest.slice(0, 3).map((id) => (
           <Card key={id} className="!p-3 text-center">
             <ProgressRing value={outcome.scores[id] ?? 0} size={48} />
-            <p className="mt-1.5 truncate text-[11px] font-semibold">{domainName(id)}</p>
-            <p className="text-[10px] uppercase tracking-wide text-good-600">stærk</p>
+            <p className="mt-1.5 truncate text-2xs font-semibold">{domainName(id)}</p>
+            <p className="text-2xs uppercase tracking-wide text-good-600">stærk</p>
           </Card>
         ))}
       </div>

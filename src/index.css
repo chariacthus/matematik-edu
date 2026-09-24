@@ -138,11 +138,7 @@
     @apply btn bg-xp-500 text-ink-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)] hover:bg-xp-400;
   }
   .btn-sm { @apply rounded-lg px-3 py-1.5 text-xs; }
-  .btn-lg { @apply rounded-xl px-5 py-3 text-[15px]; }
-
-  .chip {
-    @apply inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-[11px] font-semibold;
-  }
+  .btn-lg { @apply rounded-xl px-5 py-3 text-md; }
 
   .field {
     @apply w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-base text-ink-900
@@ -283,13 +279,13 @@
    * side.
    */
   .title-page {
-    @apply font-display text-[28px] font-extrabold leading-[1.1];
+    @apply font-display text-display font-extrabold;
     letter-spacing: -0.024em;
   }
 
   /* Overskrift over en sektion — små versaler, aldrig i konkurrence med sidens titel. */
   .eyebrow {
-    @apply text-[11px] font-bold uppercase tracking-[0.12em] text-ink-400 dark:text-ink-500;
+    @apply text-2xs font-bold uppercase tracking-[0.12em] text-ink-400 dark:text-ink-500;
   }
 
   /**

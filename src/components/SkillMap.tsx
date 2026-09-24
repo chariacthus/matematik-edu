@@ -210,7 +210,7 @@ export function SkillMap({
                 <text
                   textAnchor="middle"
                   dominantBaseline="central"
-                  className={clsx(st.text, 'pointer-events-none text-[13px] font-extrabold')}
+                  className={clsx(st.text, 'pointer-events-none text-[13px] font-bold')}
                   style={{ fontSize: 13, fontWeight: 800 }}
                 >
                   {n.skill.tier}
@@ -237,7 +237,7 @@ export function SkillMap({
         })}
       </svg>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-ink-500 dark:text-ink-400">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-2xs text-ink-500 dark:text-ink-400">
         <Legend tone="bg-white dark:bg-ink-850 ring-1 ring-brand-500" label="Klar" />
         <Legend tone="bg-brand-100 dark:bg-brand-500/20" label="I gang" />
         <Legend tone="bg-xp-200 dark:bg-xp-500/25" label="Mestret" />
