@@ -661,6 +661,9 @@ try {
     }));
     if (paper.total === 0) throw new Error('det ternede papir mangler bag overskriften');
     if (paper.inside > 0) throw new Error('det ternede papir ligger inde i en opgave');
+    if (await page.getByRole('group', { name: 'Ekstra taster' }).count()) {
+      throw new Error('tastrækken vises på en computer med mus');
+    }
 
     await page.setViewportSize({ width: 420, height: 900 });
   });
@@ -670,6 +673,35 @@ try {
     await page.getByRole('heading', { name: 'Prøvetræning' }).waitFor({ timeout: 8000 });
   });
   await shot('17-proeve-moerk');
+
+  await step('telefonens tastrække skriver minus i feltet', async () => {
+    const touch = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true,
+      storageState: await page.context().storageState(),
+    });
+    const phone = await touch.newPage();
+    phone.on('pageerror', (e) => errors.push(`pageerror (telefon): ${e.message}`));
+    try {
+      await phone.goto('http://127.0.0.1:4173/#/laer/ligning-totrin', { waitUntil: 'networkidle' });
+      const field = phone.getByLabel('Dit svar');
+      await field.waitFor({ timeout: 8000 });
+      const keys = phone.getByRole('group', { name: 'Ekstra taster' });
+      await keys.waitFor({ timeout: 5000 });
+      await field.tap();
+      await keys.getByRole('button', { name: 'Minus' }).tap();
+      await phone.keyboard.type('7');
+      const value = await field.inputValue();
+      if (value !== '−7') throw new Error(`feltet indeholder "${value}", ikke "−7"`);
+      const focused = await field.evaluate((el) => document.activeElement === el);
+      if (!focused) throw new Error('feltet mistede fokus da tasten blev trykket - tastaturet ville lukke');
+      await phone.screenshot({ path: '/tmp/claude-0/shot-28-tastraekke.png' });
+      shots.push('/tmp/claude-0/shot-28-tastraekke.png');
+    } finally {
+      await touch.close();
+    }
+  });
 
   await step('husker fremgangen efter genindlæsning', async () => {
     await page.goto('http://127.0.0.1:4173/');

@@ -25,3 +25,6 @@ export function useMediaQuery(query: string): boolean {
 
 /** Sandt på telefonbredde. */
 export const useIsNarrow = () => useMediaQuery('(max-width: 639px)');
+
+/** Sandt når skærmen styres med en finger. */
+export const useIsTouch = () => useMediaQuery('(pointer: coarse)');

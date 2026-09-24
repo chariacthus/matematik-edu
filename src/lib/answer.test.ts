@@ -81,3 +81,17 @@ describe('checkAnswer', () => {
     expect(checkAnswer({ type: 'multi', correct: [0, 2] }, { kind: 'multi', indices: [0] })).toBe(false);
   });
 });
+
+describe('svar tastet på tastrækken', () => {
+  it('forstår minus fra tastrækken', () => {
+    expect(checkAnswer({ type: 'number', value: -12 }, { kind: 'text', value: '−12' })).toBe(true);
+    expect(checkAnswer({ type: 'fraction', value: { n: -3, d: 4 } }, { kind: 'text', value: '−3/4' })).toBe(true);
+    expect(checkAnswer({ type: 'point', x: -2, y: 5 }, { kind: 'point', x: '−2', y: '5' })).toBe(true);
+    expect(checkAnswer({ type: 'pair', values: [-1.5, 4] }, { kind: 'pair', a: '−1,5', b: '4' })).toBe(true);
+  });
+
+  it('forstår potens og rod', () => {
+    expect(checkAnswer({ type: 'expression', value: '2x² - 3' }, { kind: 'text', value: '2x^2 − 3' })).toBe(true);
+    expect(checkAnswer({ type: 'expression', value: '3√2' }, { kind: 'text', value: '3√2' })).toBe(true);
+  });
+});

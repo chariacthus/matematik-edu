@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import clsx from 'clsx';
 import type { InputSpec } from '../types';
 import type { Response } from '../lib/answer';
+import { useIsTouch } from '../lib/media';
 import { MathText } from './MathText';
 
 /**
@@ -14,6 +15,45 @@ import { MathText } from './MathText';
  */
 
 export type Verdict = 'idle' | 'correct' | 'wrong';
+
+const KEYS: Partial<Record<InputSpec['kind'], string[]>> = {
+  number: ['−', ','],
+  pair: ['−', ','],
+  point: ['−', ','],
+  fraction: ['−', '/'],
+  expression: ['−', 'x', '^', '√', '(', ')', '/'],
+};
+
+// iPhonens taltastatur har intet minus. Feltet er styret af React, så
+// teksten sættes gennem den oprindelige setter og et input-event, ellers
+// opdager onChange ikke ændringen.
+function insertAt(el: HTMLInputElement, text: string) {
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? start;
+  const next = el.value.slice(0, start) + text + el.value.slice(end);
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(el, next);
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  el.setSelectionRange(start + text.length, start + text.length);
+}
+
+function KeyRow({ keys, onKey }: { keys: string[]; onKey: (k: string) => void }) {
+  return (
+    <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Ekstra taster">
+      {keys.map((k) => (
+        <button
+          key={k}
+          type="button"
+          onPointerDown={(e) => e.preventDefault()}
+          onClick={() => onKey(k)}
+          aria-label={k === '−' ? 'Minus' : k === '√' ? 'Kvadratrod' : k === '^' ? 'Potens' : undefined}
+          className="num flex h-11 min-w-11 items-center justify-center rounded-xl border border-ink-200 bg-white px-3 text-lg text-ink-800 transition-transform duration-100 active:scale-95 active:bg-ink-100 dark:border-white/10 dark:bg-white/[0.05] dark:text-ink-100 dark:active:bg-white/10"
+        >
+          {k}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 interface Props {
   spec: InputSpec;
@@ -28,6 +68,29 @@ interface Props {
 
 export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict, disabled, autoFocus }: Props) {
   const ref = useRef<HTMLInputElement>(null);
+  const last = useRef<HTMLInputElement | null>(null);
+  const touch = useIsTouch();
+  const keys = touch && !disabled ? KEYS[spec.kind] : undefined;
+
+  const withKeys = (node: ReactNode) =>
+    keys ? (
+      <div
+        onFocus={(e) => {
+          if (e.target instanceof HTMLInputElement) last.current = e.target;
+        }}
+      >
+        {node}
+        <KeyRow
+          keys={keys}
+          onKey={(k) => {
+            const el = last.current ?? ref.current;
+            if (el) insertAt(el, k);
+          }}
+        />
+      </div>
+    ) : (
+      node
+    );
 
   useEffect(() => {
     if (autoFocus && spec.kind !== 'choice' && spec.kind !== 'multi') {
@@ -149,7 +212,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
   /* ---------------- To tal ---------------- */
   if (spec.kind === 'pair') {
     const v = value.kind === 'pair' ? value : { a: '', b: '' };
-    return (
+    return withKeys(
       <div className="flex flex-wrap items-center gap-3">
         {(['a', 'b'] as const).map((key, i) => (
           <label key={key} className="flex items-center gap-2">
@@ -166,14 +229,14 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
             />
           </label>
         ))}
-      </div>
+      </div>,
     );
   }
 
   /* ---------------- Punkt ---------------- */
   if (spec.kind === 'point') {
     const v = value.kind === 'point' ? value : { x: '', y: '' };
-    return (
+    return withKeys(
       <div className="num flex items-center gap-1.5 text-lg">
         <span aria-hidden>(</span>
         <input
@@ -197,7 +260,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
           aria-label="y-koordinat"
         />
         <span aria-hidden>)</span>
-      </div>
+      </div>,
     );
   }
 
@@ -210,7 +273,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
         ? spec.placeholder ?? 'Dit svar'
         : ('placeholder' in spec ? spec.placeholder : undefined) ?? 'Dit svar';
 
-  return (
+  return withKeys(
     <div className="flex flex-wrap items-center gap-2">
       <div className="w-full max-w-xs">
       <input
@@ -233,7 +296,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
       {spec.kind === 'number' && spec.unit ? (
         <span className="text-base font-semibold text-ink-500 dark:text-ink-400">{spec.unit}</span>
       ) : null}
-    </div>
+    </div>,
   );
 }
 
