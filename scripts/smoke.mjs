@@ -863,6 +863,64 @@ try {
   });
   await shot('31-fortegn');
 
+  // Svarer forkert to gange, uanset opgavetype, så opgaven er afgjort.
+  async function settleWrong() {
+    for (let t = 0; t < 2; t++) {
+      if (await page.getByRole('button', { name: /^(Ny opgave|Se runden|Næste opgave)/ }).count()) return;
+      const fields = page.locator('main article input:not([disabled])');
+      const n = await fields.count();
+      if (n) {
+        for (let i = 0; i < n; i++) await fields.nth(i).fill('999999');
+      } else if (await page.locator('main [role="radio"]').count()) {
+        await page.locator('main [role="radio"]').first().click();
+      } else {
+        await page.locator('main [role="checkbox"]').nth(t).click();
+      }
+      await page.getByRole('button', { name: 'Tjek svar' }).click();
+      await page.waitForTimeout(120);
+    }
+  }
+
+  await step('en runde fri træning slutter med en opsamling', async () => {
+    await page.goto('http://127.0.0.1:4173/#/traen');
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: /^Brøker:/ }).click();
+    await page.getByRole('button', { name: 'Alle emner' }).waitFor({ timeout: 5000 });
+    await page.locator('main button.card-interactive').first().click();
+    for (let i = 0; i < 10; i++) {
+      await page.locator('main article.card').first().waitFor({ timeout: 5000 });
+      await settleWrong();
+      const next = page.getByRole('button', { name: i === 9 ? 'Se runden' : 'Ny opgave' });
+      await next.waitFor({ timeout: 5000 });
+      await next.click();
+      // Vent til den nye opgave står klar, ellers svarer testen på den gamle.
+      if (i < 9) await next.waitFor({ state: 'detached', timeout: 5000 });
+    }
+    await page.getByRole('heading', { name: 'Runden er færdig' }).waitFor({ timeout: 5000 });
+    const text = await page.locator('main').innerText();
+    if (!/0\/10/.test(text)) throw new Error('opsamlingen viser ikke 0/10 rigtige efter ti forkerte svar');
+    await page.getByText('Næste skridt').waitFor({ timeout: 3000 });
+  });
+  await shot('32-runde-slut');
+
+  await step('Stop for nu i en lektion viser hvad man nåede', async () => {
+    await page.setViewportSize({ width: 1280, height: 860 });
+    await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('main article.card').first().waitFor({ timeout: 8000 });
+    if (await page.getByRole('button', { name: 'Stop for nu' }).count()) {
+      throw new Error('Stop for nu står der før eleven har svaret på noget');
+    }
+    await settleWrong();
+    await page.getByRole('button', { name: 'Stop for nu' }).click();
+    await page.getByRole('heading', { name: 'Stop for nu' }).waitFor({ timeout: 5000 });
+    await page.getByText(/Næste gang fortsætter du herfra/).waitFor({ timeout: 3000 });
+    await shot('33-stop-for-nu');
+    await page.getByRole('button', { name: 'Fortsæt alligevel' }).click();
+    await page.locator('main article.card').first().waitFor({ timeout: 5000 });
+    await page.setViewportSize({ width: 420, height: 900 });
+  });
+
   await step('husker fremgangen efter genindlæsning', async () => {
     await page.goto('http://127.0.0.1:4173/');
     await page.reload({ waitUntil: 'networkidle' });

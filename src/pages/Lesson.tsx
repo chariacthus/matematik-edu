@@ -16,6 +16,7 @@ import { Visual } from '../components/visuals/Visual';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
 import { Callout, Card, CardTitle, MetaChip, ComboMeter, EmptyState, Page, PageHeader, Skeleton } from '../components/ui';
 import { Icon } from '../components/Icon';
+import { SessionSummary } from '../components/SessionSummary';
 import { xpForAttempt } from '../engine/gamification';
 
 /**
@@ -34,6 +35,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
   const recordAttempt = useStore((s) => s.recordAttempt);
   const setPhase = useStore((s) => s.setPhase);
   const addMinutes = useStore((s) => s.addMinutes);
+  const xpNow = useStore((s) => s.gamification.xp);
 
   const state = stored ?? newSkillState(skillId);
 
@@ -46,11 +48,15 @@ export function LessonPage({ skillId }: { skillId: string }) {
   const [sessionTotal, setSessionTotal] = useState(0);
   const [combo, setCombo] = useState(0);
   const [xpGained, setXpGained] = useState(0);
+  const [stopped, setStopped] = useState(false);
+  const [answered, setAnswered] = useState(false);
   const enteredAt = useRef(Date.now());
+  const xpAtStart = useRef(xpNow);
 
   useEffect(() => {
     ensureSkill(skillId);
     enteredAt.current = Date.now();
+    xpAtStart.current = useStore.getState().gamification.xp;
     return () => {
       const minutes = (Date.now() - enteredAt.current) / 60000;
       if (minutes >= 0.5) addMinutes(minutes);
@@ -98,7 +104,8 @@ export function LessonPage({ skillId }: { skillId: string }) {
 
   const handleSubmit = (info: SubmitInfo) => {
     if (!problem) return;
-    setSessionTotal((n) => n + 1);
+    setAnswered(true);
+    if (info.correct || info.tries >= 2) setSessionTotal((n) => n + 1);
     if (info.correct) {
       setSessionCorrect((n) => n + 1);
       setCombo((c) => c + 1);
@@ -160,19 +167,34 @@ export function LessonPage({ skillId }: { skillId: string }) {
     );
   }
 
-  /* ---------------- Gennemført ---------------- */
-  if (justMastered) {
+  /* ---------------- Gennemført eller stoppet ---------------- */
+  if (justMastered || stopped) {
     return (
-      <MasteredScreen
-        skill={skill}
+      <SessionSummary
+        title={justMastered ? `${skill.name} er mestret` : 'Stop for nu'}
+        subtitle={
+          justMastered
+            ? 'Emnet kommer igen om et par dage som en kort repetition, så du ikke glemmer det.'
+            : `Du er på trin ${phaseIdx + 1} af 7. Næste gang fortsætter du herfra.`
+        }
+        mastered={justMastered}
         correct={sessionCorrect}
         total={sessionTotal}
-        onContinue={() => navigate({ name: 'dashboard' })}
-        onPractice={() => {
-          setJustMastered(false);
-          setPhase(skillId, 'mastery');
-          makeProblem('mastery');
-        }}
+        xp={xpNow - xpAtStart.current}
+        since={enteredAt.current}
+        skillId={justMastered ? skillId : undefined}
+        again={
+          justMastered
+            ? {
+                label: 'Træn lidt mere',
+                onClick: () => {
+                  setJustMastered(false);
+                  setPhase(skillId, 'mastery');
+                  makeProblem('mastery');
+                },
+              }
+            : { label: 'Fortsæt alligevel', onClick: () => setStopped(false) }
+        }
       />
     );
   }
@@ -191,6 +213,11 @@ export function LessonPage({ skillId }: { skillId: string }) {
                 <span className="num flex items-center gap-1 text-xs font-bold text-xp-600 dark:text-xp-400">
                   <Icon name="bolt" size={12} />+{xpGained} XP
                 </span>
+              ) : null}
+              {answered ? (
+                <button onClick={() => setStopped(true)} className="btn-secondary btn-sm mt-1">
+                  Stop for nu
+                </button>
               ) : null}
             </span>
           }
@@ -499,65 +526,6 @@ function MisconceptionClinic({ misconception, onDone }: { misconception: Misconc
           Giv mig en opgave med hjælp
         </button>
       )}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Mestret                                                             */
-/* ------------------------------------------------------------------ */
-
-function MasteredScreen({
-  skill,
-  correct,
-  total,
-  onContinue,
-  onPractice,
-}: {
-  skill: Skill;
-  correct: number;
-  total: number;
-  onContinue: () => void;
-  onPractice: () => void;
-}) {
-  return (
-    <div className="mx-auto max-w-lg space-y-5 py-6 text-center">
-      <div className="mx-auto flex h-20 w-20 animate-pop items-center justify-center rounded-3xl bg-xp-500 text-ink-950 shadow-glow-xp">
-        <Icon name="star" size={40} />
-      </div>
-      <div>
-        <h1 className="title-page">{skill.name} er mestret</h1>
-        <p className="mt-2 text-ink-600 dark:text-ink-300">{skill.goal}</p>
-      </div>
-
-      <Card className="text-left">
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <Stat label="Rigtige" value={`${correct}/${total}`} />
-          <Stat label="Optjent" value="+60 XP" />
-          <Stat label="Næste tjek" value="om 2 dage" />
-        </div>
-        <p className="mt-4 text-sm text-ink-600 dark:text-ink-300">
-          Emnet kommer igen om et par dage som en kort repetition, så du ikke glemmer det.
-        </p>
-      </Card>
-
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <button onClick={onPractice} className="btn-secondary flex-1">
-          Træn lidt mere
-        </button>
-        <button onClick={onContinue} className="btn-primary flex-1 py-3">
-          Videre til næste emne
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-lg font-bold num">{value}</p>
-      <p className="text-2xs uppercase tracking-wide text-ink-500 dark:text-ink-400">{label}</p>
     </div>
   );
 }

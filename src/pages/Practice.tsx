@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Problem, Skill } from '../types';
 import { ALL_SKILLS, DOMAINS, buildProblem, getSkill } from '../content';
 import { useStore } from '../state/store';
@@ -10,6 +10,7 @@ import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
 import { Callout, Card, ChoiceCard, EmptyState, FormulaTile, ListRow, MetaChip, Page, PageHeader, ProgressBar, Section } from '../components/ui';
 import { DOMAIN_SIGNATURES } from '../content/signatures';
 import { Icon, domainIcon } from '../components/Icon';
+import { SessionSummary } from '../components/SessionSummary';
 
 /**
  * Fri træning.
@@ -18,13 +19,18 @@ import { Icon, domainIcon } from '../components/Icon';
  * faser, og der er ingen mestring at vinde eller tabe. Man kan bare øve
  * det man har lyst til, på det niveau man selv vælger.
  */
+const ROUND = 10;
+
 export function PracticePage() {
   const skills = useStore((s) => s.skills);
   const recordAttempt = useStore((s) => s.recordAttempt);
+  const xpNow = useStore((s) => s.gamification.xp);
   const [selected, setSelected] = useState<string | null>(null);
   const [problem, setProblem] = useState<Problem | null>(null);
   const [round, setRound] = useState({ correct: 0, total: 0 });
+  const [roundDone, setRoundDone] = useState(false);
   const [openDomain, setOpenDomain] = useState<string | null>(null);
+  const roundStart = useRef({ at: Date.now(), xp: xpNow });
 
   const skill = selected ? getSkill(selected) : null;
 
@@ -43,10 +49,16 @@ export function PracticePage() {
     [skills, problem?.generatorId],
   );
 
+  const newRound = (s: Skill) => {
+    setRound({ correct: 0, total: 0 });
+    setRoundDone(false);
+    roundStart.current = { at: Date.now(), xp: useStore.getState().gamification.xp };
+    next(s);
+  };
+
   const start = (s: Skill) => {
     setSelected(s.id);
-    setRound({ correct: 0, total: 0 });
-    next(s);
+    newRound(s);
   };
 
   const started = useMemo(
@@ -54,8 +66,22 @@ export function PracticePage() {
     [skills],
   );
 
+  if (skill && roundDone) {
+    return (
+      <SessionSummary
+        title="Runden er færdig"
+        subtitle={`${ROUND} opgaver i ${skill.name.toLowerCase()}.`}
+        correct={round.correct}
+        total={round.total}
+        xp={xpNow - roundStart.current.xp}
+        since={roundStart.current.at}
+        skillId={skill.id}
+        again={{ label: `${ROUND} til`, onClick: () => newRound(skill) }}
+      />
+    );
+  }
+
   if (skill && problem) {
-    const accuracy = round.total ? Math.round((round.correct / round.total) * 100) : 0;
     return (
       <div className="mx-auto max-w-2xl space-y-4">
         <PageHeader
@@ -70,18 +96,16 @@ export function PracticePage() {
           }}
         />
 
-        <Card>
+        <Card pad="md">
           <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold">Denne runde</span>
-            <span className="num text-ink-500 dark:text-ink-400">
-              {round.correct}/{round.total} rigtige{round.total ? ` · ${accuracy} %` : ''}
+            <span className="num font-semibold">
+              {round.total} af {ROUND} opgaver
             </span>
+            <span className="num text-ink-500 dark:text-ink-400">{round.correct} rigtige</span>
           </div>
-          {round.total > 0 ? (
-            <div className="mt-2">
-              <ProgressBar value={accuracy} size="sm" tone={accuracy >= 70 ? 'good' : 'warn'} />
-            </div>
-          ) : null}
+          <div className="mt-2">
+            <ProgressBar value={(round.total / ROUND) * 100} size="sm" label="Runden" />
+          </div>
         </Card>
 
         <ProblemCard
@@ -89,11 +113,13 @@ export function PracticePage() {
           skill={skill}
           state={skills[skill.id]}
           onSubmit={(info: SubmitInfo) => {
-            setRound((r) => ({ correct: r.correct + (info.correct ? 1 : 0), total: r.total + 1 }));
+            if (info.correct || info.tries >= 2) {
+              setRound((r) => ({ correct: r.correct + (info.correct ? 1 : 0), total: r.total + 1 }));
+            }
             recordAttempt({ problem, ...info, phase: 'practice' });
           }}
-          onNext={() => next(skill)}
-          nextLabel="Ny opgave"
+          onNext={() => (round.total >= ROUND ? setRoundDone(true) : next(skill))}
+          nextLabel={round.total >= ROUND ? 'Se runden' : 'Ny opgave'}
         />
       </div>
     );
@@ -193,6 +219,9 @@ export function ReviewPage() {
   const skills = useStore((s) => s.skills);
   const recordAttempt = useStore((s) => s.recordAttempt);
   const reviewSkill = useStore((s) => s.reviewSkill);
+  const xpNow = useStore((s) => s.gamification.xp);
+  const xpAtStart = useRef(xpNow);
+  const startedAt = useRef(Date.now());
 
   const [queue] = useState<string[]>(() => dueSkills(skills).map((s) => s.skillId));
   const [index, setIndex] = useState(0);
@@ -227,15 +256,15 @@ export function ReviewPage() {
   if (index >= queue.length) {
     const correct = results.filter((r) => r.correct).length;
     return (
-      <div className="mx-auto max-w-lg space-y-5 py-6 text-center">
-        <div className="mx-auto flex h-16 w-16 animate-pop items-center justify-center rounded-3xl bg-accent-500 text-white shadow-glow">
-          <Icon name="refresh" size={30} />
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight">Repetition gennemført</h1>
-        <p className="text-ink-600 dark:text-ink-300">
-          {correct} af {results.length} rigtige. Emner der drillede, kommer hurtigere igen.
-        </p>
-        <Card className="text-left">
+      <SessionSummary
+        title="Repetitionen er færdig"
+        subtitle="Emner der drillede, kommer hurtigere igen. Resten venter lidt længere."
+        correct={correct}
+        total={results.length}
+        xp={xpNow - xpAtStart.current}
+        since={startedAt.current}
+      >
+        <Card pad="md">
           <ul className="space-y-2">
             {results.map((r, i) => (
               <li key={i} className="flex items-center justify-between gap-3 text-sm">
@@ -245,10 +274,7 @@ export function ReviewPage() {
             ))}
           </ul>
         </Card>
-        <button onClick={() => navigate({ name: 'dashboard' })} className="btn-primary w-full py-3">
-          Tilbage til forsiden
-        </button>
-      </div>
+      </SessionSummary>
     );
   }
 
