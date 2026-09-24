@@ -138,7 +138,7 @@ function DiagnosticResult({
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <header className="text-center">
+      <header className="paper-head text-center">
         <div className="mx-auto mb-3 flex h-16 w-16 animate-pop items-center justify-center rounded-3xl bg-brand-600 text-white shadow-glow">
           <Icon name="map" size={30} />
         </div>

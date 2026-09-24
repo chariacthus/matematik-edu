@@ -7,8 +7,8 @@ import { abilityToLevel, newSkillState } from '../engine/mastery';
 import { navigate } from '../lib/router';
 import { randomSeed } from '../lib/math';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, Chip, EmptyState, Page, PageHeader, ProgressBar, Section } from '../components/ui';
-import { Icon } from '../components/Icon';
+import { Callout, Card, ChoiceCard, Chip, EmptyState, ListRow, Page, PageHeader, ProgressBar, Section } from '../components/ui';
+import { Icon, domainIcon } from '../components/Icon';
 
 /**
  * Fri træning.
@@ -23,6 +23,7 @@ export function PracticePage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [problem, setProblem] = useState<Problem | null>(null);
   const [round, setRound] = useState({ correct: 0, total: 0 });
+  const [openDomain, setOpenDomain] = useState<string | null>(null);
 
   const skill = selected ? getSkill(selected) : null;
 
@@ -40,6 +41,12 @@ export function PracticePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [skills, problem?.generatorId],
   );
+
+  const start = (s: Skill) => {
+    setSelected(s.id);
+    setRound({ correct: 0, total: 0 });
+    next(s);
+  };
 
   const started = useMemo(
     () => ALL_SKILLS.filter((s) => (skills[s.id]?.attempts ?? 0) > 0),
@@ -99,27 +106,19 @@ export function PracticePage() {
 
       {started.length ? (
         <Section title="Du er i gang med" hint="dine niveauer følger med">
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="stagger grid gap-2 sm:grid-cols-2">
             {started.map((s) => {
               const st = skills[s.id]!;
               return (
-                <button
+                <ListRow
                   key={s.id}
-                  onClick={() => {
-                    setSelected(s.id);
-                    setRound({ correct: 0, total: 0 });
-                    next(s);
-                  }}
-                  className="card flex items-center gap-3 p-3 text-left transition-shadow hover:shadow-lift"
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold">{s.name}</span>
-                    <span className="block text-xs text-ink-500 dark:text-ink-400">
-                      niveau {abilityToLevel(st.ability)} · {Math.round(st.pKnown * 100)} % sikker
-                    </span>
-                  </span>
-                  {st.masteredAt ? <Chip tone="good">★</Chip> : null}
-                </button>
+                  icon={domainIcon(s.domainId)}
+                  tone={st.masteredAt ? 'xp' : 'brand'}
+                  title={s.name}
+                  subtitle={`Niveau ${abilityToLevel(st.ability)} · ${Math.round(st.pKnown * 100)} % sikker`}
+                  trailing={st.masteredAt ? <Chip tone="good" icon="star">Mestret</Chip> : null}
+                  onClick={() => start(s)}
+                />
               );
             })}
           </div>
@@ -131,30 +130,52 @@ export function PracticePage() {
         </Callout>
       )}
 
-      <Section title="Alle emner">
-        <div className="space-y-4">
-          {DOMAINS.map((d) => (
-            <div key={d.id}>
-              <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-ink-400 dark:text-ink-500">{d.name}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {d.skills.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => {
-                      setSelected(s.id);
-                      setRound({ correct: 0, total: 0 });
-                      next(s);
-                    }}
-                    className="rounded-lg border border-ink-200 px-2.5 py-1.5 text-xs font-semibold text-ink-600 transition-colors hover:border-brand-400 hover:text-brand-700 dark:border-ink-700 dark:text-ink-300"
-                  >
-                    {s.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Section>
+      {openDomain ? (
+        <Section
+          title={DOMAINS.find((d) => d.id === openDomain)?.name ?? ''}
+          action={
+            <button onClick={() => setOpenDomain(null)} className="btn-ghost btn-sm -mr-2">
+              <Icon name="arrow-left" size={14} /> Alle emner
+            </button>
+          }
+        >
+          <div className="stagger grid gap-2 sm:grid-cols-2">
+            {(DOMAINS.find((d) => d.id === openDomain)?.skills ?? []).map((sk) => {
+              const st = skills[sk.id];
+              return (
+                <ListRow
+                  key={sk.id}
+                  icon="pencil"
+                  tone={st?.masteredAt ? 'xp' : 'neutral'}
+                  title={sk.name}
+                  subtitle={st ? `Niveau ${abilityToLevel(st.ability)}` : 'Ikke prøvet endnu'}
+                  onClick={() => start(sk)}
+                />
+              );
+            })}
+          </div>
+        </Section>
+      ) : (
+        <Section title="Vælg et emne">
+          <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-3">
+            {DOMAINS.map((d) => {
+              const tried = d.skills.filter((sk) => skills[sk.id]).length;
+              return (
+                <ChoiceCard
+                  key={d.id}
+                  size="md"
+                  icon={domainIcon(d.id)}
+                  tone="brand"
+                  title={d.name}
+                  meta={[{ icon: 'pencil', label: `${d.skills.length} færdigheder` }]}
+                  onClick={() => setOpenDomain(d.id)}
+                  aria-label={`${d.name}: ${tried} af ${d.skills.length} prøvet`}
+                />
+              );
+            })}
+          </div>
+        </Section>
+      )}
     </Page>
   );
 }

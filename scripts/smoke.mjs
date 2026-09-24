@@ -117,8 +117,10 @@ try {
     await page.getByLabel('Dit fornavn').fill('Freja');
     await page.getByRole('button', { name: /^Videre$/ }).click();
     await page.getByRole('button', { name: /Midt imellem/ }).click();
+    await shot('25-selvvurdering');
     await page.getByRole('button', { name: /^Videre$/ }).click();
     await page.getByRole('button', { name: 'Brøker', exact: true }).click();
+    await shot('26-emnevalg');
     await page.getByRole('button', { name: /^Videre \(1 valgt\)$/ }).click();
     await page.getByRole('button', { name: 'Statistik', exact: true }).click();
     await page.getByRole('button', { name: /Start niveautesten/ }).click();
@@ -314,6 +316,17 @@ try {
     await page.getByRole('button', { name: 'Luk AI-lærer' }).click();
     await page.goto('http://127.0.0.1:4173/#/traen');
     await page.getByRole('heading', { name: 'Fri træning' }).waitFor({ timeout: 8000 });
+    await shot('24-traen');
+
+    // Emne -> færdigheder -> tilbage. Før var hver færdighed en lille
+    // pille i én lang væg; nu vælger man emne først.
+    await page.getByRole('button', { name: /^Brøker:/ }).click();
+    const back = page.getByRole('button', { name: 'Alle emner' });
+    await back.waitFor({ timeout: 5000 });
+    const rows = await page.locator('main button.card-interactive').count();
+    if (rows < 3) throw new Error(`emnet viser kun ${rows} færdigheder`);
+    await back.click();
+    await page.getByRole('button', { name: /^Brøker:/ }).waitFor({ timeout: 5000 });
   });
 
   await step('viser profilen', async () => {
@@ -375,6 +388,21 @@ try {
   await step('kører en prøve uden hjælpemidler', async () => {
     await page.getByRole('button', { name: 'Start' }).first().click();
     await page.getByText(/Opgave 1 af 20/).waitFor({ timeout: 8000 });
+    // Uret skal blive stående øverst når man ruller ned i en opgave. En
+    // lav skærm sikrer at der faktisk er noget at rulle - ellers ville
+    // tjekket bestå uden at bevise noget.
+    await page.setViewportSize({ width: 420, height: 480 });
+    await page.mouse.move(200, 300);
+    await page.mouse.wheel(0, 600);
+    await page.waitForTimeout(400);
+    const pos = await page.evaluate(() => ({
+      y: Math.round(window.scrollY),
+      top: Math.round(document.querySelector('[role="timer"]').getBoundingClientRect().top),
+    }));
+    if (pos.y < 50) throw new Error(`siden rullede ikke (scrollY ${pos.y}) - tjekket beviser intet`);
+    if (pos.top < 0 || pos.top > 140) throw new Error(`uret er rullet ud af syne (top ${pos.top}px)`);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.setViewportSize({ width: 420, height: 900 });
     // Formelsamlingen hører til prøven MED hjælpemidler. Slipper den ind
     // her, tester prøven ikke længere det den skal.
     if (await page.getByRole('button', { name: 'Formelsamling' }).count()) {
@@ -458,7 +486,7 @@ try {
   // Mørkt er standard, så lyst tema bliver ellers aldrig vist i testen.
   await step('virker i lyst tema', async () => {
     await page.goto('http://127.0.0.1:4173/#/indstillinger');
-    await page.getByRole('button', { name: 'Lyst' }).click();
+    await page.getByRole('tab', { name: 'Lyst' }).click();
     await page.goto('http://127.0.0.1:4173/#/laer/broek-forstaa');
     await page.getByRole('heading', { name: /Hvad er en brøk/ }).waitFor({ timeout: 8000 });
     const light = await page.evaluate(() => {
@@ -480,7 +508,7 @@ try {
 
   await step('virker i mørkt tema', async () => {
     await page.goto('http://127.0.0.1:4173/#/indstillinger');
-    await page.getByRole('button', { name: 'Mørkt' }).click();
+    await page.getByRole('tab', { name: 'Mørkt' }).click();
     await page.goto('http://127.0.0.1:4173/#/laer/broek-forstaa');
     await page.getByRole('heading', { name: /Hvad er en brøk/ }).waitFor({ timeout: 8000 });
     const dark = await page.evaluate(() => document.documentElement.classList.contains('dark'));

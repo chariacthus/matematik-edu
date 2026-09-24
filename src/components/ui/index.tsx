@@ -780,10 +780,12 @@ export function Segmented<T extends string>({
   value,
   onChange,
   options,
+  className,
 }: {
   value: T;
   onChange: (v: T) => void;
   options: { id: T; label: string; count?: number; icon?: IconName }[];
+  className?: string;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const [pill, setPill] = useState<{ x: number; w: number } | null>(null);
@@ -805,7 +807,7 @@ export function Segmented<T extends string>({
   }, [value, options.length]);
 
   return (
-    <div ref={wrap} className="relative mb-4 flex gap-1 rounded-xl border border-ink-200 bg-ink-100/60 p-1 dark:border-white/[0.06] dark:bg-white/[0.03]" role="tablist">
+    <div ref={wrap} className={clsx('relative flex gap-1 rounded-xl border border-ink-200 bg-ink-100/60 p-1 dark:border-white/[0.06] dark:bg-white/[0.03]', className ?? 'mb-4')} role="tablist">
       {pill ? (
         <span
           className="absolute bottom-1 top-1 rounded-lg border border-ink-200 bg-white shadow-sm transition-[transform,width] duration-300 ease-spring dark:border-white/10 dark:bg-ink-800"

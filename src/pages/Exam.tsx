@@ -16,7 +16,7 @@ import { CATEGORIES } from '../content';
 import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, ChoiceCard, Chip, LabelledBar, PageHeader, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
+import { Callout, Card, ChoiceCard, Chip, StatTile, LabelledBar, PageHeader, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { FormelsamlingButton } from '../components/Formelsamling';
 
@@ -66,20 +66,33 @@ export function ExamPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">{session.config.title}</p>
-          <p className="text-sm font-bold">
-            Opgave {session.index + 1} af {session.items.length}
-          </p>
+      {/* Uret og fremgangen bliver stående øverst, også når en lang opgave
+          skal rulles - man skal kunne se tiden uden at lede efter den. */}
+      <div className="sticky top-14 z-20 -mx-4 mb-4 border-b border-ink-200 bg-ink-50/90 px-4 py-3 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/90 lg:top-0 lg:-mx-8 lg:px-8">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="eyebrow">{session.config.title}</p>
+            <p className="num mt-0.5 text-sm font-semibold">
+              Opgave {session.index + 1} af {session.items.length}
+            </p>
+          </div>
+          <div
+            className={clsx(
+              'num flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-lg font-semibold transition-colors',
+              lowTime
+                ? 'border-bad-400/40 bg-bad-100 text-bad-700 dark:bg-bad-500/15 dark:text-bad-200'
+                : 'border-ink-200 bg-white dark:border-white/10 dark:bg-ink-900',
+            )}
+            role="timer"
+            aria-label={`${mm} minutter og ${ss} sekunder tilbage`}
+          >
+            <Icon name="clock" size={16} className={lowTime ? '' : 'text-ink-400'} />
+            {mm}:{String(ss).padStart(2, '0')}
+          </div>
         </div>
-        <div className={clsx('num rounded-xl px-3 py-1.5 text-lg font-bold', lowTime ? 'bg-bad-100 text-bad-700 dark:bg-bad-900/40 dark:text-bad-200' : 'bg-ink-100 dark:bg-ink-800')}>
-          {mm}:{String(ss).padStart(2, '0')}
+        <div className="mt-3">
+          <ProgressBar value={(session.index / session.items.length) * 100} size="sm" label="Fremgang i prøven" />
         </div>
-      </div>
-
-      <div className="mb-4">
-        <ProgressBar value={(session.index / session.items.length) * 100} label="Fremgang i prøven" />
       </div>
 
       <ProblemCard
@@ -167,11 +180,17 @@ function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: (
   const result = useMemo(() => summariseExam(session), [session]);
   const grade = gradeIndication(result.percent);
 
+  // Resultatet er ikke en ny rute, så routeren ruller ikke op. Uden det
+  // her åbner det midt på siden, der hvor man sidst stod i prøven.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, []);
+
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Prøven er afleveret" subtitle={session.config.title} />
 
-      <Card pad="lg" className="mb-5 flex items-center gap-5">
+      <Card pad="lg" className="mb-5 mt-6 flex items-center gap-5 rounded-3xl">
         <ProgressRing value={result.percent} size={80} stroke={8} />
         <div className="min-w-0">
           <p className="text-3xl font-extrabold leading-none">{grade.grade}</p>
@@ -180,17 +199,10 @@ function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: (
         </div>
       </Card>
 
-      <div className="mb-5 grid grid-cols-3 gap-2">
-        {[
-          { label: 'Rigtige', value: `${result.correct}/${result.total}` },
-          { label: 'Besvaret', value: `${result.answered}/${result.total}` },
-          { label: 'Tid brugt', value: `${result.minutesUsed} min` },
-        ].map((s) => (
-          <Card key={s.label} pad="sm" className="text-center">
-            <p className="num text-lg font-extrabold">{s.value}</p>
-            <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-400">{s.label}</p>
-          </Card>
-        ))}
+      <div className="stagger mb-5 grid grid-cols-3 gap-2 sm:gap-3">
+        <StatTile label="Rigtige" icon="check" tone="xp" value={result.correct} suffix={`/ ${result.total}`} />
+        <StatTile label="Besvaret" icon="pencil" value={result.answered} suffix={`/ ${result.total}`} />
+        <StatTile label="Tid" icon="clock" value={result.minutesUsed} suffix="min" />
       </div>
 
       <Callout tone="neutral" icon="info">

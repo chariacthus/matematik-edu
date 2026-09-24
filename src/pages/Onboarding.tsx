@@ -5,7 +5,7 @@ import { DOMAINS } from '../content';
 import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
 import { Card, CardTitle, IconTile } from '../components/ui';
-import { Icon } from '../components/Icon';
+import { Icon, domainIcon } from '../components/Icon';
 
 /**
  * Onboarding.
@@ -39,8 +39,10 @@ export function OnboardingPage() {
   const steps = [
     /* 0 — velkomst */
     <div key="0" className="space-y-5 text-center">
-      <div className="mx-auto flex h-20 w-20 animate-pop items-center justify-center rounded-3xl bg-brand-600 text-white shadow-glow">
-        <Icon name="sigma" size={38} />
+      <div className="paper-head py-2">
+        <div className="mx-auto flex h-20 w-20 animate-pop items-center justify-center rounded-3xl bg-brand-600 text-white shadow-glow">
+          <Icon name="sigma" size={38} />
+        </div>
       </div>
       <div>
         <h1 className="title-page">MatematikAI</h1>
@@ -103,25 +105,28 @@ export function OnboardingPage() {
             key={value as number}
             onClick={() => setConfidence(value as number)}
             className={clsx(
-              'flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all',
-              confidence === value
-                ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/50'
-                : 'border-ink-200 bg-white hover:border-ink-300 dark:border-ink-700 dark:bg-ink-800',
+              'card-interactive tone-brand flex items-center gap-3 rounded-2xl px-4 py-3 text-left',
+              confidence === value && '!border-brand-500 bg-brand-50 dark:bg-brand-500/10',
             )}
             aria-pressed={confidence === value}
           >
             <span
               className={clsx(
-                'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-extrabold',
-                confidence === value ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-500 dark:bg-ink-700 dark:text-ink-300',
+                'num flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-semibold transition-colors',
+                confidence === value ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-500 dark:bg-white/[0.06] dark:text-ink-300',
               )}
             >
               {value as number}
             </span>
-            <span className="min-w-0">
-              <span className="block font-bold">{title as string}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">{title as string}</span>
               <span className="block text-xs text-ink-500 dark:text-ink-400">{sub as string}</span>
             </span>
+            {confidence === value ? (
+              <span className="flex h-6 w-6 shrink-0 animate-pop items-center justify-center rounded-full bg-brand-600 text-white" aria-hidden>
+                <Icon name="check" size={14} />
+              </span>
+            ) : null}
           </button>
         ))}
       </div>
@@ -159,7 +164,7 @@ export function OnboardingPage() {
       {step > 0 ? (
         <div className="mb-6 flex gap-1.5" aria-label={`Trin ${step} af 4`}>
           {[1, 2, 3, 4].map((i) => (
-            <span key={i} className={clsx('h-1.5 flex-1 rounded-full', i <= step ? 'bg-brand-600' : 'bg-ink-200 dark:bg-ink-800')} />
+            <span key={i} className={clsx('h-1.5 flex-1 rounded-full transition-colors duration-300', i <= step ? 'bg-brand-600' : 'bg-ink-200 dark:bg-ink-800')} />
           ))}
         </div>
       ) : null}
@@ -188,24 +193,29 @@ function DomainPicker({
 }) {
   const active =
     tone === 'bad'
-      ? 'border-bad-400 bg-bad-100 text-bad-900 dark:bg-bad-900/30 dark:text-bad-100'
-      : 'border-good-400 bg-good-100 text-good-900 dark:bg-good-900/30 dark:text-good-100';
+      ? '!border-bad-400/70 bg-bad-100 text-bad-900 dark:bg-bad-500/10 dark:text-bad-100'
+      : '!border-good-400/70 bg-good-100 text-good-900 dark:bg-good-500/10 dark:text-good-100';
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {DOMAINS.map((d) => (
-        <button
-          key={d.id}
-          onClick={() => onToggle(d.id)}
-          aria-pressed={selected.includes(d.id)}
-          className={clsx(
-            'rounded-xl border-2 px-3 py-2 text-sm font-semibold transition-all',
-            selected.includes(d.id) ? active : 'border-ink-200 bg-white text-ink-600 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-300',
-          )}
-        >
-          {d.name}
-        </button>
-      ))}
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {DOMAINS.map((d) => {
+        const on = selected.includes(d.id);
+        return (
+          <button
+            key={d.id}
+            onClick={() => onToggle(d.id)}
+            aria-pressed={on}
+            className={clsx(
+              'card-interactive flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium',
+              tone === 'bad' ? 'tone-bad' : 'tone-good',
+              on ? active : 'text-ink-700 dark:text-ink-200',
+            )}
+          >
+            <Icon name={on ? 'check' : domainIcon(d.id)} size={15} className={clsx('shrink-0', on ? '' : 'text-ink-400')} />
+            <span className="min-w-0 leading-snug">{d.name}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

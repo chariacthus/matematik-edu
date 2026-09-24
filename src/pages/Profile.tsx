@@ -6,7 +6,8 @@ import { domainProgress, overallProgress } from '../engine/planner';
 import { activeMisconceptions } from '../engine/diagnosis';
 import { formatMinutes } from '../lib/dates';
 import { navigate } from '../lib/router';
-import { Card, Chip, IconTile, LabelledBar, PageHeader, ProgressRing, SectionTitle, XpBar } from '../components/ui';
+import { Card, Chip, IconTile, LabelledBar, ListRow, Section, SectionTitle, StatTile, XpBar } from '../components/ui';
+import { Icon, domainIcon } from '../components/Icon';
 
 /** Elevens profil: fremgang, styrker, svagheder og badges. */
 export function ProfilePage() {
@@ -29,27 +30,31 @@ export function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={profile.name || 'Din profil'}
-        subtitle={`${profile.grade}. klasse · niveau ${level.level}, ${levelTitle(level.level)}`}
-        right={
-          <button onClick={() => navigate({ name: 'settings' })} className="btn-secondary">
-            Indstillinger
-          </button>
-        }
-      />
+      <header className="paper-head flex items-center gap-4">
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-600 text-2xl font-semibold text-white shadow-inset">
+          {(profile.name || '?').slice(0, 1).toUpperCase()}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h1 className="title-page truncate">{profile.name || 'Din profil'}</h1>
+          <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">
+            {profile.grade}. klasse · {levelTitle(level.level)}
+          </p>
+        </div>
+      </header>
 
-      <Card pad="md" className="-mt-1">
+      <Card pad="md">
         <XpBar level={level.level} into={level.into} needed={level.needed} />
-        <p className="mt-2 text-[11px] text-ink-400 dark:text-ink-500">I alt {gamification.xp} XP optjent</p>
+        <p className="num mt-2 text-xs text-ink-500 dark:text-ink-400">
+          {gamification.xp} XP i alt · næste niveau ved {xpForLevel(level.level)} XP
+        </p>
       </Card>
 
       {/* Nøgletal */}
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Stat label="Opgaver løst" value={String(attempts.length)} />
-        <Stat label="Rigtige" value={`${accuracy} %`} />
-        <Stat label="Mestret" value={`${overall.mastered}/${overall.total}`} />
-        <Stat label="Tid brugt" value={formatMinutes(gamification.totalMinutes)} />
+      <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatTile label="Opgaver løst" icon="check" value={attempts.length} />
+        <StatTile label="Rigtige" icon="target" value={accuracy} suffix="%" />
+        <StatTile label="Mestret" icon="star" tone="xp" value={overall.mastered} suffix={`/ ${overall.total}`} />
+        <StatTile label="Tid brugt" icon="clock" value={formatMinutes(gamification.totalMinutes)} />
       </div>
 
       {/* Emneprofil */}
@@ -74,42 +79,41 @@ export function ProfilePage() {
       {/* Styrker og svagheder */}
       {attempts.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
-          <section>
-            <SectionTitle>Dine styrker</SectionTitle>
-            <Card>
-              {strong.length ? (
-                <ul className="space-y-2.5">
-                  {strong.map((d) => (
-                    <li key={d.domainId} className="flex items-center gap-3">
-                      <ProgressRing value={d.percent} size={38} stroke={4} />
-                      <span className="min-w-0 flex-1 truncate text-sm font-semibold">{d.name}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-ink-500">Træn lidt mere, så dukker de op her.</p>
-              )}
-            </Card>
-          </section>
-
-          <section>
-            <SectionTitle>Her er der mest at hente</SectionTitle>
-            <Card>
-              <ul className="space-y-2.5">
-                {weak.map((d) => (
-                  <li key={d.domainId} className="flex items-center gap-3">
-                    <ProgressRing value={d.percent} size={38} stroke={4} />
-                    <button
-                      onClick={() => navigate({ name: 'domain', domainId: d.domainId })}
-                      className="min-w-0 flex-1 truncate text-left text-sm font-semibold hover:text-brand-600"
-                    >
-                      {d.name}
-                    </button>
-                  </li>
+          <Section title="Dine styrker">
+            {strong.length ? (
+              <div className="space-y-2">
+                {strong.map((d) => (
+                  <ListRow
+                    key={d.domainId}
+                    icon={domainIcon(d.domainId)}
+                    tone="xp"
+                    title={d.name}
+                    trailing={<span className="num text-xs text-ink-500 dark:text-ink-400">{d.percent} %</span>}
+                    onClick={() => navigate({ name: 'domain', domainId: d.domainId })}
+                  />
                 ))}
-              </ul>
-            </Card>
-          </section>
+              </div>
+            ) : (
+              <Card>
+                <p className="text-sm text-ink-500">Træn lidt mere, så dukker de op her.</p>
+              </Card>
+            )}
+          </Section>
+
+          <Section title="Her er der mest at hente">
+            <div className="space-y-2">
+              {weak.map((d) => (
+                <ListRow
+                  key={d.domainId}
+                  icon={domainIcon(d.domainId)}
+                  tone="warn"
+                  title={d.name}
+                  trailing={<span className="num text-xs text-ink-500 dark:text-ink-400">{d.percent} %</span>}
+                  onClick={() => navigate({ name: 'domain', domainId: d.domainId })}
+                />
+              ))}
+            </div>
+          </Section>
         </div>
       ) : null}
 
@@ -156,18 +160,11 @@ export function ProfilePage() {
         </div>
       </section>
 
-      <p className="text-center text-xs text-ink-400 dark:text-ink-500">
-        Næste niveau kræver {xpForLevel(level.level)} XP i alt.
-      </p>
+      <div className="flex justify-center">
+        <button onClick={() => navigate({ name: 'settings' })} className="btn-secondary btn-sm">
+          <Icon name="settings" size={14} /> Indstillinger
+        </button>
+      </div>
     </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <Card pad="sm" className="text-center">
-      <p className="num text-xl font-extrabold">{value}</p>
-      <p className="mt-0.5 text-[11px] uppercase tracking-wide text-ink-500 dark:text-ink-400">{label}</p>
-    </Card>
   );
 }

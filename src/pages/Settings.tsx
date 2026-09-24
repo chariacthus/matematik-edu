@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { useStore } from '../state/store';
 import { exportAll } from '../lib/storage';
 import { navigate } from '../lib/router';
-import { Card, CardTitle, Chip, Modal, PageHeader, SectionTitle } from '../components/ui';
+import { Card, CardTitle, Chip, Modal, PageHeader, Section, SectionTitle, Segmented } from '../components/ui';
 import { MODELS, costOfUsageDkk, costPerQuestionDkk, formatDkk, getModel } from '../tutor/models';
 import { Icon } from '../components/Icon';
 
@@ -35,62 +35,57 @@ export function SettingsPage() {
       <PageHeader title="Indstillinger" back={{ label: 'Profil', onClick: () => navigate({ name: 'profile' }) }} />
 
       {/* Udseende */}
-      <section>
-        <SectionTitle>Udseende</SectionTitle>
-        <Card className="space-y-4">
-          <div>
-            <CardTitle>Tema</CardTitle>
-            <div className="flex gap-2">
-              {(['light', 'dark', 'system'] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => update({ theme: t })}
-                  className={clsx(
-                    'flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border-2 px-3 py-2 text-sm font-semibold transition-colors',
-                    settings.theme === t
-                      ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-200'
-                      : 'border-ink-200 dark:border-ink-700',
-                  )}
-                  aria-pressed={settings.theme === t}
-                >
-                  <Icon name={{ light: 'sun', dark: 'moon', system: 'monitor' }[t] as 'sun'} size={15} />
-                  {{ light: 'Lyst', dark: 'Mørkt', system: 'System' }[t]}
-                </button>
-              ))}
-            </div>
+      <Section title="Udseende og hjælp">
+        <Card pad="none" className="divide-y divide-ink-200 dark:divide-white/[0.06]">
+          <div className="px-4 py-4">
+            <p className="mb-2.5 text-sm font-semibold">Tema</p>
+            <Segmented
+              className="mb-0"
+              value={settings.theme}
+              onChange={(t) => update({ theme: t })}
+              options={[
+                { id: 'light', label: 'Lyst', icon: 'sun' },
+                { id: 'dark', label: 'Mørkt', icon: 'moon' },
+                { id: 'system', label: 'System', icon: 'monitor' },
+              ]}
+            />
           </div>
 
-          <Toggle
-            label="Spørg hvor sikker jeg er"
-            help="Ved mestringstjek bliver du spurgt hvor sikker du føler dig. Det hjælper dig med at mærke forskel på at gætte og at vide."
-            checked={settings.askConfidence}
-            onChange={(v) => update({ askConfidence: v })}
-          />
+          <div className="px-4 py-4">
+            <Toggle
+              label="Spørg hvor sikker jeg er"
+              help="Ved mestringstjek bliver du spurgt hvor sikker du føler dig. Det hjælper dig med at mærke forskel på at gætte og at vide."
+              checked={settings.askConfidence}
+              onChange={(v) => update({ askConfidence: v })}
+            />
+          </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="px-4 py-4">
+            <Toggle
+              label="Mindre bevægelse"
+              help="Slår animationerne fra. Vælg den hvis bevægelse på skærmen forstyrrer din koncentration."
+              checked={settings.reducedMotion}
+              onChange={(v) => update({ reducedMotion: v })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-4 px-4 py-4">
             <div className="min-w-0">
               <p className="text-sm font-semibold">Rundvisning</p>
-              <p className="text-xs text-ink-500 dark:text-ink-400">Gennemgangen af forsiden og menuen.</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-ink-500 dark:text-ink-400">Gennemgangen af forsiden og menuen.</p>
             </div>
             <button
               onClick={() => {
                 setTourDone(false);
                 navigate({ name: 'dashboard' });
               }}
-              className="btn-secondary shrink-0 text-xs"
+              className="btn-secondary btn-sm shrink-0"
             >
               Vis den igen
             </button>
           </div>
-
-          <Toggle
-            label="Mindre bevægelse"
-            help="Slår animationerne fra. Vælg den hvis bevægelse på skærmen forstyrrer din koncentration."
-            checked={settings.reducedMotion}
-            onChange={(v) => update({ reducedMotion: v })}
-          />
         </Card>
-      </section>
+      </Section>
 
       {/* AI-lærer */}
       <section>
@@ -277,23 +272,23 @@ function Toggle({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <p className="text-sm font-semibold">{label}</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-ink-500 dark:text-ink-400">{help}</p>
+      </div>
       <button
         role="switch"
         aria-checked={checked}
         aria-label={label}
         onClick={() => onChange(!checked)}
         className={clsx(
-          'mt-0.5 flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors',
+          'mt-0.5 flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200',
           checked ? 'bg-brand-600' : 'bg-ink-300 dark:bg-ink-700',
         )}
       >
-        <span className={clsx('h-5 w-5 rounded-full bg-white shadow transition-transform', checked && 'translate-x-5')} />
+        <span className={clsx('h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ease-spring', checked && 'translate-x-5')} />
       </button>
-      <div className="min-w-0">
-        <p className="text-sm font-semibold">{label}</p>
-        <p className="text-xs text-ink-500 dark:text-ink-400">{help}</p>
-      </div>
     </div>
   );
 }
