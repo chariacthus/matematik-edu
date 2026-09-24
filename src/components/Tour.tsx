@@ -86,7 +86,9 @@ export function Tour({ steps, onDone }: { steps: TourStep[]; onDone: () => void 
 
   const last = i === steps.length - 1;
   const CARD = 250;
-  // Under hullet hvis der er plads til kortet dernede, ellers over.
+  // Et punkt i sidemenuen: kortet står til højre for det. Ellers under
+  // hullet hvis der er plads til kortet dernede, og over hvis ikke.
+  const beside = box ? box.left + box.width < 300 && window.innerWidth >= 1024 : false;
   const below = box ? box.top + box.height + CARD + 24 < window.innerHeight : true;
 
   return (
@@ -118,10 +120,12 @@ export function Tour({ steps, onDone }: { steps: TourStep[]; onDone: () => void 
           forskydningen, så kortet endte uden for skærmen.
         */}
         <div
-          className={clsx('absolute flex justify-center', box ? 'inset-x-3' : 'inset-0 items-center')}
+          className={clsx('absolute flex justify-center', box ? (beside ? '' : 'inset-x-3') : 'inset-0 items-center')}
           style={
             box
-              ? { top: below ? box.top + box.height + 14 : undefined, bottom: below ? undefined : window.innerHeight - box.top + 14 }
+              ? beside
+                ? { left: box.left + box.width + 16, top: Math.max(12, Math.min(box.top - 8, window.innerHeight - CARD - 24)), width: 352 }
+                : { top: below ? box.top + box.height + 14 : undefined, bottom: below ? undefined : window.innerHeight - box.top + 14 }
               : undefined
           }
         >

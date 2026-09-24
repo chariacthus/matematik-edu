@@ -47,7 +47,7 @@ function FormelsamlingPanel({ open, onClose }: { open: boolean; onClose: () => v
         aria-label="Formelsamling"
         className={
           'glass-strong fixed z-50 flex animate-panel-in flex-col overflow-hidden rounded-3xl shadow-lift ' +
-          (narrow ? 'safe-bottom inset-x-2 bottom-2 top-20' : 'bottom-6 right-6 h-[600px] w-[400px]')
+          (narrow ? 'safe-bottom inset-x-2 bottom-2 top-20' : 'bottom-24 right-6 h-[min(600px,calc(100vh-8rem))] w-[400px] lg:bottom-6')
         }
       >
         <header className="flex items-center gap-3 border-b border-ink-200 px-4 py-3 dark:border-white/10">

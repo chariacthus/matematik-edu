@@ -199,7 +199,7 @@ try {
   });
 
   await step('kort har kant og skygge', async () => {
-    const card = page.locator('.card-interactive').first();
+    const card = page.locator('main .card-interactive').first();
     await card.waitFor({ timeout: 5000 });
     await page.mouse.move(2, 2);
     await page.waitForTimeout(500);
@@ -569,7 +569,7 @@ try {
   await step('husker fremgangen efter genindlæsning', async () => {
     await page.goto('http://127.0.0.1:4173/');
     await page.reload({ waitUntil: 'networkidle' });
-    await page.getByText('Freja').first().waitFor({ timeout: 8000 });
+    await page.getByRole('heading', { name: 'Freja', exact: true }).waitFor({ timeout: 8000 });
   });
 } catch {
   // Fejlen er allerede registreret; vi vil stadig rapportere alt til sidst.

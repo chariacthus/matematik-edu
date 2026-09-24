@@ -18,7 +18,7 @@ function BadgeToast({ id, onDone }: { id: string | undefined; onDone: () => void
   const badge = id ? achievementById(id) : undefined;
   if (!badge) return null;
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-20 z-40 flex justify-center px-4 sm:bottom-6">
+    <div className="pointer-events-none fixed inset-x-0 bottom-20 z-40 flex justify-center px-4 lg:bottom-6 lg:pl-60">
       <button onClick={onDone} className="pointer-events-auto max-w-sm" aria-label="Luk besked">
         <Toast key={id} message={badge.name} icon={badge.icon} onDone={onDone} />
       </button>
