@@ -93,12 +93,29 @@
     @apply glass-strong rounded-2xl shadow-lift;
   }
 
+  /**
+   * Kort man kan trykke på.
+   *
+   * Kanten er stille i hvile og tager kortets egen farve når man peger
+   * på det. --tone sættes af tone-klasserne herunder; uden en tone er
+   * det appens blå.
+   */
   .card-interactive {
-    @apply card transition-colors duration-150
-           hover:border-ink-300 hover:bg-ink-50
-           active:scale-[0.995]
-           dark:hover:border-white/[0.18] dark:hover:bg-ink-850;
+    --tone: theme('colors.brand.400');
+    @apply card relative transition-[background-color,border-color,transform] duration-150 ease-spring
+           hover:bg-ink-50 active:scale-[0.99]
+           dark:hover:bg-ink-850;
   }
+  .card-interactive:hover {
+    border-color: color-mix(in srgb, var(--tone) 45%, transparent);
+  }
+
+  .tone-brand { --tone: theme('colors.brand.400'); }
+  .tone-xp, .tone-good { --tone: theme('colors.xp.400'); }
+  .tone-warn { --tone: theme('colors.warn.400'); }
+  .tone-bad { --tone: theme('colors.bad.400'); }
+  .tone-accent { --tone: theme('colors.accent.400'); }
+  .tone-neutral { --tone: theme('colors.ink.400'); }
 
   .btn {
     @apply inline-flex select-none items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
@@ -120,6 +137,8 @@
   .btn-xp {
     @apply btn bg-xp-500 text-ink-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)] hover:bg-xp-400;
   }
+  .btn-sm { @apply rounded-lg px-3 py-1.5 text-xs; }
+  .btn-lg { @apply rounded-xl px-5 py-3 text-[15px]; }
 
   .chip {
     @apply inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-[11px] font-semibold;
@@ -141,6 +160,69 @@
       padding-right: 27rem;
       transition: padding-right 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     }
+  }
+
+  /**
+   * Lyset i kanten.
+   *
+   * På en computer følger et blødt lys musen langs kanten af det kort man
+   * peger på. Det er en ring maskeret ud af en radial gradient, placeret
+   * hvor musen er (--x/--y sættes af lib/spotlight.ts). Kun på enheder
+   * med en rigtig mus, og aldrig når bevægelse er slået fra.
+   */
+  @media (hover: hover) and (pointer: fine) {
+    .card-interactive::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      padding: 1px;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(
+        200px circle at var(--x, 50%) var(--y, 50%),
+        color-mix(in srgb, var(--tone) 90%, transparent),
+        transparent 70%
+      );
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .card-interactive:hover::before { opacity: 1; }
+  }
+  html.calm .card-interactive::before { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .card-interactive::before { display: none; }
+  }
+
+  /**
+   * Ternet papir.
+   *
+   * Et svagt kvadratnet bag sidens overskrift - som i et matematikhæfte.
+   * Det fader ud mod kanterne og ligger kun bag overskrifter, aldrig bag
+   * opgaver eller længere tekst.
+   */
+  .paper-head {
+    --grid: rgb(15 17 20 / 0.08);
+    position: relative;
+    isolation: isolate;
+  }
+  html.dark .paper-head { --grid: rgb(255 255 255 / 0.075); }
+  .paper-head::before {
+    content: '';
+    position: absolute;
+    inset: -28px -16px -24px -16px;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, var(--grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -1px -1px;
+    -webkit-mask-image: radial-gradient(ellipse 75% 100% at 15% 40%, #000 20%, transparent 72%);
+    mask-image: radial-gradient(ellipse 75% 100% at 15% 40%, #000 20%, transparent 72%);
   }
 
   /**

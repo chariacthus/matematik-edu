@@ -124,7 +124,7 @@ export function PageHeader({
   right?: ReactNode;
 }) {
   return (
-    <header>
+    <header className="paper-head">
       {back ? (
         <button onClick={back.onClick} className="btn-ghost -ml-2 mb-1 gap-1 px-2 py-1 text-xs">
           <Icon name="arrow-left" size={14} />
