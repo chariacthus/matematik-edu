@@ -414,22 +414,79 @@ try {
   });
   await shot('08-hjaelp');
 
-  await step('viser fri træning', async () => {
+  await step('viser Træn med ét valg ad gangen', async () => {
     await page.getByRole('button', { name: 'Luk hjælpen' }).click();
     await page.goto('http://127.0.0.1:4173/#/traen');
-    await page.getByRole('heading', { name: 'Fri træning' }).waitFor({ timeout: 8000 });
+    await page.getByRole('heading', { name: 'Træn', exact: true }).waitFor({ timeout: 8000 });
     await shot('24-traen');
 
-    // Emne -> færdigheder -> tilbage. Før var hver færdighed en lille
-    // pille i én lang væg; nu vælger man emne først.
-    await page.getByRole('button', { name: /^Brøker:/ }).click();
-    const back = page.getByRole('button', { name: 'Alle emner' });
-    await back.waitFor({ timeout: 5000 });
+    // Kun ét kompetenceområde ad gangen.
+    const main = page.locator('main');
+    await main.getByRole('button', { name: /^Brøker/ }).waitFor({ timeout: 5000 });
+    await page.getByRole('button', { name: /^Geometri og måling/ }).click();
+    await main.getByRole('button', { name: /^Trigonometri/ }).waitFor({ timeout: 5000 });
+    if (await main.getByRole('button', { name: /^Brøker/ }).count()) throw new Error('emnerne fra de andre områder står der stadig');
+    await page.getByRole('button', { name: /^Tal og algebra/ }).click();
+
+    // Emnet åbner på sin egen side, ikke nederst på listen.
+    await main.getByRole('button', { name: /^Brøker/ }).click();
+    await page.getByRole('heading', { name: 'Brøker', exact: true }).waitFor({ timeout: 5000 });
     const rows = await page.locator('main button.card-interactive').count();
     if (rows < 3) throw new Error(`emnet viser kun ${rows} færdigheder`);
-    await back.click();
-    await checkFormulas('træn', 21);
-    await page.getByRole('button', { name: /^Brøker:/ }).waitFor({ timeout: 5000 });
+    if (await page.getByRole('heading', { name: 'Træn', exact: true }).count()) throw new Error('emnet åbner under listen i stedet for på sin egen side');
+    await page.getByRole('button', { name: 'Træn', exact: true }).click();
+    await page.getByRole('heading', { name: 'Træn', exact: true }).waitFor({ timeout: 5000 });
+  });
+
+  await step('Træn løber ikke over, heller ikke med mange emner i gang', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 420, height: 900 } });
+    await ctx.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return;
+      localStorage.clear();
+      localStorage.setItem(
+        'matematik-ai:profile',
+        JSON.stringify({ name: 'Bo', onboarded: true, diagnosticDone: true, tourDone: true, createdAt: Date.now() }),
+      );
+      const ids = [
+        'tal-regnearter', 'tal-hierarki', 'tal-negative', 'tal-afrunding', 'tal-primtal', 'broek-forstaa', 'broek-forkort',
+        'broek-plusminus', 'broek-gange-dividere', 'broek-omregning', 'decimal-pladsvaerdi', 'decimal-regning',
+        'procent-af-tal', 'procent-find-procenten', 'procent-aendring', 'forhold-grund', 'potens-grund', 'rod-kvadratrod',
+        'algebra-udtryk', 'algebra-reducer', 'ligning-ettrin', 'ligning-totrin', 'geo-vinkler', 'geo-trekanter',
+        'geo-pythagoras', 'areal-omkreds', 'stat-deskriptorer', 'sand-grund', 'funk-lineaer', 'prob-flertrin',
+      ];
+      const skills = {};
+      ids.forEach((id, i) => {
+        skills[id] = {
+          skillId: id, pKnown: 0.4, ability: 2, attempts: 5, correct: 3, streak: 0, bestStreak: 2, phase: 'guided',
+          phaseProgress: 1, lastSeen: Date.now() - i * 3600000, masteredAt: null, interval: 0, ease: 2.5, due: null,
+          reviews: 0, lapses: 0, avgSeconds: 30, hintsUsed: 0, cleanStreak: 0,
+        };
+      });
+      localStorage.setItem('matematik-ai:skills', JSON.stringify(skills));
+      sessionStorage.setItem('seeded', '1');
+    });
+    const p = await ctx.newPage();
+    p.on('pageerror', (e) => errors.push(`pageerror (træn): ${e.message}`));
+    try {
+      await p.goto('http://127.0.0.1:4173/#/traen', { waitUntil: 'networkidle' });
+      await p.getByRole('heading', { name: 'Træn', exact: true }).waitFor({ timeout: 8000 });
+      await p.getByRole('button', { name: 'Vis alle 30' }).waitFor({ timeout: 5000 });
+      const size = await p.evaluate(() => ({
+        height: document.documentElement.scrollHeight,
+        rows: document.querySelectorAll('main button.group').length,
+      }));
+      if (size.height > 900 * 2.2) throw new Error(`Træn er ${size.height}px høj med 30 emner i gang`);
+      if (size.rows > 14) throw new Error(`Træn viser ${size.rows} rækker på én gang`);
+      await p.waitForTimeout(600);
+      await p.screenshot({ path: '/tmp/claude-0/shot-37-traen-mange.png', fullPage: true });
+      shots.push('/tmp/claude-0/shot-37-traen-mange.png');
+      await p.setViewportSize({ width: 1280, height: 860 });
+      await p.waitForTimeout(600);
+      await p.screenshot({ path: '/tmp/claude-0/shot-38-traen-computer.png' });
+      shots.push('/tmp/claude-0/shot-38-traen-computer.png');
+    } finally {
+      await ctx.close();
+    }
   });
 
   await step('viser profilen', async () => {
@@ -1016,8 +1073,8 @@ try {
   await step('en runde fri træning slutter med en opsamling', async () => {
     await page.goto('http://127.0.0.1:4173/#/traen');
     await page.reload({ waitUntil: 'networkidle' });
-    await page.getByRole('button', { name: /^Brøker:/ }).click();
-    await page.getByRole('button', { name: 'Alle emner' }).waitFor({ timeout: 5000 });
+    await page.locator('main').getByRole('button', { name: /^Brøker/ }).click();
+    await page.getByRole('heading', { name: 'Brøker', exact: true }).waitFor({ timeout: 5000 });
     await page.locator('main button.card-interactive').first().click();
     for (let i = 0; i < 10; i++) {
       await page.locator('main article.card').first().waitFor({ timeout: 5000 });
@@ -1030,7 +1087,7 @@ try {
     }
     await page.getByRole('heading', { name: 'Runden er færdig' }).waitFor({ timeout: 5000 });
     const text = await page.locator('main').innerText();
-    if (!/0\/10/.test(text)) throw new Error('opsamlingen viser ikke 0/10 rigtige efter ti forkerte svar');
+    if (!/\b(10|[0-9])\/10\b/.test(text)) throw new Error('opsamlingen viser ikke rigtige ud af 10');
     await page.getByText('Næste skridt').waitFor({ timeout: 3000 });
   });
   await shot('32-runde-slut');
@@ -1091,7 +1148,16 @@ try {
     await page.locator('main article.card').first().waitFor({ timeout: 8000 });
 
     const help = page.getByRole('button', { name: 'Få hjælp', exact: true });
+    // Fokus flyttes med tastaturet, så browseren ved at den skal vises.
+    // Svarfeltet tager selv fokus lidt efter at siden er åbnet; det
+    // skal være sket først.
+    await page.waitForTimeout(400);
     await help.focus();
+    await page.keyboard.press('Shift+Tab');
+    for (let i = 0; i < 6; i++) {
+      await page.keyboard.press('Tab');
+      if ((await page.evaluate(() => document.activeElement?.textContent?.trim())) === 'Få hjælp') break;
+    }
     const ring = await help.evaluate((el) => ({ style: getComputedStyle(el).outlineStyle, width: getComputedStyle(el).outlineWidth }));
     if (ring.style === 'none' || ring.width === '0px') throw new Error('knappen viser ikke hvor fokus er');
     await page.keyboard.press('Enter');

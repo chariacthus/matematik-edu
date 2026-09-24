@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Problem, Skill } from '../types';
-import { ALL_SKILLS, DOMAINS, buildProblem, getSkill } from '../content';
+import clsx from 'clsx';
+import type { CategoryId, DomainId, Problem, Skill } from '../types';
+import { ALL_SKILLS, CATEGORIES, DOMAINS, buildProblem, domainName, getDomain, getSkill } from '../content';
 import { useStore } from '../state/store';
 import { dueSkills } from '../engine/srs';
 import { abilityToLevel, newSkillState } from '../engine/mastery';
 import { navigate } from '../lib/router';
 import { randomSeed } from '../lib/math';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, ChoiceCard, EmptyState, FormulaTile, ListRow, MetaChip, Page, PageHeader, ProgressBar, Section } from '../components/ui';
-import { DOMAIN_SIGNATURES } from '../content/signatures';
-import { Icon, domainIcon } from '../components/Icon';
+import { Card, EmptyState, ListRow, MetaChip, Page, PageHeader, ProgressBar, Section } from '../components/ui';
+import { domainIcon } from '../components/Icon';
 import { SessionSummary } from '../components/SessionSummary';
 
 /**
@@ -29,7 +29,7 @@ export function PracticePage() {
   const [problem, setProblem] = useState<Problem | null>(null);
   const [round, setRound] = useState({ correct: 0, total: 0 });
   const [roundDone, setRoundDone] = useState(false);
-  const [openDomain, setOpenDomain] = useState<string | null>(null);
+  const [openDomain, setOpenDomain] = useState<DomainId | null>(null);
   const roundStart = useRef({ at: Date.now(), xp: xpNow });
 
   const skill = selected ? getSkill(selected) : null;
@@ -61,10 +61,22 @@ export function PracticePage() {
     newRound(s);
   };
 
-  const started = useMemo(
-    () => ALL_SKILLS.filter((s) => (skills[s.id]?.attempts ?? 0) > 0),
+  const recent = useMemo(
+    () =>
+      ALL_SKILLS.filter((s) => (skills[s.id]?.attempts ?? 0) > 0).sort(
+        (a, b) => (skills[b.id]?.lastSeen ?? 0) - (skills[a.id]?.lastSeen ?? 0),
+      ),
     [skills],
   );
+  const [showAll, setShowAll] = useState(false);
+  const [category, setCategory] = useState<CategoryId>(
+    () => (recent[0] ? getDomain(recent[0].domainId)?.category : undefined) ?? 'tal-algebra',
+  );
+  const domain = openDomain ? getDomain(openDomain) : undefined;
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [openDomain, selected]);
 
   if (skill && roundDone) {
     return (
@@ -87,7 +99,7 @@ export function PracticePage() {
         <PageHeader
           title={skill.name}
           back={{
-            label: 'Fri træning',
+            label: domain ? domain.name : 'Træn',
             onClick: () => {
               setSelected(null);
               setProblem(null);
@@ -125,17 +137,55 @@ export function PracticePage() {
     );
   }
 
+  // Et emne er åbent: kun dets færdigheder, på deres egen side.
+  if (domain) {
+    return (
+      <Page>
+        <PageHeader title={domain.name} subtitle={domain.blurb} back={{ label: 'Træn', onClick: () => setOpenDomain(null) }} />
+        <div className="stagger grid gap-2 sm:grid-cols-2">
+          {domain.skills.map((sk) => {
+            const st = skills[sk.id];
+            const tried = (st?.attempts ?? 0) > 0;
+            return (
+              <ListRow
+                key={sk.id}
+                icon="pencil"
+                tone={st?.masteredAt ? 'xp' : tried ? 'brand' : 'neutral'}
+                title={sk.name}
+                subtitle={
+                  st && tried
+                    ? `Niveau ${abilityToLevel(st.ability)} · ${Math.round(st.pKnown * 100)} % sikker`
+                    : 'Ikke prøvet endnu'
+                }
+                trailing={st?.masteredAt ? <MetaChip tone="good" icon="star">Mestret</MetaChip> : null}
+                onClick={() => start(sk)}
+              />
+            );
+          })}
+        </div>
+      </Page>
+    );
+  }
+
+  const topics = DOMAINS.filter((d) => d.category === category);
+
   return (
     <Page>
-      <PageHeader
-        title="Fri træning"
-        subtitle="Øv så meget du vil. Her er ingen faser, bare opgaver på dit niveau."
-      />
+      <PageHeader title="Træn" subtitle="Vælg et emne. Du får 10 opgaver ad gangen på dit niveau." />
 
-      {started.length ? (
-        <Section title="Du er i gang med" hint="dine niveauer følger med">
+      {recent.length ? (
+        <Section
+          title="Fortsæt"
+          action={
+            recent.length > 3 ? (
+              <button onClick={() => setShowAll((v) => !v)} className="btn-ghost btn-sm -mr-2">
+                {showAll ? 'Vis færre' : `Vis alle ${recent.length}`}
+              </button>
+            ) : undefined
+          }
+        >
           <div className="stagger grid gap-2 sm:grid-cols-2">
-            {started.map((s) => {
+            {(showAll ? recent : recent.slice(0, 3)).map((s) => {
               const st = skills[s.id]!;
               return (
                 <ListRow
@@ -143,7 +193,7 @@ export function PracticePage() {
                   icon={domainIcon(s.domainId)}
                   tone={st.masteredAt ? 'xp' : 'brand'}
                   title={s.name}
-                  subtitle={`Niveau ${abilityToLevel(st.ability)} · ${Math.round(st.pKnown * 100)} % sikker`}
+                  subtitle={`${domainName(s.domainId)} · niveau ${abilityToLevel(st.ability)}`}
                   trailing={st.masteredAt ? <MetaChip tone="good" icon="star">Mestret</MetaChip> : null}
                   onClick={() => start(s)}
                 />
@@ -151,58 +201,50 @@ export function PracticePage() {
             })}
           </div>
         </Section>
-      ) : (
-        <Callout tone="brand" icon="info">
-          Du har ikke trænet noget endnu. Vælg et emne herunder, eller start fra forsiden.
-        </Callout>
-      )}
+      ) : null}
 
-      {openDomain ? (
-        <Section
-          title={DOMAINS.find((d) => d.id === openDomain)?.name ?? ''}
-          action={
-            <button onClick={() => setOpenDomain(null)} className="btn-ghost btn-sm -mr-2">
-              <Icon name="arrow-left" size={14} /> Alle emner
-            </button>
-          }
-        >
-          <div className="stagger grid gap-2 sm:grid-cols-2">
-            {(DOMAINS.find((d) => d.id === openDomain)?.skills ?? []).map((sk) => {
-              const st = skills[sk.id];
-              return (
-                <ListRow
-                  key={sk.id}
-                  icon="pencil"
-                  tone={st?.masteredAt ? 'xp' : 'neutral'}
-                  title={sk.name}
-                  subtitle={st ? `Niveau ${abilityToLevel(st.ability)}` : 'Ikke prøvet endnu'}
-                  onClick={() => start(sk)}
-                />
-              );
-            })}
-          </div>
-        </Section>
-      ) : (
-        <Section title="Vælg et emne">
-          <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-3">
-            {DOMAINS.map((d) => {
-              const tried = d.skills.filter((sk) => skills[sk.id]).length;
-              return (
-                <ChoiceCard
-                  key={d.id}
-                  size="md"
-                  preview={<FormulaTile tex={DOMAIN_SIGNATURES[d.id]} />}
-                  tone="brand"
-                  title={d.name}
-                  meta={[{ icon: 'pencil', label: `${d.skills.length} færdigheder` }]}
-                  onClick={() => setOpenDomain(d.id)}
-                  aria-label={`${d.name}: ${tried} af ${d.skills.length} prøvet`}
-                />
-              );
-            })}
-          </div>
-        </Section>
-      )}
+      <Section title="Vælg et emne">
+        <div className="mb-4 grid grid-cols-2 gap-2 lg:grid-cols-4" aria-label="Kompetenceområder">
+          {CATEGORIES.map((c) => {
+            const on = c.id === category;
+            const count = DOMAINS.filter((d) => d.category === c.id).length;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setCategory(c.id)}
+                className={clsx(
+                  'rounded-2xl border px-3.5 py-3 text-left transition-colors duration-150',
+                  on
+                    ? 'border-brand-500 bg-brand-50 dark:border-brand-400/60 dark:bg-brand-500/[0.12]'
+                    : 'border-ink-200 bg-white hover:border-ink-300 dark:border-white/[0.08] dark:bg-white/[0.03] dark:hover:border-white/20',
+                )}
+              >
+                <span className="block text-sm font-semibold leading-snug">{c.name}</span>
+                <span className="num mt-0.5 block text-xs text-ink-500 dark:text-ink-400">{count} emner</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <Card key={category} pad="none" className="animate-swap-in divide-y divide-ink-100 p-1.5 dark:divide-white/[0.05]">
+          {topics.map((d) => {
+            const busy = d.skills.filter((sk) => (skills[sk.id]?.attempts ?? 0) > 0).length;
+            return (
+              <ListRow
+                key={d.id}
+                variant="plain"
+                icon={domainIcon(d.id)}
+                tone="brand"
+                title={d.name}
+                subtitle={`${d.skills.length} færdigheder${busy ? ` · ${busy} i gang` : ''}`}
+                onClick={() => setOpenDomain(d.id)}
+              />
+            );
+          })}
+        </Card>
+      </Section>
     </Page>
   );
 }

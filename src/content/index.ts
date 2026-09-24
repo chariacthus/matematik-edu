@@ -87,6 +87,17 @@ export function areaName(id: AreaId): string {
   return areaById.get(id)?.name ?? id;
 }
 
+/** Samler emner under deres færdigheds- og vidensområde, i pensums rækkefølge. */
+export function groupByArea(domains: Domain[]): [AreaId, Domain[]][] {
+  const groups = new Map<AreaId, Domain[]>();
+  for (const d of domains) {
+    const list = groups.get(d.area);
+    if (list) list.push(d);
+    else groups.set(d.area, [d]);
+  }
+  return [...groups];
+}
+
 /** Emner der hører under et bestemt færdigheds- og vidensområde. */
 export function domainsInArea(id: AreaId): Domain[] {
   return DOMAINS.filter((d) => d.area === id);

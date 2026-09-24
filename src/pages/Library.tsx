@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import clsx from "clsx";
-import type { AreaId, Domain, DomainId, Skill, SkillState } from "../types";
-import { CATEGORIES, DOMAINS, areaName, getDomain, skillsOf } from "../content";
+import type { DomainId, Skill, SkillState } from "../types";
+import { CATEGORIES, DOMAINS, areaName, getDomain, groupByArea, skillsOf } from "../content";
 import { DOMAIN_SIGNATURES } from "../content/signatures";
 import { useStore } from "../state/store";
 import { domainProgress, prerequisitesMet } from "../engine/planner";
@@ -24,22 +24,6 @@ import {
 import { SkillMap } from "../components/SkillMap";
 import { Icon, domainIcon } from "../components/Icon";
 import { MathText } from "../components/MathText";
-
-/**
- * Samler emner efter deres færdigheds- og vidensområde.
- *
- * Rækkefølgen følger den første forekomst, så listen står som i
- * pensum og ikke i alfabetisk orden.
- */
-function groupByArea(domains: Domain[]): [AreaId, Domain[]][] {
-  const groups = new Map<AreaId, Domain[]>();
-  for (const d of domains) {
-    const list = groups.get(d.area);
-    if (list) list.push(d);
-    else groups.set(d.area, [d]);
-  }
-  return [...groups];
-}
 
 /** Biblioteket: hele pensum, grupperet i de fem hovedkategorier. */
 export function LibraryPage() {
