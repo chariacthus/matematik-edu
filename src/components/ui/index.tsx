@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type HTMLAttributes, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { Icon, type IconName } from '../Icon';
 import { Portal } from '../Portal';
@@ -7,21 +7,37 @@ import { Portal } from '../Portal';
 /* Flader                                                              */
 /* ------------------------------------------------------------------ */
 
+export type Tone = 'brand' | 'xp' | 'good' | 'warn' | 'bad' | 'accent' | 'neutral';
+
 export function Card({
   children,
   className,
   pad = 'md',
   raised,
+  interactive,
+  tone,
   as: As = 'div',
+  ...rest
 }: {
   children: ReactNode;
   className?: string;
   pad?: 'none' | 'sm' | 'md' | 'lg';
   raised?: boolean;
+  /** Kanten tager kortets farve ved hover, og lyset følger musen. */
+  interactive?: boolean;
+  tone?: Tone;
   as?: 'div' | 'section' | 'article' | 'li';
-}) {
+} & Omit<HTMLAttributes<HTMLElement>, 'className' | 'children'>) {
   const padding = { none: '', sm: 'p-3', md: 'p-4', lg: 'p-5' }[pad];
-  return <As className={clsx(raised ? 'card-raised' : 'card', padding, className)}>{children}</As>;
+  // rest videresendes, så data-tour og aria-* når frem til DOM'en.
+  return (
+    <As
+      className={clsx(interactive ? 'card-interactive' : raised ? 'card-raised' : 'card', tone && `tone-${tone}`, padding, className)}
+      {...rest}
+    >
+      {children}
+    </As>
+  );
 }
 
 /** Ikon i en farvet flade — den eneste måde ikoner vises på i appen. */
@@ -51,6 +67,214 @@ export function IconTile({
     <span className={clsx('flex shrink-0 items-center justify-center', box, tones, className)}>
       <Icon name={name} size={icon} />
     </span>
+  );
+}
+
+/** Et kort faktum: "8 min", "20 opgaver", "0/5 mestret". */
+export function MetaChip({ icon, children, tone = 'neutral' }: { icon?: IconName; children: ReactNode; tone?: 'neutral' | 'brand' | 'xp' }) {
+  const tones = {
+    neutral: 'border-ink-200 text-ink-600 dark:border-white/10 dark:text-ink-300',
+    brand: 'border-brand-200 text-brand-700 dark:border-brand-400/30 dark:text-brand-300',
+    xp: 'border-xp-200 text-xp-700 dark:border-xp-400/30 dark:text-xp-300',
+  }[tone];
+  return (
+    <span className={clsx('num inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs font-medium', tones)}>
+      {icon ? <Icon name={icon} size={13} /> : null}
+      {children}
+    </span>
+  );
+}
+
+/**
+ * Valgkortet.
+ *
+ * Prøvevalgets kort som komponent: ikon, titel, to linjers beskrivelse,
+ * fakta som chips og én handling. Et kort er ét valg.
+ *
+ * Med onClick er hele kortet klikbart; med action er der en knap nederst,
+ * og selve kortet står stille.
+ */
+export function ChoiceCard({
+  icon,
+  tone = 'brand',
+  eyebrow,
+  title,
+  description,
+  meta,
+  action,
+  onClick,
+  selected,
+  size = 'lg',
+  children,
+  className,
+  ...rest
+}: {
+  icon?: IconName;
+  tone?: Tone;
+  eyebrow?: ReactNode;
+  title: ReactNode;
+  description?: ReactNode;
+  meta?: { icon?: IconName; label: ReactNode }[];
+  action?: { label: string; onClick: () => void; icon?: IconName };
+  onClick?: () => void;
+  selected?: boolean;
+  size?: 'lg' | 'md';
+  children?: ReactNode;
+  className?: string;
+} & Omit<HTMLAttributes<HTMLElement>, 'className' | 'children' | 'title' | 'onClick'>) {
+  const lg = size === 'lg';
+  const body = (
+    <>
+      {selected ? (
+        <span className="absolute right-3 top-3 flex h-6 w-6 animate-pop items-center justify-center rounded-full bg-brand-600 text-white" aria-hidden>
+          <Icon name="check" size={14} />
+        </span>
+      ) : null}
+      <span className="flex items-start justify-between gap-3">
+        {icon ? <IconTile name={icon} tone={tone} size={lg ? 'lg' : 'md'} /> : null}
+        {eyebrow && !selected ? <span className="eyebrow pt-1 text-right">{eyebrow}</span> : null}
+      </span>
+      <span className={clsx('block font-semibold tracking-tight', lg ? 'mt-4 text-lg' : 'mt-3 text-[15px]')}>{title}</span>
+      {description ? (
+        <span className={clsx('mt-1.5 block leading-relaxed text-ink-600 dark:text-ink-400', lg ? 'text-sm' : 'line-clamp-2 text-[13px]')}>
+          {description}
+        </span>
+      ) : null}
+      {meta?.length ? (
+        <span className="mt-3.5 flex flex-wrap gap-1.5">
+          {meta.map((m, i) => (
+            <MetaChip key={i} icon={m.icon}>
+              {m.label}
+            </MetaChip>
+          ))}
+        </span>
+      ) : null}
+      {children ? <span className="mt-3.5 block">{children}</span> : null}
+    </>
+  );
+
+  const frame = clsx(
+    'flex flex-col text-left',
+    lg ? 'rounded-3xl p-5 sm:p-6' : 'rounded-2xl p-4',
+    `tone-${tone}`,
+    selected && 'ring-1 ring-brand-500 [border-color:theme(colors.brand.500)]',
+    className,
+  );
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} aria-pressed={selected} className={clsx('card-interactive', frame)} {...rest}>
+        {body}
+      </button>
+    );
+  }
+  return (
+    <div className={clsx('card relative', frame)} {...rest}>
+      {body}
+      {action ? (
+        <button onClick={action.onClick} className={clsx('btn-primary mt-auto w-full', lg ? 'btn-lg mt-5' : 'mt-4')}>
+          {action.label}
+          <Icon name={action.icon ?? 'arrow-right'} size={16} />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+/** Et tal der skal ses fra afstand: stime, dagens mål, karakter. */
+export function StatTile({
+  label,
+  icon,
+  value,
+  suffix,
+  hint,
+  tone = 'neutral',
+  children,
+  className,
+  ...rest
+}: {
+  label: ReactNode;
+  icon?: IconName;
+  value: number | string;
+  suffix?: ReactNode;
+  hint?: ReactNode;
+  tone?: 'neutral' | 'brand' | 'xp' | 'warn';
+  children?: ReactNode;
+  className?: string;
+} & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
+  const iconTone = { neutral: 'text-ink-400', brand: 'text-brand-400', xp: 'text-xp-400', warn: 'text-orange-400' }[tone];
+  return (
+    <div className={clsx('card flex flex-col rounded-2xl p-4', className)} {...rest}>
+      <span className="eyebrow flex items-center gap-1.5">
+        {icon ? <Icon name={icon} size={13} className={iconTone} /> : null}
+        {label}
+      </span>
+      <span className="num mt-2 flex items-baseline gap-1 text-3xl font-semibold leading-none tracking-tight">
+        {typeof value === 'number' ? <CountUp value={value} /> : value}
+        {suffix ? <span className="text-sm font-medium text-ink-400">{suffix}</span> : null}
+      </span>
+      {children ? <span className="mt-3 block">{children}</span> : null}
+      {hint ? <span className="mt-2 block text-xs leading-snug text-ink-500 dark:text-ink-400">{hint}</span> : null}
+    </div>
+  );
+}
+
+/**
+ * En række i en liste: ikon, titel, undertekst, noget i højre side og en
+ * pil. "card" står alene; "plain" ligger inde i et kort med flere rækker.
+ */
+export function ListRow({
+  icon,
+  tone = 'brand',
+  title,
+  subtitle,
+  trailing,
+  onClick,
+  chevron = true,
+  variant = 'card',
+  className,
+  ...rest
+}: {
+  icon?: IconName;
+  tone?: Tone;
+  title: ReactNode;
+  subtitle?: ReactNode;
+  trailing?: ReactNode;
+  onClick?: () => void;
+  chevron?: boolean;
+  variant?: 'card' | 'plain';
+  className?: string;
+} & Omit<HTMLAttributes<HTMLElement>, 'className' | 'children' | 'title' | 'onClick'>) {
+  const inner = (
+    <>
+      {icon ? <IconTile name={icon} tone={tone} size="sm" /> : null}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold">{title}</span>
+        {subtitle ? <span className="mt-0.5 block truncate text-xs text-ink-500 dark:text-ink-400">{subtitle}</span> : null}
+      </span>
+      {trailing ? <span className="shrink-0">{trailing}</span> : null}
+      {onClick && chevron ? (
+        <Icon name="chevron" size={16} className="shrink-0 text-ink-400 transition-transform duration-150 group-hover:translate-x-0.5" />
+      ) : null}
+    </>
+  );
+  const frame = clsx(
+    'group flex w-full items-center gap-3 text-left',
+    variant === 'card' ? 'rounded-2xl p-3.5' : 'rounded-xl px-2.5 py-2.5 transition-colors hover:bg-ink-100 dark:hover:bg-white/[0.04]',
+    variant === 'card' && `tone-${tone}`,
+    className,
+  );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={clsx(variant === 'card' && 'card-interactive', frame)} {...rest}>
+        {inner}
+      </button>
+    );
+  }
+  return (
+    <div className={clsx(variant === 'card' && 'card', frame)} {...rest}>
+      {inner}
+    </div>
   );
 }
 
@@ -551,8 +775,34 @@ export function Segmented<T extends string>({
   onChange: (v: T) => void;
   options: { id: T; label: string; count?: number; icon?: IconName }[];
 }) {
+  const wrap = useRef<HTMLDivElement>(null);
+  const [pill, setPill] = useState<{ x: number; w: number } | null>(null);
+
+  // Markøren måles ud fra den valgte knap og glider derhen. Den flyttes
+  // med transform på sit eget element - intet andet på elementet bruger
+  // transform, så de ikke kan overskrive hinanden.
+  useLayoutEffect(() => {
+    const el = wrap.current;
+    if (!el) return;
+    const measure = () => {
+      const btn = el.querySelector<HTMLElement>('[aria-selected="true"]');
+      if (btn) setPill({ x: btn.offsetLeft, w: btn.offsetWidth });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [value, options.length]);
+
   return (
-    <div className="mb-4 flex gap-1 rounded-xl bg-ink-100 p-1 dark:bg-white/[0.05]" role="tablist">
+    <div ref={wrap} className="relative mb-4 flex gap-1 rounded-xl border border-ink-200 bg-ink-100/60 p-1 dark:border-white/[0.06] dark:bg-white/[0.03]" role="tablist">
+      {pill ? (
+        <span
+          className="absolute bottom-1 top-1 rounded-lg border border-ink-200 bg-white shadow-sm transition-[transform,width] duration-300 ease-spring dark:border-white/10 dark:bg-ink-800"
+          style={{ width: pill.w, transform: `translateX(${pill.x - 4}px)`, left: 4 }}
+          aria-hidden
+        />
+      ) : null}
       {options.map((t) => {
         const on = value === t.id;
         return (
@@ -562,10 +812,8 @@ export function Segmented<T extends string>({
             aria-selected={on}
             onClick={() => onChange(t.id)}
             className={clsx(
-              'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold transition-all duration-150 ease-spring',
-              on
-                ? 'bg-white text-ink-900 shadow-sm dark:bg-white/10 dark:text-white'
-                : 'text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-ink-200',
+              'relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors duration-150',
+              on ? 'text-ink-900 dark:text-white' : 'text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-ink-200',
             )}
           >
             {t.icon ? <Icon name={t.icon} size={14} /> : null}
@@ -573,8 +821,8 @@ export function Segmented<T extends string>({
             {t.count ? (
               <span
                 className={clsx(
-                  'rounded-md px-1.5 text-[10px] font-extrabold tabular-nums',
-                  on ? 'bg-brand-500 text-white' : 'bg-ink-200 text-ink-600 dark:bg-white/10 dark:text-ink-300',
+                  'num rounded-md px-1.5 text-[10px] font-semibold',
+                  on ? 'bg-brand-600 text-white' : 'bg-ink-200 text-ink-600 dark:bg-white/10 dark:text-ink-300',
                 )}
               >
                 {t.count}
