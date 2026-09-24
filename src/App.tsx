@@ -4,6 +4,7 @@ import { useStore } from './state/store';
 import { Layout } from './components/Layout';
 import { LevelUpBanner, Toast } from './components/ui';
 import { achievementById, levelTitle } from './engine/gamification';
+import { play, setSoundEnabled } from './lib/sound';
 import { OnboardingPage } from './pages/Onboarding';
 import { DiagnosticPage } from './pages/Diagnostic';
 import { DashboardPage } from './pages/Dashboard';
@@ -33,6 +34,16 @@ export default function App() {
   const dismissBadge = useStore((s) => s.dismissBadge);
   const pendingLevelUp = useStore((s) => s.pendingLevelUp);
   const clearLevelUp = useStore((s) => s.clearLevelUp);
+  const sound = useStore((s) => s.settings.sound);
+
+  useEffect(() => setSoundEnabled(sound), [sound]);
+  useEffect(() => {
+    if (pendingLevelUp) play('levelUp');
+  }, [pendingLevelUp]);
+  const firstBadge = pendingBadges[0];
+  useEffect(() => {
+    if (firstBadge) play('badge');
+  }, [firstBadge]);
 
   // En elev der ikke er kommet gennem onboarding skal ikke kunne lande
   // på forsiden — den ville være tom og forvirrende.

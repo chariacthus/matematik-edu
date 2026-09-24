@@ -854,9 +854,18 @@ try {
     }
     if (x === null) throw new Error(`kunne ikke læse opgaven: "${prompt}"`);
     const wrong = x === 0 ? '1' : String(-x).replace('.', ',');
+    await page.evaluate(() => {
+      window.__tones = 0;
+      const create = AudioContext.prototype.createOscillator;
+      AudioContext.prototype.createOscillator = function () {
+        window.__tones += 1;
+        return create.call(this);
+      };
+    });
     await page.getByLabel('Dit svar').fill(wrong);
     await page.getByRole('button', { name: 'Tjek svar' }).click();
     await page.getByText('Du skrev').waitFor({ timeout: 5000 });
+    if ((await page.evaluate(() => window.__tones)) < 1) throw new Error('der kom ingen lyd ved et forkert svar');
     const fb = await page.locator('main').innerText();
     if (!fb.includes(`Du skrev ${wrong}.`)) throw new Error(`feedbacken gentager ikke svaret ${wrong}`);
     if (x !== 0 && !/fortegn/i.test(fb)) throw new Error(`fortegnsfejlen (${wrong} i stedet for ${x}) bliver ikke nævnt`);
@@ -880,6 +889,29 @@ try {
       await page.waitForTimeout(120);
     }
   }
+
+  await step('lyden kan slås fra', async () => {
+    await page.goto('http://127.0.0.1:4173/#/indstillinger');
+    const toggle = page.getByRole('switch', { name: 'Lyde' });
+    await toggle.waitFor({ timeout: 5000 });
+    if ((await toggle.getAttribute('aria-checked')) !== 'true') throw new Error('lyden er ikke slået til fra start');
+    await toggle.click();
+    await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('main article.card').first().waitFor({ timeout: 8000 });
+    await page.evaluate(() => {
+      window.__tones = 0;
+      const create = AudioContext.prototype.createOscillator;
+      AudioContext.prototype.createOscillator = function () {
+        window.__tones += 1;
+        return create.call(this);
+      };
+    });
+    await settleWrong();
+    if ((await page.evaluate(() => window.__tones)) > 0) throw new Error('der spiller lyd selvom den er slået fra');
+    await page.goto('http://127.0.0.1:4173/#/indstillinger');
+    await page.getByRole('switch', { name: 'Lyde' }).click();
+  });
 
   await step('en runde fri træning slutter med en opsamling', async () => {
     await page.goto('http://127.0.0.1:4173/#/traen');

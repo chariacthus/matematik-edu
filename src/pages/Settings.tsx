@@ -62,6 +62,15 @@ export function SettingsPage() {
 
           <div className="px-4 py-4">
             <Toggle
+              label="Lyde"
+              help="Korte, stille lyde ved rigtige og forkerte svar, og når du stiger i niveau."
+              checked={settings.sound}
+              onChange={(v) => update({ sound: v })}
+            />
+          </div>
+
+          <div className="px-4 py-4">
+            <Toggle
               label="Mindre bevægelse"
               help="Slår animationerne fra, hvis bevægelse på skærmen forstyrrer dig."
               checked={settings.reducedMotion}

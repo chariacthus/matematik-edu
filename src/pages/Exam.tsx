@@ -104,6 +104,7 @@ export function ExamPage() {
         // den rigtige situation.
         allowHints={false}
         allowTutor={false}
+        sounds={false}
         onSubmit={(info: SubmitInfo) => {
           recordAttempt({ problem: item.problem, ...info, phase: 'practice' });
           setSession((s) => (s ? answerExamItem(s, info.correct) : s));

@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import type { Misconception, Problem, Skill, SkillState } from '../types';
 import { checkAnswer, emptyResponse, findTrap, isBlank, answerToString, type Response } from '../lib/answer';
 import { describeResponse, findSlip } from '../lib/slips';
+import { play } from '../lib/sound';
 import { MathBlock, MathText } from './MathText';
 import { Tick } from './Tick';
 import { Icon } from './Icon';
@@ -43,6 +44,7 @@ export function ProblemCard({
   allowTutor = true,
   autoAdvance,
   headerRight,
+  sounds = true,
 }: {
   problem: Problem;
   skill: Skill;
@@ -58,6 +60,8 @@ export function ProblemCard({
   allowTutor?: boolean;
   autoAdvance?: boolean;
   headerRight?: React.ReactNode;
+  /** Til prøven: ingen lyd der afslører om svaret var rigtigt. */
+  sounds?: boolean;
 }) {
   const [response, setResponse] = useState<Response>(() => emptyResponse(inputKind(problem)));
   const [verdict, setVerdict] = useState<Verdict>('idle');
@@ -100,6 +104,7 @@ export function ProblemCard({
     const correct = checkAnswer(problem.answer, response);
 
     if (correct) {
+      if (sounds) play('correct');
       setVerdict('correct');
       setSettled(true);
       setFeedback(null);
@@ -109,6 +114,7 @@ export function ProblemCard({
       return;
     }
 
+    if (sounds) play('wrong');
     setVerdict('wrong');
     const trap = findTrap(problem, response);
     const misconception = trap ? getMisconception(trap.misconceptionId) ?? null : null;
