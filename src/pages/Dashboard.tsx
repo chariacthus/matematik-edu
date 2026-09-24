@@ -189,16 +189,21 @@ export function DashboardPage() {
         <XpBar level={level.level} into={level.into} needed={level.needed} levelUp={pendingLevelUp !== null} />
       </Card>
 
-      <section data-tour="tabs">
-        <Segmented
-          value={tab}
-          onChange={setTab}
-          options={[
-            { id: 'plan', label: 'Missioner', icon: 'flag', count: rest.length || undefined },
-            { id: 'repetition', label: 'Repetition', icon: 'refresh', count: due.length || undefined },
-            { id: 'fejl', label: 'Fejl', icon: 'search', count: errors.length || undefined },
-          ]}
-        />
+      <section>
+        {/* Rundvisningen peger på fanebjælken alene - hele sektionen er for
+            høj til at kortet kan stå over eller under den på en telefon. */}
+        <div data-tour="tabs" className="mb-4">
+          <Segmented
+            className=""
+            value={tab}
+            onChange={setTab}
+            options={[
+              { id: 'plan', label: 'Missioner', icon: 'flag', count: rest.length || undefined },
+              { id: 'repetition', label: 'Repetition', icon: 'refresh', count: due.length || undefined },
+              { id: 'fejl', label: 'Fejl', icon: 'search', count: errors.length || undefined },
+            ]}
+          />
+        </div>
 
         {tab === 'plan' ? (
           rest.length ? (

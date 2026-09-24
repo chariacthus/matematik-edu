@@ -14,7 +14,7 @@ import { randomSeed } from '../lib/math';
 import { MathBlock, MathText } from './../components/MathText';
 import { Visual } from '../components/visuals/Visual';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, CardTitle, Chip, ComboMeter, EmptyState, Page, PageHeader } from '../components/ui';
+import { Callout, Card, CardTitle, Chip, ComboMeter, EmptyState, Page, PageHeader, Skeleton } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { xpForAttempt } from '../engine/gamification';
 
@@ -241,9 +241,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
           {summary.length >= 3 ? <SessionStrip skillId={skillId} /> : null}
         </div>
       ) : (
-        <Card>
-          <p className="text-sm text-ink-500">Henter opgave …</p>
-        </Card>
+        <Skeleton />
       )}
 
       {phaseIdx > 1 ? (

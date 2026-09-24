@@ -105,6 +105,54 @@ const shot = async (name) => {
   shots.push(p);
 };
 
+/**
+ * Går rundvisningen igennem og tjekker hvert trin: en overskrift, et hul
+ * der ikke er hele skærmen, og et kort der ikke ligger oven på hullet.
+ * Overlap tjekkes i begge retninger - i sidemenuen står kortet ved
+ * siden af hullet, og et lodret tjek alene ville kalde det overlap.
+ */
+async function walkTour() {
+  const tour = page.getByRole('dialog', { name: 'Rundvisning' });
+  await tour.waitFor({ timeout: 8000 });
+  let spotlights = 0;
+  for (let i = 0; i < 12; i++) {
+    // Kortet er skjult til målet er målt; vent på det frem for at måle
+    // mens det stadig leder.
+    await tour.locator('.glass-strong').waitFor({ state: 'visible', timeout: 5000 });
+    const heading = (await tour.locator('h2').textContent())?.trim() ?? '';
+    if (!heading) throw new Error(`trin ${i + 1} i rundvisningen har ingen overskrift`);
+    const geo = await page.evaluate(() => {
+      const root = document.querySelector('[role="dialog"][aria-label="Rundvisning"]');
+      const hole = [...root.children].find((el) => getComputedStyle(el).boxShadow.includes('9999px'));
+      const card = root.querySelector('.glass-strong').getBoundingClientRect();
+      if (!hole) return { spotlight: false };
+      const h = hole.getBoundingClientRect();
+      const offscreen = card.left < 0 || card.right > window.innerWidth || card.top < 0 || card.bottom > window.innerHeight;
+      return {
+        spotlight: true,
+        full: h.height >= window.innerHeight,
+        overlap: h.left < card.right && card.left < h.right && h.top < card.bottom && card.top < h.bottom,
+        offscreen,
+      };
+    });
+    if (geo.spotlight) {
+      spotlights++;
+      if (geo.full) throw new Error(`trin ${i + 1} ("${heading}") markerer hele skærmen`);
+      if (geo.overlap) throw new Error(`trin ${i + 1} ("${heading}") har kortet oven på markeringen`);
+      if (geo.offscreen) throw new Error(`trin ${i + 1} ("${heading}") har kortet uden for skærmen`);
+    }
+    const done = page.getByRole('button', { name: 'Så er jeg klar' });
+    if (await done.count()) {
+      await done.click();
+      break;
+    }
+    await page.getByRole('button', { name: 'Videre' }).click();
+    await page.waitForTimeout(500);
+  }
+  await tour.waitFor({ state: 'detached', timeout: 5000 });
+  if (spotlights < 6) throw new Error(`kun ${spotlights} trin i rundvisningen markerer noget på skærmen`);
+}
+
 try {
   await step('åbner appen', async () => {
     await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
@@ -151,45 +199,7 @@ try {
     const tour = page.getByRole('dialog', { name: 'Rundvisning' });
     await tour.waitFor({ timeout: 8000 });
     await shot('23-rundvisning');
-    let spotlights = 0;
-    // Gå hele vejen igennem. Hvert trin skal have en overskrift og en
-    // tekst - et trin der peger på et element der ikke findes, ville
-    // ellers bare vise et tomt kort.
-    for (let i = 0; i < 12; i++) {
-      const heading = (await tour.locator('h2').textContent())?.trim() ?? '';
-      if (!heading) throw new Error(`trin ${i + 1} i rundvisningen har ingen overskrift`);
-
-      // Peger trinnet på noget, skal der være et hul i dæmpningen, og
-      // kortet må ikke ligge oven på det. data-tour på en komponent der
-      // ikke sender ukendte props videre til DOM'en gav ellers et trin
-      // uden markering, uden at noget fejlede.
-      const geo = await page.evaluate(() => {
-        const root = document.querySelector('[role="dialog"][aria-label="Rundvisning"]');
-        const hole = [...root.children].find((el) => getComputedStyle(el).boxShadow.includes('9999px'));
-        const card = root.querySelector('.glass-strong').getBoundingClientRect();
-        if (!hole) return { spotlight: false };
-        const h = hole.getBoundingClientRect();
-        return {
-          spotlight: true,
-          full: h.height >= window.innerHeight,
-          overlap: h.top < card.bottom && card.top < h.top + h.height,
-        };
-      });
-      if (geo.spotlight) {
-        spotlights++;
-        if (geo.full) throw new Error(`trin ${i + 1} ("${heading}") markerer hele skærmen`);
-        if (geo.overlap) throw new Error(`trin ${i + 1} ("${heading}") har kortet oven på markeringen`);
-      }
-      const done = page.getByRole('button', { name: 'Så er jeg klar' });
-      if (await done.count()) {
-        await done.click();
-        break;
-      }
-      await page.getByRole('button', { name: 'Videre' }).click();
-      await page.waitForTimeout(500);
-    }
-    await tour.waitFor({ state: 'detached', timeout: 5000 });
-    if (spotlights < 6) throw new Error(`kun ${spotlights} trin i rundvisningen markerer noget på skærmen`);
+    await walkTour();
 
     // Den må ikke komme igen når man vender tilbage til forsiden.
     await page.goto('http://127.0.0.1:4173/#/bibliotek');
@@ -587,6 +597,73 @@ try {
   });
   await shot('18-ai-desktop');
   await page.setViewportSize({ width: 420, height: 900 });
+
+  await step('computerlayout: sidemenu, glidende markør, lys i kanten og rundvisning', async () => {
+    await page.setViewportSize({ width: 1280, height: 860 });
+    await page.goto('http://127.0.0.1:4173/');
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.getByText('Dagens Missioner').waitFor({ timeout: 8000 });
+
+    // Sidemenuen fra 1024px, bundmenuen under.
+    const shell = await page.evaluate(() => ({
+      side: document.querySelector('aside[aria-label="Sidemenu"]')?.getBoundingClientRect().width ?? 0,
+      bottom: [...document.querySelectorAll('nav[aria-label="Hovedmenu"]')].filter((n) => n.closest('aside') === null)
+        .map((n) => n.getBoundingClientRect().height)[0] ?? 0,
+    }));
+    if (shell.side < 200) throw new Error(`sidemenuen vises ikke på en stor skærm (${shell.side}px)`);
+    if (shell.bottom > 0) throw new Error('bundmenuen vises stadig på en stor skærm');
+    await shot('27-computer-forside');
+
+    // Fanemarkøren glider hen til den fane man trykker på.
+    const pill = () =>
+      page.evaluate(() => {
+        const list = document.querySelector('main [role="tablist"]');
+        const p = list?.querySelector('span[aria-hidden]');
+        return p ? getComputedStyle(p).transform : null;
+      });
+    const before = await pill();
+    await page.getByRole('tab', { name: /Repetition/ }).click();
+    await page.waitForTimeout(450);
+    const after = await pill();
+    if (!before || before === after) throw new Error(`fanemarkøren flytter sig ikke (${before} -> ${after})`);
+
+    // Lyset i kanten: tændt når musen er over et kort, væk under "Mindre bevægelse".
+    const card = page.locator('main .card-interactive').first();
+    await card.hover();
+    await page.waitForTimeout(350);
+    const lit = await card.evaluate((el) => {
+      const b = getComputedStyle(el, '::before');
+      return { opacity: b.opacity, bg: b.backgroundImage, x: el.style.getPropertyValue('--x') };
+    });
+    if (Number(lit.opacity) < 0.9 || !lit.bg.includes('radial-gradient')) {
+      throw new Error(`lyset i kanten tænder ikke ved hover (${lit.opacity})`);
+    }
+    if (!lit.x) throw new Error('lyset følger ikke musen (--x er ikke sat)');
+
+    await page.evaluate(() => document.documentElement.classList.add('calm'));
+    const calm = await card.evaluate((el) => getComputedStyle(el, '::before').display);
+    await page.evaluate(() => document.documentElement.classList.remove('calm'));
+    if (calm !== 'none') throw new Error('lyset i kanten er der stadig under "Mindre bevægelse"');
+
+    // Rundvisningen i computerlayoutet: kortet står ved siden af
+    // sidemenuens punkter, ikke oven på dem.
+    await page.goto('http://127.0.0.1:4173/#/indstillinger');
+    await page.getByRole('button', { name: 'Vis den igen' }).click();
+    await walkTour();
+    await page.getByText('Dagens Missioner').waitFor({ timeout: 8000 });
+
+    // Det ternede papir hører til overskrifter - aldrig inde i en opgave.
+    await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
+    await page.locator('main article.card').first().waitFor({ timeout: 8000 });
+    const paper = await page.evaluate(() => ({
+      total: document.querySelectorAll('.paper-head').length,
+      inside: document.querySelectorAll('article .paper-head, figure .paper-head').length,
+    }));
+    if (paper.total === 0) throw new Error('det ternede papir mangler bag overskriften');
+    if (paper.inside > 0) throw new Error('det ternede papir ligger inde i en opgave');
+
+    await page.setViewportSize({ width: 420, height: 900 });
+  });
 
   await step('prøvetræning i mørkt tema', async () => {
     await page.goto('http://127.0.0.1:4173/#/proeve');

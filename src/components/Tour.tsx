@@ -32,24 +32,31 @@ function visibleTarget(name: string): Element | null {
 export function Tour({ steps, onDone }: { steps: TourStep[]; onDone: () => void }) {
   const [i, setI] = useState(0);
   const [box, setBox] = useState<Box | null>(null);
+  // Kortet vises først når målet er målt. Ellers står det midt på
+  // skærmen et øjeblik og springer så hen til sin plads.
+  const [ready, setReady] = useState(false);
   const step = steps[i];
 
   const measure = useCallback(() => {
     if (!step?.target) {
       setBox(null);
+      setReady(true);
       return;
     }
     const el = visibleTarget(step.target);
     if (!el) {
       setBox(null);
+      setReady(true);
       return;
     }
     const r = el.getBoundingClientRect();
     const pad = 8;
     setBox({ top: r.top - pad, left: r.left - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+    setReady(true);
   }, [step]);
 
   useLayoutEffect(() => {
+    if (step?.target) setReady(false);
     const el = step?.target ? visibleTarget(step.target) : null;
     if (el) {
       const r = el.getBoundingClientRect();
@@ -120,12 +127,19 @@ export function Tour({ steps, onDone }: { steps: TourStep[]; onDone: () => void 
           forskydningen, så kortet endte uden for skærmen.
         */}
         <div
-          className={clsx('absolute flex justify-center', box ? (beside ? '' : 'inset-x-3') : 'inset-0 items-center')}
+          className={clsx(
+            'absolute flex justify-center',
+            box ? (beside ? '' : 'inset-x-3') : 'inset-0 items-center',
+            !ready && 'invisible',
+          )}
           style={
             box
               ? beside
                 ? { left: box.left + box.width + 16, top: Math.max(12, Math.min(box.top - 8, window.innerHeight - CARD - 24)), width: 352 }
-                : { top: below ? box.top + box.height + 14 : undefined, bottom: below ? undefined : window.innerHeight - box.top + 14 }
+                : below
+                  ? { top: box.top + box.height + 14 }
+                  : // Over hullet - men aldrig over skærmens kant.
+                    { top: Math.max(12, box.top - CARD - 14) }
               : undefined
           }
         >

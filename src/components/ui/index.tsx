@@ -483,7 +483,11 @@ export function ProgressRing({
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c - (c * pct) / 100}
-          className={clsx('transition-[stroke-dashoffset] duration-[900ms] ease-spring', colour)}
+          // Ringen fyldes op første gang den vises og glider derefter.
+          // Uden forwards: når animationen slutter, overtager attributten
+          // med samme værdi, så senere ændringer stadig får overgangen.
+          style={{ ['--ring-len' as string]: c, ['--ring-off' as string]: c - (c * pct) / 100 }}
+          className={clsx('animate-ring-fill transition-[stroke-dashoffset] duration-[900ms] ease-spring', colour)}
         />
       </svg>
       <span className="absolute text-[11px] num font-extrabold">{children ?? `${Math.round(pct)}%`}</span>
@@ -987,7 +991,28 @@ export function Disclosure({ summary, children, defaultOpen }: { summary: string
         {summary}
         <Icon name="chevron" size={16} className={clsx('shrink-0 text-ink-400 transition-transform duration-200', open && 'rotate-90')} />
       </button>
-      {open ? <div className="animate-fade-in border-t border-ink-200 px-4 py-3 dark:border-white/10">{children}</div> : null}
+      {/* Højden foldes ud med grid-rows 0fr -> 1fr, så indholdet glider
+          frem i stedet for at springe. */}
+      <div
+        className={clsx('grid transition-[grid-template-rows] duration-300 ease-spring', open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}
+        aria-hidden={!open}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="border-t border-ink-200 px-4 py-3 dark:border-white/10">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Pladsholder mens noget hentes: grå linjer med et glimt der løber hen over dem. */
+export function Skeleton({ lines = 3, className }: { lines?: number; className?: string }) {
+  return (
+    <div className={clsx('card space-y-3 rounded-3xl p-6', className)} aria-busy="true" aria-label="Henter">
+      <div className="shimmer h-3 w-1/3 rounded-full bg-ink-100 dark:bg-white/[0.06]" />
+      {Array.from({ length: lines }, (_, i) => (
+        <div key={i} className="shimmer h-4 rounded-full bg-ink-100 dark:bg-white/[0.06]" style={{ width: `${88 - i * 18}%` }} />
+      ))}
     </div>
   );
 }

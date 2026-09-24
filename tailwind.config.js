@@ -181,7 +181,7 @@ export default {
         'combo-beat': 'combo-beat .45s cubic-bezier(.16,1.3,.4,1)',
         'tab-slide': 'tab-slide .3s cubic-bezier(.16,1,.3,1) both',
         'streak-lift': 'streak-lift .5s cubic-bezier(.16,1.2,.3,1) both',
-        'ring-fill': 'ring-fill 1s cubic-bezier(.16,1,.3,1) forwards',
+        'ring-fill': 'ring-fill 1s cubic-bezier(.16,1,.3,1)',
 
         'level-burst': 'level-burst .9s cubic-bezier(.16,1,.3,1) forwards',
         'level-pop': 'level-pop .7s cubic-bezier(.16,1.2,.3,1) both',
