@@ -181,7 +181,7 @@ export function SkillMap({
                   onPick(n.skill.id);
                 }
               }}
-              aria-label={`${n.skill.name} — ${
+              aria-label={`${n.skill.name}: ${
                 { locked: 'låst', ready: 'klar', learning: 'i gang', review: 'til repetition', mastered: 'mestret' }[n.status]
               }`}
             >

@@ -303,9 +303,9 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
 /** Lille hjælpelinje under feltet der forklarer hvad der forventes. */
 export function InputHint({ spec }: { spec: InputSpec }) {
   const text = {
-    number: 'Brug komma som decimaltegn — fx 3,5.',
-    fraction: 'Skriv brøken som tæller/nævner — fx 3/4.',
-    expression: 'Skriv udtrykket som du ville på papir — fx 2x + 3.',
+    number: 'Brug komma, fx 3,5.',
+    fraction: 'Skriv brøken med skråstreg, fx 3/4.',
+    expression: 'Skriv det som på papir, fx 2x + 3.',
     text: '',
     choice: '',
     multi: '',

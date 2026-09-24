@@ -11,7 +11,7 @@ export const flytninger: Domain = {
   name: 'Flytninger og symmetri',
   category: 'geometri-maaling',
   area: 'placeringer-flytninger',
-  blurb: 'Spejling, drejning, parallelforskydning og symmetri — i og uden for koordinatsystemet.',
+  blurb: 'Spejling, drejning, parallelforskydning og symmetri, i og uden for koordinatsystemet.',
   skills: [
     {
       id: 'flyt-symmetri',
@@ -25,7 +25,7 @@ export const flytninger: Domain = {
         { kind: 'idea', title: 'Spejlingssymmetri', body: 'En figur har spejlingssymmetri, hvis den kan foldes sammen om en linje, så de to halvdele dækker hinanden præcist. Linjen hedder symmetriaksen.' },
         { kind: 'idea', title: 'Drejningssymmetri', body: 'En figur har drejningssymmetri, hvis den kommer til at se ud præcis som før, når den drejes mindre end en hel omgang om sit centrum.' },
         { kind: 'list', title: 'Antal symmetriakser', items: ['Ligesidet trekant: 3', 'Kvadrat: 4', 'Rektangel (ikke kvadrat): 2', 'Rombe (ikke kvadrat): 2', 'Regulær femkant: 5', 'Cirkel: uendelig mange'] },
-        { kind: 'warning', body: 'Et parallelogram der ikke er en rombe eller et rektangel har INGEN symmetriakser — men det har drejningssymmetri af orden 2.' },
+        { kind: 'warning', body: 'Et parallelogram der ikke er en rombe eller et rektangel har INGEN symmetriakser, men det har drejningssymmetri af orden 2.' },
       ],
       worked: [
         {
@@ -34,7 +34,7 @@ export const flytninger: Domain = {
           steps: [
             s('Prøv den lodrette midterlinje.', undefined, 'Venstre og højre halvdel dækker hinanden.'),
             s('Prøv den vandrette midterlinje.', undefined, 'Øverste og nederste halvdel dækker hinanden.'),
-            s('Prøv diagonalerne.', undefined, 'De virker ikke — halvdelene får forskellig form.'),
+            s('Prøv diagonalerne.', undefined, 'De virker ikke. Halvdelene får forskellig form.'),
             s('Svar.', '2 \\text{ symmetriakser}'),
           ],
           takeaway: 'Test hver mulig akse ved at spørge: dækker de to halvdele hinanden præcist?',
@@ -86,7 +86,7 @@ export const flytninger: Domain = {
             const c = rng.pick(cases);
             const answer = c.spejl && c.drej ? 'Både spejlings- og drejningssymmetri' : c.spejl ? 'Kun spejlingssymmetri' : c.drej ? 'Kun drejningssymmetri' : 'Ingen af delene';
             return mcq(rng, {
-              prompt: `${c.text} — hvilken symmetri har figuren?`,
+              prompt: `${c.text}. Hvilken symmetri har figuren?`,
               options: [
                 { text: 'Kun spejlingssymmetri', correct: answer === 'Kun spejlingssymmetri' },
                 { text: 'Kun drejningssymmetri', correct: answer === 'Kun drejningssymmetri' },
@@ -118,7 +118,7 @@ export const flytninger: Domain = {
         { kind: 'rule', title: 'Spejling i akserne', math: '\\text{i } x\\text{-aksen}: (x,\\,y) \\rightarrow (x,\\,-y) \\qquad \\text{i } y\\text{-aksen}: (x,\\,y) \\rightarrow (-x,\\,y)' },
         { kind: 'rule', title: 'Drejning 180° om (0,0)', math: '(x,\\, y) \\rightarrow (-x,\\, -y)' },
         { kind: 'idea', title: 'Det der IKKE ændrer sig', body: 'Spejling, drejning og parallelforskydning ændrer aldrig længder eller vinkler. Figuren er kongruent med sig selv bagefter.' },
-        { kind: 'warning', body: 'Spejling i x-aksen ændrer y-værdien — ikke x. Det er let at bytte om, fordi man spejler "om x-aksen".' },
+        { kind: 'warning', body: 'Spejling i x-aksen ændrer y-værdien, ikke x. Det er let at bytte om, fordi man spejler "om x-aksen".' },
       ],
       worked: [
         {

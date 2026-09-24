@@ -26,7 +26,7 @@ export const broeker: Domain = {
           kind: 'rule',
           title: 'Brøkens to tal',
           math: '\\frac{\\text{tæller}}{\\text{nævner}} \\quad\\text{fx}\\quad \\frac{3}{4}',
-          body: 'Tælleren står øverst — den tæller stykkerne. Nævneren står nederst — den nævner hvor store de er.',
+          body: 'Tælleren står øverst og tæller stykkerne. Nævneren står nederst og nævner hvor store de er.',
         },
         {
           kind: 'visual',
@@ -37,7 +37,7 @@ export const broeker: Domain = {
               { num: 5, den: 8, label: '5/8' },
             ],
           },
-          caption: '3/4 er mere end 5/8 — selvom både 5 og 8 er større tal.',
+          caption: '3/4 er mere end 5/8, selvom både 5 og 8 er større tal.',
         },
         {
           kind: 'warning',
@@ -54,7 +54,7 @@ export const broeker: Domain = {
             s('Brøken er altså.', '\\frac{4}{6}'),
             s('Den kan forkortes med 2.', '\\frac{4}{6} = \\frac{2}{3}'),
           ],
-          takeaway: 'Brøken skrives altid tæller over nævner — og forkortes hvis den kan.',
+          takeaway: 'Brøken skrives altid tæller over nævner, og forkortes hvis den kan.',
         },
       ],
       generators: [
@@ -145,7 +145,7 @@ export const broeker: Domain = {
         },
         {
           kind: 'warning',
-          body: 'At dividere kun tælleren er ikke forkortning — det ændrer brøkens værdi.',
+          body: 'At dividere kun tælleren er ikke forkortning. Det ændrer brøkens værdi.',
         },
       ],
       worked: [
@@ -155,7 +155,7 @@ export const broeker: Domain = {
           steps: [
             s('Find det største tal der går op i begge.', '\\text{SFD}(18, 24) = 6'),
             s('Divider både tæller og nævner med 6.', '\\frac{18 : 6}{24 : 6}'),
-            s('Resultat.', '= \\frac{3}{4}', '3 og 4 har ingen fælles divisor — brøken er nu uforkortelig.'),
+            s('Resultat.', '= \\frac{3}{4}', '3 og 4 har ingen fælles divisor, så brøken kan ikke forkortes mere.'),
           ],
           takeaway: 'Bruger du den største fælles divisor, er du færdig på ét skridt.',
         },
@@ -237,7 +237,7 @@ export const broeker: Domain = {
                 s('Multipla af den anden nævner.', `${[1, 2, 3, 4, 5, 6].map((i) => d2 * i).join(', ')} \\dots`),
                 s('Det mindste fælles tal.', `\\text{MFN} = ${lcm(d1, d2)}`),
               ],
-              traps: trapIfDifferent(lcm(d1, d2), d1 + d2, 'broek-add-naevnere', 'Du lagde nævnerne sammen. Fællesnævneren er det mindste tal som begge nævnere går op i — ikke summen.'),
+              traps: trapIfDifferent(lcm(d1, d2), d1 + d2, 'broek-add-naevnere', 'Du lagde nævnerne sammen. Fællesnævneren er det mindste tal som begge nævnere går op i, ikke summen.'),
               seconds: 40,
             };
           },
@@ -250,13 +250,13 @@ export const broeker: Domain = {
       id: 'broek-plusminus',
       domainId: 'broeker',
       name: 'Plus og minus med brøker',
-      goal: 'Du kan lægge brøker sammen og trække dem fra hinanden — også med forskellige nævnere.',
+      goal: 'Du kan lægge brøker sammen og trække dem fra hinanden, også med forskellige nævnere.',
       prerequisites: ['broek-forkort'],
       tier: 3,
       explain: [
         {
           kind: 'analogy',
-          body: 'Du kan kun lægge stykker sammen, hvis de er lige store. 1/2 pizza + 1/3 pizza kan ikke tælles direkte — først skal begge skæres i sjettedele.',
+          body: 'Du kan kun lægge stykker sammen, hvis de er lige store. 1/2 pizza + 1/3 pizza kan ikke tælles direkte. Først skal begge skæres i sjettedele.',
         },
         {
           kind: 'rule',
@@ -266,7 +266,7 @@ export const broeker: Domain = {
         },
         {
           kind: 'warning',
-          body: 'Nævnerne lægges ALDRIG sammen. 1/2 + 1/3 er ikke 2/5 — prøv efter: 2/5 = 0,4, men 1/2 + 1/3 = 0,83.',
+          body: 'Nævnerne lægges ALDRIG sammen. 1/2 + 1/3 er ikke 2/5. Prøv efter: 2/5 = 0,4, men 1/2 + 1/3 = 0,83.',
         },
       ],
       worked: [
@@ -276,7 +276,7 @@ export const broeker: Domain = {
           steps: [
             s('Find fællesnævner.', '\\text{MFN}(2,3) = 6'),
             s('Udvid begge brøker.', '\\frac{1}{2} = \\frac{3}{6} \\quad \\frac{1}{3} = \\frac{2}{6}'),
-            s('Læg tællerne sammen — nævneren bliver stående.', '\\frac{3}{6} + \\frac{2}{6} = \\frac{5}{6}'),
+            s('Læg tællerne sammen. Nævneren bliver stående.', '\\frac{3}{6} + \\frac{2}{6} = \\frac{5}{6}'),
           ],
           takeaway: 'Nævneren fortæller hvilken slags stykker vi tæller. Den ændrer sig ikke når vi tæller flere af dem.',
         },
@@ -297,7 +297,7 @@ export const broeker: Domain = {
               input: { kind: 'fraction' },
               answer: fracAns(res),
               hints: [
-                'Nævnerne er allerede ens — så der er ikke noget at udvide.',
+                'Nævnerne er allerede ens, så der er ikke noget at udvide.',
                 `${plus ? 'Læg' : 'Træk'} kun tællerne ${plus ? 'sammen' : 'fra hinanden'}.`,
                 `${a} ${plus ? '+' : '-'} ${b} = ${plus ? a + b : a - b}, og nævneren bliver ${d}.`,
               ],
@@ -305,7 +305,7 @@ export const broeker: Domain = {
                 s('Nævnerne er ens, så vi regner kun med tællerne.', `\\frac{${a} ${plus ? '+' : '-'} ${b}}{${d}} = ${fracTexBig({ n: plus ? a + b : a - b, d })}`),
                 ...(gcd(Math.abs(plus ? a + b : a - b), d) > 1 ? [s('Forkort.', `= ${fracTexBig(res)}`)] : []),
               ],
-              traps: trapIfDifferent(fracValue(res), (plus ? a + b : a - b) / (2 * d), 'broek-add-naevnere', `Du lagde også nævnerne sammen. Nævneren fortæller hvor store stykkerne er — den bliver stående som ${d}.`),
+              traps: trapIfDifferent(fracValue(res), (plus ? a + b : a - b) / (2 * d), 'broek-add-naevnere', `Du lagde også nævnerne sammen. Nævneren fortæller hvor store stykkerne er, så den bliver stående som ${d}.`),
               seconds: 35,
             };
           },
@@ -343,7 +343,7 @@ export const broeker: Domain = {
                 ...(gcd(Math.abs((a * mfn) / d1 + (plus ? 1 : -1) * ((b * mfn) / d2)), mfn) > 1 ? [s('Forkort.', `= ${fracTexBig(res)}`)] : []),
               ],
               traps: [
-                ...trapIfDifferent(fracValue(res), (plus ? a + b : a - b) / (d1 + d2), 'broek-add-naevnere', `Du lagde nævnerne sammen. Nævnerne skal gøres ens — fællesnævneren her er ${mfn} — og så regner du kun med tællerne.`),
+                ...trapIfDifferent(fracValue(res), (plus ? a + b : a - b) / (d1 + d2), 'broek-add-naevnere', `Du lagde nævnerne sammen. Nævnerne skal gøres ens (fællesnævneren her er ${mfn}), og så regner du kun med tællerne.`),
               ],
               concept: 'Fælles nævner først. Derefter kun tællerne.',
               seconds: 70,
@@ -372,7 +372,7 @@ export const broeker: Domain = {
               input: { kind: 'fraction' },
               answer: fracAns(res),
               hints: [
-                'Det hele er 1 — altså hele lommepengene.',
+                'Det hele er 1, altså alle lommepengene.',
                 'Læg først de to brøker sammen. Husk fællesnævner.',
                 valid ? `Tilsammen bruges ${fracTexBig(used).replace(/\\frac/g, '').replace(/[{}]/g, '/')}. Træk det fra 1.` : 'Læg de to brøker sammen.',
               ],
@@ -414,7 +414,7 @@ export const broeker: Domain = {
         },
         {
           kind: 'warning',
-          body: 'Den fælles nævner hører til plus og minus. Ved gange skal du ikke bruge den — det gør bare arbejdet større.',
+          body: 'Den fælles nævner hører til plus og minus. Ved gange skal du ikke bruge den. Det gør bare arbejdet større.',
         },
       ],
       worked: [

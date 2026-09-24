@@ -17,7 +17,7 @@ export const problemloesning: Domain = {
       prerequisites: ['tal-regnearter'],
       tier: 2,
       explain: [
-        { kind: 'list', title: 'De fire skridt', items: ['1. LÆS — hvad spørges der egentlig om?', '2. SKRIV OP — hvilke tal har du, og hvad betyder de?', '3. PLANLÆG — hvilke regnestykker i hvilken rækkefølge?', '4. TJEK — er svaret realistisk?'] },
+        { kind: 'list', title: 'De fire skridt', items: ['1. LÆS: hvad spørges der egentlig om?', '2. SKRIV OP: hvilke tal har du, og hvad betyder de?', '3. PLANLÆG: hvilke regnestykker, i hvilken rækkefølge?', '4. TJEK: er svaret realistisk?'] },
         { kind: 'idea', title: 'Skriv mellemregningerne', body: 'Sæt navn på hvert delresultat: "pris i alt", "rabat", "til rest". Så mister du ikke tråden.' },
         { kind: 'warning', body: 'Signalord som "i alt" og "forskel" hjælper, men de er ikke en facitliste. Tegn eller skriv situationen op før du vælger regneart.' },
         { kind: 'idea', title: 'Tjek altid til sidst', body: 'Kan en pizza koste 4500 kr? Kan et menneske være 19 m højt? Urealistiske svar afslører en regnefejl.' },
@@ -82,7 +82,7 @@ export const problemloesning: Domain = {
               answer: numAns(start, 0.005),
               hints: [
                 'Start i den anden ende: hvad var der før madpengene blev brugt?',
-                `${rest} + ${spent} = ${half} kr — det er halvdelen af det oprindelige.`,
+                `${rest} + ${spent} = ${half} kr, og det er halvdelen af det oprindelige.`,
                 'Gang med 2.',
               ],
               solution: [
@@ -120,11 +120,11 @@ export const problemloesning: Domain = {
           title: 'Følgen 4, 7, 10, 13 …',
           prompt: 'Find det 10. tal',
           steps: [
-            s('Find forskellen.', '7 - 4 = 3,\; 10 - 7 = 3', 'Samme forskel — lineær følge.'),
+            s('Find forskellen.', '7 - 4 = 3,\; 10 - 7 = 3', 'Samme forskel, så det er en lineær følge.'),
             s('Brug formlen.', 'a_{10} = 4 + (10-1) \\cdot 3'),
             s('Regn ud.', '= 4 + 27 = 31'),
           ],
-          takeaway: 'Der er (n − 1) skridt op til det n’te tal — ikke n skridt.',
+          takeaway: 'Der er (n − 1) skridt op til det n’te tal, ikke n skridt.',
         },
       ],
       generators: [
@@ -144,7 +144,7 @@ export const problemloesning: Domain = {
                 answer: numAns(next),
                 hints: ['Prøv at dividere nabotallene med hinanden.', `${seq[1]} : ${seq[0]} = ${k}`, `Gang det sidste tal med ${k}.`],
                 solution: [
-                  s('Forskellene er ikke ens — prøv division.', `${seq[1]} : ${seq[0]} = ${k}`),
+                  s('Forskellene er ikke ens. Prøv division.', `${seq[1]} : ${seq[0]} = ${k}`),
                   s('Hvert tal ganges med den samme faktor.', `${seq[3]} \\cdot ${k} = ${next}`),
                 ],
                 traps: trapIfDifferent(next, (seq[3] as number) + ((seq[3] as number) - (seq[2] as number)), 'eksponentiel-lineaer', `Du lagde forskellen til. Her GANGES der med ${k} hver gang i stedet.`),
@@ -213,8 +213,8 @@ export const problemloesning: Domain = {
             return mcq(rng, {
               prompt: `Hvilken slags mønster er ${seq.join(', ')}, … ?`,
               options: [
-                { text: 'Lineær — der lægges det samme til hver gang', correct: kind === 'lineær' },
-                { text: 'Eksponentiel — der ganges med det samme hver gang', correct: kind === 'eksponentiel', misconceptionId: kind === 'lineær' ? 'eksponentiel-lineaer' : undefined, feedback: kind === 'lineær' ? `Forskellene er ens (${(seq[1] as number) - (seq[0] as number)} hver gang), så der LÆGGES til — det er lineært.` : undefined },
+                { text: 'Lineær: der lægges det samme til hver gang', correct: kind === 'lineær' },
+                { text: 'Eksponentiel: der ganges med det samme hver gang', correct: kind === 'eksponentiel', misconceptionId: kind === 'lineær' ? 'eksponentiel-lineaer' : undefined, feedback: kind === 'lineær' ? `Forskellene er ens (${(seq[1] as number) - (seq[0] as number)} hver gang), så der LÆGGES til. Det er lineært.` : undefined },
                 { text: 'Kvadrattal', correct: kind === 'kvadrat' },
               ],
               hints: ['Udregn forskellene mellem nabotallene.', 'Er de ens? Prøv ellers at dividere nabotallene.'],

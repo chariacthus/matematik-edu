@@ -47,7 +47,7 @@ export const algebra: Domain = {
               input: { kind: 'number' },
               answer: numAns(value),
               hints: [
-                `Sæt ${x} ind i stedet for x — husk parentes hvis tallet er negativt.`,
+                `Sæt ${x} ind i stedet for x. Husk parentes hvis tallet er negativt.`,
                 `${a} · (${x}) = ${a * x}`,
                 `Læg så ${b} til: ${a * x} ${signed(b)}`,
               ],
@@ -72,7 +72,7 @@ export const algebra: Domain = {
             const y = rng.nonZero(-6, 8);
             const value = a * x + b * y;
             return {
-              prompt: `Beregn $${coef(a, 'a')} ${signed(b)}b$ — altså $${coef(a, 'a')} ${b < 0 ? '-' : '+'} ${Math.abs(b)}b$ — når $a = ${x}$ og $b = ${y}$.`,
+              prompt: `Beregn $${coef(a, 'a')} ${signed(b)}b$, altså $${coef(a, 'a')} ${b < 0 ? '-' : '+'} ${Math.abs(b)}b$, når $a = ${x}$ og $b = ${y}$.`,
               input: { kind: 'number' },
               answer: numAns(value),
               hints: [
@@ -131,7 +131,7 @@ export const algebra: Domain = {
       tier: 2,
       explain: [
         { kind: 'analogy', body: '2 æbler + 3 æbler er 5 æbler. 2 æbler + 3 pærer kan ikke lægges sammen. Sådan er det også med x, y og tal.' },
-        { kind: 'rule', title: 'Ens led', math: '5x + 3x = 8x \\qquad 5x + 3 \\ne 8x', body: 'Led er ens når variabeldelen er præcis den samme — også eksponenten.' },
+        { kind: 'rule', title: 'Ens led', math: '5x + 3x = 8x \\qquad 5x + 3 \\ne 8x', body: 'Led er ens når variabeldelen er præcis den samme, også eksponenten.' },
         { kind: 'list', title: 'Fremgangsmåde', items: ['Marker leddene med hver deres variabel', 'Husk at fortegnet hører til leddet foran det', 'Læg koefficienterne sammen for hver gruppe'] },
         { kind: 'warning', body: 'x² og x er IKKE ens led. 2x² + 3x kan ikke gøres kortere.' },
       ],
@@ -250,7 +250,7 @@ export const algebra: Domain = {
       tier: 3,
       explain: [
         { kind: 'rule', title: 'Den distributive lov', math: 'a(b + c) = ab + ac', body: 'Faktoren uden for parentesen ganges på HVERT led indeni.' },
-        { kind: 'visual', visual: { kind: 'rect', w: 7, h: 3, labelW: 'b + c', labelH: 'a', grid: true }, caption: 'Arealet af hele rektanglet er a(b+c) — og det er summen af de to delarealer ab og ac.' },
+        { kind: 'visual', visual: { kind: 'rect', w: 7, h: 3, labelW: 'b + c', labelH: 'a', grid: true }, caption: 'Arealet af hele rektanglet er a(b+c), og det er summen af de to delarealer ab og ac.' },
         { kind: 'rule', title: 'Minus foran parentes', math: '-(x - 3) = -x + 3', body: 'Minus vender fortegnet på alle led i parentesen.' },
         { kind: 'warning', body: '3(x + 4) er ikke 3x + 4. Alle led skal ganges: 3x + 12.' },
       ],
@@ -317,7 +317,7 @@ export const algebra: Domain = {
                 prompt: `Reducer $(${linearTex(a1, b1)}) - (${linearTex(a2, b2)})$`,
                 input: { kind: 'expression' as const, placeholder: 'fx 0' },
                 answer: exprAns('0'),
-                hints: ['Vend fortegnene i den sidste parentes.', 'De to parenteser er ens — de går ud med hinanden.'],
+                hints: ['Vend fortegnene i den sidste parentes.', 'De to parenteser er ens, så de går ud med hinanden.'],
                 solution: [s('Parenteserne er identiske.', '= 0')],
                 seconds: 45,
               };
@@ -365,7 +365,7 @@ export const algebra: Domain = {
               input: { kind: 'expression', placeholder: 'fx 2x^2 + 5x - 3' },
               answer: exprAns(answer),
               hints: [
-                'Hvert led i den første parentes skal ganges med hvert led i den anden — fire gangestykker i alt.',
+                'Hvert led i den første parentes skal ganges med hvert led i den anden. Det giver fire gangestykker.',
                 `${coef(a)} · ${coef(c)} = ${coef(x2)}x og ${coef(a)} · (${d}) = ${coef(a * d)}`,
                 `Saml de to x-led: ${a * d} ${signed(b * c)} = ${x1}`,
               ],
@@ -374,7 +374,7 @@ export const algebra: Domain = {
                 s('Regn de fire produkter.', `${x2}x^2 ${signed(a * d)}x ${signed(b * c)}x ${signed(k)}`),
                 s('Saml x-leddene.', `= ${x2}x^2 ${signed(x1)}x ${signed(k)}`),
               ],
-              concept: 'Hvert led gange hvert led — fire produkter.',
+              concept: 'Hvert led gange hvert led, fire produkter i alt.',
               seconds: 90,
             };
           },
@@ -426,7 +426,7 @@ export const algebra: Domain = {
               hints: [
                 `Brug ${plus ? 'første' : 'anden'} kvadratsætning: (a ${plus ? '+' : '-'} b)² = a² ${plus ? '+' : '-'} 2ab + b².`,
                 `Her er a = x og b = ${b}.`,
-                `Midterleddet er 2 · x · ${b} = ${2 * b}x — med ${plus ? 'plus' : 'minus'} foran.`,
+                `Midterleddet er 2 · x · ${b} = ${2 * b}x, med ${plus ? 'plus' : 'minus'} foran.`,
               ],
               solution: [
                 s('Identificér a og b.', `a = x,\; b = ${b}`),
@@ -522,7 +522,7 @@ export const algebra: Domain = {
             s('Skriv som produkt.', '= 6(2x + 3)'),
             s('Kontrol.', '6 \\cdot 2x + 6 \\cdot 3 = 12x + 18 \;\\checkmark'),
           ],
-          takeaway: 'Tag den STØRSTE fælles faktor — ellers kan der faktoriseres videre.',
+          takeaway: 'Tag den STØRSTE fælles faktor, ellers kan der faktoriseres videre.',
         },
       ],
       generators: [
@@ -538,7 +538,7 @@ export const algebra: Domain = {
               options: [
                 { text: `${k}(${linearTex(a, b)})`, correct: true },
                 { text: `${k}(${linearTex(a * k, b)})`, misconceptionId: 'ligning-divider-delvis', feedback: `Begge led skal divideres med ${k}. ${k * a}x : ${k} = ${a}x, ikke ${a * k}x.` },
-                { text: `${k}x(${linearTex(a, b)})`, misconceptionId: 'algebra-parentes-delvis', feedback: `Der er ikke et x i begge led, så x kan ikke sættes uden for parentesen — kun tallet ${k}.` },
+                { text: `${k}x(${linearTex(a, b)})`, misconceptionId: 'algebra-parentes-delvis', feedback: `Der er ikke et x i begge led, så x kan ikke sættes uden for parentesen. Kun tallet ${k}.` },
                 { text: `${k * a}(${linearTex(1, b)})` },
               ],
               hints: [
@@ -570,7 +570,7 @@ export const algebra: Domain = {
                 { text: `x(x - ${b * b})` },
               ],
               hints: [
-                'Der er ingen x-led — det peger på tredje kvadratsætning.',
+                'Der er ingen x-led. Det peger på tredje kvadratsætning.',
                 'a² − b² = (a + b)(a − b).',
                 `Her er a = x og b = ${b}, fordi ${b}² = ${b * b}.`,
               ],

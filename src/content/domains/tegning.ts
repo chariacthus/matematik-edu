@@ -24,14 +24,14 @@ export const tegning: Domain = {
       aids: 'begge',
       explain: [
         { kind: 'list', title: 'De tegneformer du skal kende', items: [
-          'Skitse: hurtig håndtegning uden mål — til at forstå opgaven',
+          'Skitse: hurtig håndtegning uden mål, så du forstår opgaven',
           'Målfast tegning: alt er tegnet i en bestemt målestok',
           'Isometrisk tegning: rumlig tegning på isometrisk papir, hvor mål langs kanterne passer',
           'Perspektivtegning: ser realistisk ud, men mål kan ikke aflæses',
           'Konstruktion: tegnet med passer og lineal efter faste regler',
         ] },
         { kind: 'idea', title: 'Vælg efter formålet', body: 'Skal nogen bygge efter tegningen, skal den være målfast. Skal den bare forklare en idé, er en skitse nok.' },
-        { kind: 'warning', body: 'I en perspektivtegning bliver fjerne ting mindre. Derfor kan man ikke måle på den — selvom den ligner virkeligheden mest.' },
+        { kind: 'warning', body: 'I en perspektivtegning bliver fjerne ting mindre. Derfor kan man ikke måle på den, selvom den ligner virkeligheden mest.' },
       ],
       worked: [
         {
@@ -85,7 +85,7 @@ export const tegning: Domain = {
             return mcq(rng, {
               prompt: c.q,
               options: [{ text: c.a, correct: true }, ...c.wrong.map((w) => ({ text: w }))],
-              hints: ['En konstruktion bruger kun passer og lineal — ikke vinkelmåler eller linealens målestreger.', 'Buer med samme radius er kernen i næsten alle konstruktioner.'],
+              hints: ['En konstruktion bruger kun passer og lineal, ikke vinkelmåler eller linealens målestreger.', 'Buer med samme radius er kernen i næsten alle konstruktioner.'],
               solution: [s('Konstruktion bygger på buer med samme radius.', undefined, c.a)],
               seconds: 45,
             });
@@ -118,7 +118,7 @@ export const tegning: Domain = {
             s('Areal i virkeligheden.', '4 \\cdot 3 = 12\\text{ m}^2'),
             s('Kontrol med arealfaktoren.', '48\\text{ cm}^2 \\cdot 50^2 = 120000\\text{ cm}^2 = 12\\text{ m}^2 \;\\checkmark'),
           ],
-          takeaway: 'Omregn længderne først — så undgår du at glemme at arealfaktoren er kvadreret.',
+          takeaway: 'Omregn længderne først. Så undgår du at glemme at arealfaktoren er kvadreret.',
         },
       ],
       generators: [
@@ -146,7 +146,7 @@ export const tegning: Domain = {
                 s('Omregn længderne.', `${num(realW)}\\text{ m} \\times ${num(realH)}\\text{ m}`),
                 s('Gang dem.', `${num(realW)} \\cdot ${num(realH)} = ${num(area)}\\text{ m}^2`),
               ],
-              traps: trapIfDifferent(area, roundTo((w * h * scale) / 100, 3), 'maalestok-vej', `Du gangede arealet med ${scale} én gang. Målestokken gælder for LÆNGDER — arealet skal ganges med ${scale}².`),
+              traps: trapIfDifferent(area, roundTo((w * h * scale) / 100, 3), 'maalestok-vej', `Du gangede arealet med ${scale} én gang. Målestokken gælder for LÆNGDER, så arealet skal ganges med ${scale}².`),
               concept: 'Længder ganges med n, arealer med n².',
               seconds: 80,
             };
@@ -168,7 +168,7 @@ export const tegning: Domain = {
               prompt: `Du skal tegne ${c.thing} på ${c.paper}. Hvilken målestok er mest passende?`,
               options: [{ text: c.a, correct: true }, ...c.wrong.map((w) => ({ text: w }))],
               hints: [
-                'Tegningen skal kunne være på papiret — men også være stor nok til at man kan se noget.',
+                'Tegningen skal kunne være på papiret, men også være stor nok til at man kan se noget.',
                 'Et A4-ark er ca. 21 cm × 30 cm.',
               ],
               solution: [s('Vælg den målestok der fylder papiret bedst ud.', undefined, `Her passer ${c.a}.`)],

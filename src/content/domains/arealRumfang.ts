@@ -9,13 +9,13 @@ export const arealRumfang: Domain = {
   name: 'Areal og rumfang',
   category: 'geometri-maaling',
   area: 'maaling',
-  blurb: 'Omkreds, areal, overflade og rumfang — og hvornår man bruger hvad.',
+  blurb: 'Omkreds, areal, overflade og rumfang, og hvornår man bruger hvad.',
   skills: [
     {
       id: 'areal-omkreds',
       domainId: 'areal-rumfang',
       name: 'Omkreds og areal af firkanter',
-      goal: 'Du kan beregne omkreds og areal af rektangler og kvadrater — og kender forskellen.',
+      goal: 'Du kan beregne omkreds og areal af rektangler og kvadrater, og kender forskellen.',
       prerequisites: [],
       tier: 1,
       explain: [
@@ -103,7 +103,7 @@ export const arealRumfang: Domain = {
                     s('Træk længden fra.', `${l + b} - ${l} = ${b}\\text{ cm}`),
                   ],
               traps: fromArea
-                ? trapIfDifferent(b, roundTo(l * b - l, 4), 'areal-omkreds', 'Arealet er et produkt, så du skal dividere — ikke trække fra.')
+                ? trapIfDifferent(b, roundTo(l * b - l, 4), 'areal-omkreds', 'Arealet er et produkt, så du skal dividere, ikke trække fra.')
                 : trapIfDifferent(b, 2 * (l + b) - l, 'areal-omkreds', `Du glemte at omkredsen tæller hver side to gange. Halvér først: ${2 * (l + b)} : 2 = ${l + b}.`),
               seconds: 60,
             };
@@ -134,7 +134,7 @@ export const arealRumfang: Domain = {
             s('Gang de to tal.', '= \\tfrac{1}{2} \\cdot 60'),
             s('Halvér.', '= 30\\text{ cm}^2'),
           ],
-          takeaway: 'Gang de to tal først, halvér til sidst — det er nemmest i hovedet.',
+          takeaway: 'Gang de to tal først, halvér til sidst. Det er nemmest i hovedet.',
         },
       ],
       generators: [
@@ -206,8 +206,8 @@ export const arealRumfang: Domain = {
         { kind: 'rule', title: 'Omkreds', math: 'O = 2 \\pi r = \\pi d', body: 'r er radius (fra centrum til kanten), d er diameteren (hele vejen igennem). d = 2r.' },
         { kind: 'rule', title: 'Areal', math: 'A = \\pi r^2' },
         { kind: 'visual', visual: { kind: 'circle', r: 4, show: ['radius', 'diameter'], label: 'r' }, caption: 'Diameteren er dobbelt så lang som radius.' },
-        { kind: 'idea', title: 'Hvad er π?', body: 'π er forholdet mellem omkreds og diameter — det samme tal for alle cirkler, cirka 3,14.' },
-        { kind: 'warning', body: 'Bland ikke formlerne sammen. r i anden hører til arealet — det passer med at areal måles i cm².' },
+        { kind: 'idea', title: 'Hvad er π?', body: 'π er forholdet mellem omkreds og diameter. Det er det samme tal for alle cirkler, cirka 3,14.' },
+        { kind: 'warning', body: 'Bland ikke formlerne sammen. r i anden hører til arealet. Det passer med at areal måles i cm².' },
       ],
       worked: [
         {
@@ -237,7 +237,7 @@ export const arealRumfang: Domain = {
               answer: numAns(value, 0.05),
               visual: { kind: 'circle', r, show: fromDiameter ? ['diameter'] : ['radius'], label: fromDiameter ? `d = ${2 * r}` : `r = ${r}` },
               hints: [
-                fromDiameter ? 'O = π · d — eller find radius først.' : 'O = 2 · π · r',
+                fromDiameter ? 'O = π · d, eller find radius først.' : 'O = 2 · π · r',
                 fromDiameter ? `π · ${2 * r}` : `2 · π · ${r}`,
                 'Brug π ≈ 3,14159.',
               ],
@@ -320,7 +320,7 @@ export const arealRumfang: Domain = {
       explain: [
         { kind: 'idea', title: 'Del figuren op', body: 'Enhver sammensat figur kan deles i rektangler, trekanter og cirkeldele. Regn hver del for sig og læg sammen.' },
         { kind: 'idea', title: 'Eller træk fra', body: 'Nogle gange er det lettere at tage hele det store rektangel og trække det udskårne hul fra.' },
-        { kind: 'list', title: 'Fremgangsmåde', items: ['Tegn figuren og markér delene', 'Skriv hvilke mål du kender for hver del', 'Beregn hvert delareal', 'Læg sammen — eller træk fra'] },
+        { kind: 'list', title: 'Fremgangsmåde', items: ['Tegn figuren og markér delene', 'Skriv hvilke mål du kender for hver del', 'Beregn hvert delareal', 'Læg sammen, eller træk fra'] },
       ],
       worked: [
         {
@@ -360,7 +360,7 @@ export const arealRumfang: Domain = {
                 s('Hullets areal.', `${hl} \\cdot ${hb} = ${hl * hb}`),
                 s('Træk fra.', `${l * b} - ${hl * hb} = ${value}\\text{ cm}^2`),
               ],
-              traps: trapIfDifferent(value, l * b + hl * hb, 'areal-omkreds', 'Hullet skæres ud, så dets areal skal trækkes fra — ikke lægges til.'),
+              traps: trapIfDifferent(value, l * b + hl * hb, 'areal-omkreds', 'Hullet skæres ud, så dets areal skal trækkes fra, ikke lægges til.'),
               seconds: 75,
             };
           },
@@ -421,7 +421,7 @@ export const arealRumfang: Domain = {
             s('Gang med højden.', '40 \\cdot 3 = 120'),
             s('Enhed.', 'V = 120\\text{ cm}^3'),
           ],
-          takeaway: 'Grundfladen gange højden — det virker for alle prismer.',
+          takeaway: 'Grundfladen gange højden. Det virker for alle prismer.',
         },
       ],
       generators: [
@@ -465,7 +465,7 @@ export const arealRumfang: Domain = {
               answer: numAns(value, 0.005),
               visual: { kind: 'solid', type: 'prism', dims: { w: g, h, d: hTri } },
               hints: [
-                'Først grundfladens areal — det er en trekant.',
+                'Først grundfladens areal. Det er en trekant.',
                 `A = ½ · ${hTri} · ${g} = ${num(base)} cm²`,
                 `Gang med prismets højde ${h}.`,
               ],
@@ -520,7 +520,7 @@ export const arealRumfang: Domain = {
       prerequisites: ['areal-cirkel', 'rumfang-kasse'],
       tier: 4,
       explain: [
-        { kind: 'rule', title: 'Cylinder', math: 'V = \\pi r^2 \\cdot h', body: 'Grundfladen er en cirkel — gang dens areal med højden.' },
+        { kind: 'rule', title: 'Cylinder', math: 'V = \\pi r^2 \\cdot h', body: 'Grundfladen er en cirkel. Gang dens areal med højden.' },
         { kind: 'rule', title: 'Kegle', math: 'V = \\frac{1}{3} \\pi r^2 h', body: 'Præcis en tredjedel af cylinderen med samme grundflade og højde.' },
         { kind: 'rule', title: 'Kugle', math: 'V = \\frac{4}{3} \\pi r^3' },
         { kind: 'visual', visual: { kind: 'solid', type: 'cylinder', dims: { r: 3, h: 7 }, labels: { r: 'r', h: 'h' } } },
@@ -617,7 +617,7 @@ export const arealRumfang: Domain = {
               answer: numAns(value),
               visual: { kind: 'solid', type: 'box', dims: { w: l, h, d: b }, labels: { w: `${l}`, h: `${h}`, d: `${b}` } },
               hints: [
-                'En kasse har 6 sider — tre forskellige par.',
+                'En kasse har 6 sider, altså tre par ens sider.',
                 `${l}·${b} = ${l * b}, ${l}·${h} = ${l * h}, ${b}·${h} = ${b * h}`,
                 'Læg de tre sammen og gang med 2.',
               ],

@@ -75,7 +75,7 @@ export function DiagnosticPage() {
       </header>
 
       <Callout tone="neutral" icon="info">
-        Det gør ikke noget at svare forkert — testen skal netop finde ud af hvad du endnu ikke kan. Gæt hellere end at
+        Det gør ikke noget at svare forkert. Testen skal finde ud af hvad du ikke kan endnu, så gæt hellere end at
         springe over.
       </Callout>
 
@@ -94,7 +94,7 @@ export function DiagnosticPage() {
       <div className="flex flex-wrap justify-between gap-2">
         {outcome === null ? (
           <button onClick={() => advance(false)} className="btn-ghost text-xs">
-            Jeg ved det ikke — spring over
+            Ved ikke, spring over
           </button>
         ) : (
           <span />
@@ -151,7 +151,7 @@ function DiagnosticResult({
       {recommended.length ? (
         <Callout tone="brand" title="Vi anbefaler at du starter her" icon="target">
           <p className="mb-2">
-            {recommended.map((r) => r.name.toLowerCase()).join(', ')} — det er dér, du får mest ud af tiden lige nu.
+            Start med {recommended.map((r) => r.name.toLowerCase()).join(', ')}. Der får du mest ud af tiden lige nu.
           </p>
           {recommended.some((r) => hardTopics.includes(r.id)) ? (
             <p className="text-xs opacity-80">

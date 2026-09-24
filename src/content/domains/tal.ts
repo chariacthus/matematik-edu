@@ -50,7 +50,7 @@ export const tal: Domain = {
             s('Hvor mange 12-taller er der i 108?', '12 \\cdot 9 = 108'),
             s('Resultatet er derfor 39.', '468 : 12 = 39'),
           ],
-          takeaway: 'Gang dit svar med divisoren til sidst — så ved du med sikkerhed om det passer.',
+          takeaway: 'Gang dit svar med divisoren til sidst. Så ved du om det passer.',
         },
       ],
       generators: [
@@ -180,10 +180,10 @@ export const tal: Domain = {
           kind: 'list',
           title: 'Rangordenen',
           items: [
-            '1. Parenteser — inderst først',
+            '1. Parenteser, inderst først',
             '2. Potenser og rødder',
-            '3. Gange og dividere — fra venstre mod højre',
-            '4. Plus og minus — fra venstre mod højre',
+            '3. Gange og dividere, fra venstre mod højre',
+            '4. Plus og minus, fra venstre mod højre',
           ],
         },
         {
@@ -193,7 +193,7 @@ export const tal: Domain = {
         },
         {
           kind: 'warning',
-          body: 'Gange og dividere står på samme trin. Står de begge i stykket, tager du dem fra venstre mod højre — ikke gange før division.',
+          body: 'Gange og dividere står på samme trin. Står de begge i stykket, tager du dem fra venstre mod højre, ikke gange før division.',
         },
       ],
       worked: [
@@ -227,7 +227,7 @@ export const tal: Domain = {
               answer: numAns(value),
               hints: [
                 'Hvilket regnetegn har højest rang her?',
-                'Gange kommer før plus og minus — også når gangestykket står til sidst.',
+                'Gange kommer før plus og minus, også når gangestykket står til sidst.',
                 plus ? `Regn ${b} · ${c} = ${b * c} først, og læg så ${a} til.` : `Regn ${a} · ${b} = ${a * b} først, og træk så ${c} fra.`,
               ],
               solution: plus
@@ -237,7 +237,7 @@ export const tal: Domain = {
                 value,
                 leftToRight,
                 'regnehierarki-venstre',
-                `Du regnede fra venstre mod højre. Gange har højere rang end plus og minus, så gangestykket skal regnes først — svaret er ${value}.`,
+                `Du regnede fra venstre mod højre. Gange har højere rang end plus og minus, så gangestykket skal regnes først. Svaret er ${value}.`,
               ),
               concept: 'Parenteser → potenser → gange/dividere → plus/minus.',
               seconds: 35,
@@ -269,7 +269,7 @@ export const tal: Domain = {
                 value,
                 a + b * c,
                 'regnehierarki-venstre',
-                'Du regnede gangestykket først. Men parentesen står øverst i rangordenen — den skal ud af vejen inden noget andet.',
+                'Du regnede gangestykket først. Men parentesen står øverst i rangordenen, så den skal regnes før alt andet.',
               ),
               seconds: 35,
             };
@@ -297,7 +297,7 @@ export const tal: Domain = {
               ],
               solution: [
                 s('Gange og dividere klares først.', `${b} \\cdot ${c} = ${b * c},\\quad ${e} : ${d} = ${e / d}`),
-                s('Nu er der kun plus og minus tilbage — fra venstre.', `${a} + ${b * c} - ${e / d} = ${value}`),
+                s('Nu er der kun plus og minus tilbage. Regn fra venstre.', `${a} + ${b * c} - ${e / d} = ${value}`),
               ],
               traps: trapIfDifferent(
                 value,
@@ -339,7 +339,7 @@ export const tal: Domain = {
               [`${a} · ${b}`, `${c}² først`],
             ]);
             return mcq(rng, {
-              prompt: `I regnestykket $${expr}$ — hvilken del skal regnes allerførst?`,
+              prompt: `Hvilken del af regnestykket $${expr}$ skal regnes allerførst?`,
               options: [
                 { text: answers, correct: true },
                 ...wrongs.map((w) => ({
@@ -509,7 +509,7 @@ export const tal: Domain = {
                 text: String(v),
                 correct: v === max,
                 misconceptionId: v < 0 && Math.abs(v) === Math.max(...vals.map(Math.abs)) ? 'negativ-multiplikation' : undefined,
-                feedback: v < 0 ? `${v} har den største talværdi, men det ligger længst til venstre på tallinjen — altså er det det mindste.` : undefined,
+                feedback: v < 0 ? `${v} har den største talværdi, men det ligger længst til venstre på tallinjen, så det er det mindste.` : undefined,
               })),
               hints: [
                 'Tegn tallinjen for dig selv.',
@@ -552,7 +552,7 @@ export const tal: Domain = {
               },
               hints: [
                 'Tegn de to temperaturer på en tallinje.',
-                'Forskellen er hvor mange skridt der er fra det ene til det andet — også hen over nul.',
+                'Forskellen er hvor mange skridt der er fra det ene til det andet, også hen over nul.',
                 `Fra ${lowT} op til 0 er ${Math.abs(lowT)} grader. Derfra videre op til ${highT}.`,
               ],
               solution: [
@@ -594,7 +594,7 @@ export const tal: Domain = {
         },
         {
           kind: 'warning',
-          body: 'Rund altid ud fra det oprindelige tal — ikke i flere omgange. 3,449 bliver til 3,4, ikke 3,45 og så 3,5.',
+          body: 'Rund altid ud fra det oprindelige tal, ikke i flere omgange. 3,449 bliver til 3,4, ikke 3,45 og så 3,5.',
         },
       ],
       worked: [
@@ -604,7 +604,7 @@ export const tal: Domain = {
           steps: [
             s('Rund 197 op til 200.', '200 \\cdot 4 = 800', 'Nu kan det klares i hovedet.'),
             s('Vi rundede op, så det rigtige svar er lidt mindre end 800.'),
-            s('Regn præcist.', '197 \\cdot 4 = 788', 'Tæt på 800 — svaret er troværdigt.'),
+            s('Regn præcist.', '197 \\cdot 4 = 788', 'Tæt på 800, så svaret er troværdigt.'),
           ],
           takeaway: 'Et overslag først gør dig i stand til at opdage når et svar er helt skævt.',
         },
@@ -675,7 +675,7 @@ export const tal: Domain = {
             const options = rng.shuffle([exact, Math.round(exact / 10), exact * 10, exact + roundA]);
             return mcq(rng, {
               prompt: `Lav et overslag: hvilket svar kan passe på $${a} \\cdot ${b}$?`,
-              instruction: 'Du skal ikke regne præcist — du skal vurdere størrelsesordenen.',
+              instruction: 'Du skal ikke regne præcist. Du skal vurdere størrelsesordenen.',
               options: options.map((o) => ({
                 text: String(o),
                 correct: o === exact,
@@ -716,7 +716,7 @@ export const tal: Domain = {
           kind: 'rule',
           title: 'Primfaktoropløsning',
           math: '60 = 2 \\cdot 2 \\cdot 3 \\cdot 5 = 2^2 \\cdot 3 \\cdot 5',
-          body: 'Ethvert helt tal over 1 kan skrives som et produkt af primtal — og kun på én måde.',
+          body: 'Ethvert helt tal over 1 kan skrives som et produkt af primtal, og kun på én måde.',
         },
         {
           kind: 'list',
@@ -742,7 +742,7 @@ export const tal: Domain = {
             s('Start med det mindste primtal der går op.', '84 : 2 = 42'),
             s('Bliv ved så længe 2 går op.', '42 : 2 = 21'),
             s('2 går ikke op i 21. Prøv 3.', '21 : 3 = 7'),
-            s('7 er selv et primtal — vi er færdige.', '84 = 2 \\cdot 2 \\cdot 3 \\cdot 7 = 2^2\\cdot 3\\cdot 7'),
+            s('7 er selv et primtal, så vi er færdige.', '84 = 2 \\cdot 2 \\cdot 3 \\cdot 7 = 2^2\\cdot 3\\cdot 7'),
           ],
           takeaway: 'Arbejd dig opad gennem primtallene: 2, 3, 5, 7, 11 …',
         },

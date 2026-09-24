@@ -98,9 +98,12 @@ const step = async (name, fn) => {
 // Teksten skal lyde som en lærer, ikke som en maskine. Tjekkes på alt der
 // er synligt, hver gang der tages et billede.
 async function assertHumanCopy(where) {
-  const text = await page.evaluate(() => document.body.innerText);
+  const text = (await page.evaluate(() => document.body.innerText)).split('Lad os tage første trin sammen').join('');
   const hits = [];
   if (/\bAI\b/.test(text)) hits.push('ordet "AI"');
+  if (text.includes('—')) hits.push(`tankestreg i "${text.slice(Math.max(0, text.indexOf('—') - 40), text.indexOf('—') + 30)}"`);
+  if (/\blad os\b/i.test(text)) hits.push('"lad os"');
+  if (/det er dér|hold fast|godt klaret|det er sådan man|godt spørgsmål/i.test(text)) hits.push('floskel');
   if (hits.length) errors.push(`${where}: ${hits.join(', ')}`);
 }
 
@@ -171,7 +174,7 @@ try {
   await shot('01-velkomst');
 
   await step('gennemfører onboarding', async () => {
-    await page.getByRole('button', { name: /Lad os finde dit matematikniveau/ }).click();
+    await page.getByRole('button', { name: /Find mit niveau/ }).click();
     await page.getByLabel('Dit fornavn').fill('Freja');
     await page.getByRole('button', { name: /^Videre$/ }).click();
     await page.getByRole('button', { name: /Midt imellem/ }).click();
@@ -267,7 +270,7 @@ try {
   await step('gennemgår forklaring og eksempel i en lektion', async () => {
     await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
     await page.getByRole('heading', { name: 'Ligninger i to trin' }).waitFor({ timeout: 8000 });
-    await page.getByRole('button', { name: /vis mig et eksempel/ }).click();
+    await page.getByRole('button', { name: /Vis mig et eksempel/ }).click();
     for (let i = 0; i < 6; i++) {
       const b = page.getByRole('button', { name: 'Vis næste trin' });
       if (!(await b.count())) break;

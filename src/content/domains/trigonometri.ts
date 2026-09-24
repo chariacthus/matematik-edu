@@ -7,7 +7,7 @@ export const trigonometri: Domain = {
   name: 'Trigonometri',
   category: 'geometri-maaling',
   area: 'geometriske-egenskaber',
-  blurb: 'Sinus, cosinus og tangens — sådan finder du sider og vinkler i retvinklede trekanter.',
+  blurb: 'Sinus, cosinus og tangens: sådan finder du sider og vinkler i retvinklede trekanter.',
   skills: [
     {
       id: 'trig-forhold',
@@ -41,9 +41,9 @@ export const trigonometri: Domain = {
           label: 'Vælg det rigtige forhold',
           make: ({ rng }) => {
             const cases = [
-              { known: 'hypotenusen', want: 'den modstående katete', a: 'sinus', why: 'sin v = modstående/hypotenuse — netop de to sider der er i spil.' },
+              { known: 'hypotenusen', want: 'den modstående katete', a: 'sinus', why: 'sin v = modstående/hypotenuse, netop de to sider der er i spil.' },
               { known: 'hypotenusen', want: 'den hosliggende katete', a: 'cosinus', why: 'cos v = hosliggende/hypotenuse.' },
-              { known: 'den hosliggende katete', want: 'den modstående katete', a: 'tangens', why: 'tan v = modstående/hosliggende — det er det eneste forhold uden hypotenusen.' },
+              { known: 'den hosliggende katete', want: 'den modstående katete', a: 'tangens', why: 'tan v = modstående/hosliggende. Det er det eneste forhold uden hypotenusen.' },
               { known: 'den modstående katete', want: 'hypotenusen', a: 'sinus', why: 'sin v = modstående/hypotenuse indeholder begge.' },
             ];
             const c = rng.pick(cases);
@@ -74,14 +74,14 @@ export const trigonometri: Domain = {
               hypotenusen: 'Den længste side, som ligger over for den rette vinkel',
             }[which];
             return mcq(rng, {
-              prompt: `${desc} — hvad hedder den, når vi ser fra vinkel v?`,
+              prompt: `${desc}. Hvad hedder den, set fra vinkel v?`,
               options: [
-                { text: 'Den modstående katete', correct: which === 'modstående', misconceptionId: which !== 'modstående' ? 'trig-hos-mod' : undefined, feedback: which !== 'modstående' ? 'Den modstående katete ligger over for vinklen — den rører den ikke.' : undefined },
+                { text: 'Den modstående katete', correct: which === 'modstående', misconceptionId: which !== 'modstående' ? 'trig-hos-mod' : undefined, feedback: which !== 'modstående' ? 'Den modstående katete ligger over for vinklen og rører den ikke.' : undefined },
                 { text: 'Den hosliggende katete', correct: which === 'hosliggende', misconceptionId: which !== 'hosliggende' ? 'trig-hos-mod' : undefined, feedback: which !== 'hosliggende' ? 'Den hosliggende katete støder op til vinklen (og er ikke hypotenusen).' : undefined },
                 { text: 'Hypotenusen', correct: which === 'hypotenusen' },
               ],
               visual: { kind: 'triangle', a: 3, b: 4, c: 5, right: true, angleA: 37, labels: { A: 'v' } },
-              hints: ['Peg fra vinklen og tværs over trekanten — det du rammer, er den modstående.', 'Hypotenusen er altid den længste side, over for den rette vinkel.'],
+              hints: ['Peg fra vinklen og tværs over trekanten. Det du rammer, er den modstående.', 'Hypotenusen er altid den længste side, over for den rette vinkel.'],
               solution: [s(`${desc}.`, undefined, `Det er ${which === 'hypotenusen' ? 'hypotenusen' : `den ${which} katete`}.`)],
               seconds: 30,
             });
@@ -204,7 +204,7 @@ export const trigonometri: Domain = {
             s('Brug den omvendte funktion.', 'v = \\sin^{-1}(0{,}6)'),
             s('Regn ud.', 'v \\approx 36{,}87^\\circ'),
           ],
-          takeaway: 'Tjek at svaret er mellem 0° og 90° — det skal en spids vinkel være.',
+          takeaway: 'Tjek at svaret er mellem 0° og 90°. Det skal en spids vinkel være.',
         },
       ],
       generators: [

@@ -166,7 +166,7 @@ function ExamPicker({ onStart }: { onStart: (part: ExamPart) => void }) {
 
       <div className="mt-4">
         <Callout tone="neutral" icon="info">
-          Opgaverne er appens egne og følger Fælles Mål og prøvens opbygning. Det er ikke officielle prøvesæt — dem
+          Opgaverne er appens egne og følger Fælles Mål og prøvens opbygning. Det er ikke officielle prøvesæt. Dem
           finder du hos Styrelsen for Undervisning og Kvalitet.
         </Callout>
       </div>

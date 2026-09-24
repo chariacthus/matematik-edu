@@ -7,7 +7,7 @@ export const potenser: Domain = {
   name: 'Potenser',
   category: 'tal-algebra',
   area: 'tal',
-  blurb: 'Kort skrivemåde for gentagen multiplikation — og reglerne der gør den nem at regne med.',
+  blurb: 'Kort skrivemåde for gentagen multiplikation, og reglerne der gør den nem at regne med.',
   skills: [
     {
       id: 'potens-grund',
@@ -18,7 +18,7 @@ export const potenser: Domain = {
       tier: 1,
       explain: [
         { kind: 'rule', title: 'Grundtal og eksponent', math: '2^5 = \\underbrace{2 \\cdot 2 \\cdot 2 \\cdot 2 \\cdot 2}_{5 \\text{ faktorer}} = 32', body: 'Grundtallet er det der ganges. Eksponenten fortæller hvor mange gange.' },
-        { kind: 'warning', body: '2³ er ikke 2 · 3 = 6. Det er 2 · 2 · 2 = 8. Eksponenten tæller faktorer — den er ikke en faktor.' },
+        { kind: 'warning', body: '2³ er ikke 2 · 3 = 6. Det er 2 · 2 · 2 = 8. Eksponenten tæller faktorer. Den er ikke selv en faktor.' },
         { kind: 'warning', body: 'Pas på fortegn: (−3)² = 9, men −3² = −9. I den sidste er minusset ikke med i potensen.' },
         { kind: 'list', title: 'Vær vant til disse', items: ['2² = 4, 2³ = 8, 2⁴ = 16, 2⁵ = 32', '3² = 9, 3³ = 27', '5² = 25, 10² = 100', '11² = 121, 12² = 144'] },
       ],
@@ -69,7 +69,7 @@ export const potenser: Domain = {
                 s('Regn trin for trin.', `= ${value}`),
               ],
               traps: [
-                ...trapIfDifferent(value, b * exp, 'potens-base-gange', `Du gangede grundtallet med eksponenten. Eksponenten tæller hvor mange faktorer der er — den er ikke selv en faktor: ${b}^${exp} = ${value}.`),
+                ...trapIfDifferent(value, b * exp, 'potens-base-gange', `Du gangede grundtallet med eksponenten. Eksponenten tæller hvor mange faktorer der er. Den er ikke selv en faktor: ${b}^${exp} = ${value}.`),
                 ...(negative ? trapIfDifferent(value, -(base ** exp), 'negativ-multiplikation', `Fortegnet passer ikke. Eksponenten ${exp} er ${exp % 2 === 0 ? 'lige' : 'ulige'}, så svaret bliver ${exp % 2 === 0 ? 'positivt' : 'negativt'}.`) : []),
               ],
               seconds: 35,
@@ -90,7 +90,7 @@ export const potenser: Domain = {
               prompt: `Hvad er $${Array(exp).fill(base).join(' \\cdot ')}$ skrevet som potens?`,
               options: [
                 { text: `${base}^${exp}`, correct: true },
-                { text: `${exp}^${base}`, misconceptionId: 'potens-base-gange', feedback: `Grundtallet er det der ganges — altså ${base}. Eksponenten er antallet af faktorer — altså ${exp}.` },
+                { text: `${exp}^${base}`, misconceptionId: 'potens-base-gange', feedback: `Grundtallet er det der ganges, altså ${base}. Eksponenten er antallet af faktorer, altså ${exp}.` },
                 { text: `${base} \\cdot ${exp}`, misconceptionId: 'potens-base-gange', feedback: `${base} · ${exp} = ${base * exp}, men ${Array(exp).fill(base).join(' · ')} = ${value}.` },
               ],
               hints: ['Tæl hvor mange faktorer der er.', 'Grundtallet står nederst, antallet af faktorer står som eksponent.'],
@@ -112,7 +112,7 @@ export const potenser: Domain = {
       explain: [
         { kind: 'rule', title: 'Samme grundtal, gange', math: 'a^m \\cdot a^n = a^{m+n}', body: 'Fordi faktorerne bare stilles i forlængelse af hinanden.' },
         { kind: 'rule', title: 'Samme grundtal, dividere', math: '\\frac{a^m}{a^n} = a^{m-n}', body: 'Faktorerne går ud mod hinanden.' },
-        { kind: 'rule', title: 'Potens af potens', math: '(a^m)^n = a^{m \\cdot n}', body: 'Her ganges eksponenterne — og kun her.' },
+        { kind: 'rule', title: 'Potens af potens', math: '(a^m)^n = a^{m \\cdot n}', body: 'Her ganges eksponenterne. Kun her.' },
         { kind: 'rule', title: 'Nul og negative eksponenter', math: 'a^0 = 1 \\qquad a^{-n} = \\frac{1}{a^n}' },
         { kind: 'warning', body: 'Reglerne virker kun med samme grundtal. 2³ · 5² kan ikke slås sammen.' },
       ],
@@ -202,7 +202,7 @@ export const potenser: Domain = {
                   s('Og et tal divideret med sig selv er 1.', `${base}^0 = 1`),
                 ],
                 traps: [
-                  ...trapIfDifferent(1, 0, 'potens-nul', 'Alt (undtagen 0) opløftet i nulte er 1 — ikke 0. Det følger af at aⁿ : aⁿ = 1.'),
+                  ...trapIfDifferent(1, 0, 'potens-nul', 'Alt (undtagen 0) opløftet i nulte er 1, ikke 0. Det følger af at aⁿ : aⁿ = 1.'),
                   ...trapIfDifferent(1, base, 'potens-nul', `${base}^1 er ${base}. Men eksponenten er 0, og så er svaret 1.`),
                 ],
                 concept: 'a⁰ = 1',

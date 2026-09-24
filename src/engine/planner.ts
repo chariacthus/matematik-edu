@@ -81,7 +81,7 @@ export function buildPlan(ctx: PlanContext, limit = 6): PlanItem[] {
       kind: 'fejlklinik',
       skillId,
       title: def.name,
-      reason: `Du har lavet den her fejl ${state.count} gange. Lad os tage den, før vi går videre.`,
+      reason: `Du har lavet den her fejl ${state.count} gange. Tag den først.`,
       priority: 900 + state.count * 10,
       estimatedMinutes: 6,
     });
@@ -98,7 +98,7 @@ export function buildPlan(ctx: PlanContext, limit = 6): PlanItem[] {
       skillId: state.skillId,
       title: skill.name,
       reason: r < 0.6
-        ? 'Det er et stykke tid siden — lad os se om det stadig sidder fast.'
+        ? 'Det er et stykke tid siden. Se om du stadig kan det.'
         : 'Kort genopfriskning, så det bliver siddende.',
       priority: 700 + Math.round((1 - r) * 100),
       estimatedMinutes: 4,

@@ -46,7 +46,7 @@ export const decimaler: Domain = {
             s('Sammenlign som hele tal.', '80 > 75'),
             s('Altså.', '0{,}8 > 0{,}75'),
           ],
-          takeaway: 'Ekstra nuller til højre ændrer ikke værdien — men gør sammenligningen let.',
+          takeaway: 'Ekstra nuller til højre ændrer ikke værdien, men gør sammenligningen let.',
         },
       ],
       generators: [
@@ -155,7 +155,7 @@ export const decimaler: Domain = {
             s('Tæl decimaler i opgaven.', '1 + 1 = 2', '2,5 har én decimal, 0,4 har én.'),
             s('Sæt 2 decimaler i svaret.', '100 \\rightarrow 1{,}00 = 1'),
           ],
-          takeaway: 'Antallet af decimaler i svaret er summen af decimalerne i faktorerne — hver gang.',
+          takeaway: 'Antallet af decimaler i svaret er summen af decimalerne i faktorerne. Hver gang.',
         },
       ],
       generators: [
@@ -241,7 +241,7 @@ export const decimaler: Domain = {
                 s(`Gang begge tal med ${10 ** dec}.`, `${num(dividend)} : ${num(divisor)} = ${num(roundTo(dividend * 10 ** dec, 4))} : ${Math.round(divisor * 10 ** dec)}`, 'Forholdet mellem tallene er uændret.'),
                 s('Regn divisionen.', `= ${quotient}`),
               ],
-              concept: 'Gang begge tal med det samme — kvotienten er den samme.',
+              concept: 'Gang begge tal med det samme tal, så bliver kvotienten den samme.',
               seconds: 55,
             };
           },

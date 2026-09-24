@@ -7,7 +7,7 @@ export const ligninger: Domain = {
   name: 'Ligninger',
   category: 'tal-algebra',
   area: 'ligninger',
-  blurb: 'Vægten der skal holdes i balance — fra ét trin til ligninger med parenteser og brøker.',
+  blurb: 'Vægten der skal holdes i balance, fra ét trin til ligninger med parenteser og brøker.',
   skills: [
     {
       id: 'ligning-ettrin',
@@ -17,7 +17,7 @@ export const ligninger: Domain = {
       prerequisites: [],
       tier: 1,
       explain: [
-        { kind: 'analogy', body: 'En ligning er en vægt i balance. Lighedstegnet er midterpunktet. Det du gør på den ene side, SKAL du gøre på den anden — ellers vælter vægten.' },
+        { kind: 'analogy', body: 'En ligning er en vægt i balance. Lighedstegnet er midterpunktet. Det du gør på den ene side, SKAL du gøre på den anden, ellers vælter vægten.' },
         { kind: 'visual', visual: { kind: 'balance', left: { x: 1, ones: 4 }, right: { x: 0, ones: 12 } }, caption: 'x + 4 = 12. Fjerner du 4 klodser til venstre, skal du fjerne 4 til højre.' },
         { kind: 'rule', title: 'Det handler om at komme af med det der står hos x', math: 'x + a = b \;\\Rightarrow\; x = b - a \\qquad a \\cdot x = b \;\\Rightarrow\; x = \\tfrac{b}{a}' },
         { kind: 'idea', title: 'Tjek altid', body: 'Sæt dit svar ind i den oprindelige ligning. Passer begge sider, er du færdig.' },
@@ -27,12 +27,12 @@ export const ligninger: Domain = {
           title: 'Løs 5x = 35',
           prompt: '5x = 35',
           steps: [
-            s('x er ganget med 5 — det modsatte er at dividere med 5.', undefined, 'Vi gør det på begge sider.'),
+            s('x er ganget med 5. Det modsatte er at dividere med 5.', undefined, 'Vi gør det på begge sider.'),
             s('Divider.', '\\frac{5x}{5} = \\frac{35}{5}'),
             s('Resultat.', 'x = 7'),
             s('Kontrol.', '5 \\cdot 7 = 35 \;\\checkmark'),
           ],
-          takeaway: 'Gør det modsatte af det der sker med x — og gør det på begge sider.',
+          takeaway: 'Gør det modsatte af det der sker med x, og gør det på begge sider.',
         },
       ],
       generators: [
@@ -119,7 +119,7 @@ export const ligninger: Domain = {
             s('Resultat.', 'x = 4'),
             s('Kontrol.', '2 \\cdot 4 + 4 = 12 \;\\checkmark'),
           ],
-          takeaway: 'Plus og minus først, gange og dividere bagefter — omvendt af regnehierarkiet.',
+          takeaway: 'Plus og minus først, gange og dividere bagefter. Det er omvendt af regnehierarkiet.',
         },
       ],
       generators: [
@@ -149,7 +149,7 @@ export const ligninger: Domain = {
               ],
               traps: [
                 ...trapIfDifferent(x, roundTo((c + b) / a, 6), 'ligning-fortegn', `Du lagde ${Math.abs(b)} til i stedet for at trække fra. Når ${signed(b)} skifter side, skifter fortegnet til ${signed(-b)}.`),
-                ...trapIfDifferent(x, roundTo(c / a - b, 6), 'ligning-divider-delvis', `Du dividerede kun x-leddet med ${a}. Divisionen skal ramme hele siden — fjern først ${b}.`),
+                ...trapIfDifferent(x, roundTo(c / a - b, 6), 'ligning-divider-delvis', `Du dividerede kun x-leddet med ${a}. Divisionen skal ramme hele siden, så fjern først ${b}.`),
               ],
               concept: 'Plus/minus først, derefter gange/dividere.',
               seconds: 55,
@@ -280,7 +280,7 @@ export const ligninger: Domain = {
               solution: [
                 s('Indsæt i venstre side.', `${a}\\cdot(${guess}) ${signed(b)} = ${a * guess + b}`),
                 s('Indsæt i højre side.', `${c}\\cdot(${guess}) ${signed(d)} = ${c * guess + d}`),
-                s(isRight ? 'Begge sider giver det samme — tallet er en løsning.' : 'Siderne giver ikke det samme — tallet er ikke en løsning.', `${a * guess + b} ${isRight ? '=' : '\\ne'} ${c * guess + d}`),
+                s(isRight ? 'Begge sider giver det samme, så tallet er en løsning.' : 'Siderne giver ikke det samme, så tallet er ikke en løsning.', `${a * guess + b} ${isRight ? '=' : '\\ne'} ${c * guess + d}`),
               ],
               seconds: 50,
             });
@@ -298,7 +298,7 @@ export const ligninger: Domain = {
       tier: 4,
       explain: [
         { kind: 'list', title: 'Ryd op først', items: ['1. Gang parenteser ud', '2. Gang igennem med fællesnævneren hvis der er brøker', '3. Reducer hver side', '4. Løs som sædvanlig'] },
-        { kind: 'rule', title: 'Væk med brøkerne', math: '\\frac{x}{3} + \\frac{x}{2} = 5 \;\\xrightarrow{\\cdot 6}\; 2x + 3x = 30', body: 'Gang HELE ligningen — alle led på begge sider — med fællesnævneren.' },
+        { kind: 'rule', title: 'Væk med brøkerne', math: '\\frac{x}{3} + \\frac{x}{2} = 5 \;\\xrightarrow{\\cdot 6}\; 2x + 3x = 30', body: 'Gang HELE ligningen med fællesnævneren. Alle led, på begge sider.' },
         { kind: 'warning', body: 'Ganger du igennem med et tal, skal alle led rammes. Glemmer du ét led, er ligningen en anden.' },
       ],
       worked: [
@@ -330,7 +330,7 @@ export const ligninger: Domain = {
               input: { kind: 'number' },
               answer: numAns(x),
               hints: [
-                `Gang ${k} ind i parentesen — på BEGGE led.`,
+                `Gang ${k} ind i parentesen, på BEGGE led.`,
                 `${k}(x ${signed(p)}) = ${linearTex(k, k * p)}`,
                 'Nu er det en almindelig ligning med x på begge sider.',
               ],
@@ -418,7 +418,7 @@ export const ligninger: Domain = {
                 solveFor: 'b',
                 answer: '\\frac{A}{l}',
                 wrong: [
-                  { text: 'A \\cdot l', why: 'b er ganget med l, så du skal dividere med l — ikke gange.' },
+                  { text: 'A \\cdot l', why: 'b er ganget med l, så du skal dividere med l, ikke gange.' },
                   { text: 'A - l', why: 'l er ganget på, ikke lagt til. Det modsatte af gange er at dividere.' },
                 ],
                 hint: 'b er ganget med l. Divider begge sider med l.',
@@ -439,7 +439,7 @@ export const ligninger: Domain = {
                 answer: '\\frac{V}{l \\cdot b}',
                 wrong: [
                   { text: '\\frac{V}{l}', why: 'Der divideres kun med l. Men h er ganget med både l og b.' },
-                  { text: 'V \\cdot l \\cdot b', why: 'h er ganget med l og b, så der skal divideres — ikke ganges igen.' },
+                  { text: 'V \\cdot l \\cdot b', why: 'h er ganget med l og b, så der skal divideres, ikke ganges igen.' },
                 ],
                 hint: 'h er ganget med både l og b. Divider med begge.',
               },
@@ -468,7 +468,7 @@ export const ligninger: Domain = {
                 solveFor: 'g',
                 answer: '\\frac{2A}{h}',
                 wrong: [
-                  { text: '\\frac{A}{2h}', why: 'Der står en halv foran. Gang med 2 for at få den væk — divider ikke.' },
+                  { text: '\\frac{A}{2h}', why: 'Der står en halv foran. Gang med 2 for at få den væk. Divider ikke.' },
                   { text: '\\frac{A}{h}', why: 'Faktoren ½ blev glemt. Gang begge sider med 2 først.' },
                 ],
                 hint: 'Gang først begge sider med 2, og divider så med h.',
@@ -485,7 +485,7 @@ export const ligninger: Domain = {
                   feedback: w.why,
                 })),
               ],
-              hints: [c.hint, 'Gør det modsatte af det der sker med variablen — og gør det på begge sider.'],
+              hints: [c.hint, 'Gør det modsatte af det der sker med variablen, og gør det på begge sider.'],
               solution: [s('Isolér variablen skridt for skridt.', `${c.solveFor} = ${c.answer}`, c.hint)],
               seconds: 60,
             });

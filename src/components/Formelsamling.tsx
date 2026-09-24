@@ -66,7 +66,7 @@ function FormelsamlingPanel({ open, onClose }: { open: boolean; onClose: () => v
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Søg — fx areal, cirkel, rente …"
+            placeholder="Søg, fx areal, cirkel eller rente"
             className="field text-sm"
             aria-label="Søg i formelsamlingen"
             type="search"

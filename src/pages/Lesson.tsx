@@ -66,10 +66,10 @@ export function LessonPage({ skillId }: { skillId: string }) {
       setLevelNote(
         decision.changed
           ? {
-              'op-klarer-let': 'Du klarer det her let — jeg skruer op for sværhedsgraden.',
-              'ned-mange-fejl': 'Vi tager et trin tilbage, så det får lov at sidde fast først.',
-              'ned-for-mange-hints': 'Lad os tage en lidt lettere en, så du kan klare den uden hjælp.',
-              'fase-udfordring': 'Her kommer en sværere en — det er meningen den skal kræve noget.',
+              'op-klarer-let': 'Du klarer det her let, så opgaverne bliver lidt sværere.',
+              'ned-mange-fejl': 'Opgaverne bliver lidt lettere, så du kan få det til at sidde.',
+              'ned-for-mange-hints': 'Her er en lidt lettere en. Prøv den uden hints.',
+              'fase-udfordring': 'Her kommer en sværere en. Tag dig god tid.',
               'fase-guidet': null,
               'hold-stabil': null,
               start: null,
@@ -111,7 +111,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
 
     if (result.mastered) setJustMastered(true);
     if (result.regressed) {
-      setLevelNote('Vi går et trin tilbage og bygger det op igen — det er sådan det skal være.');
+      setLevelNote('Du går et trin tilbage og får lidt mere øvelse.');
     }
 
     // Gentagen fejl: stop progressionen og forklar netop den fejl.
@@ -335,7 +335,7 @@ function ExplainStep({ skill, onDone }: { skill: Skill; onDone: () => void }) {
       })}
 
       <button onClick={onDone} className="btn-primary w-full py-3 text-base">
-        Jeg er med — vis mig et eksempel
+        Vis mig et eksempel
       </button>
     </div>
   );
@@ -477,7 +477,7 @@ function MisconceptionClinic({ misconception, onDone }: { misconception: Misconc
           <Icon name="search" size={22} />
         </span>
         <div>
-          <h1 className="text-xl font-extrabold tracking-tight">Lad os stoppe op et øjeblik</h1>
+          <h1 className="text-xl font-extrabold tracking-tight">Stop lige et øjeblik</h1>
           <p className="text-sm text-ink-500 dark:text-ink-400">Den samme fejl er dukket op flere gange</p>
         </div>
       </div>
@@ -496,7 +496,7 @@ function MisconceptionClinic({ misconception, onDone }: { misconception: Misconc
         </button>
       ) : (
         <button onClick={onDone} className="btn-primary w-full py-3 text-base">
-          Jeg er med — giv mig en opgave med hjælp
+          Giv mig en opgave med hjælp
         </button>
       )}
     </div>
@@ -537,8 +537,7 @@ function MasteredScreen({
           <Stat label="Næste tjek" value="om 2 dage" />
         </div>
         <p className="mt-4 text-sm text-ink-600 dark:text-ink-300">
-          Emnet dukker op igen om et par dage som en kort repetition. Det er sådan det bliver siddende — ikke ved at
-          træne det færdigt på én dag.
+          Emnet kommer igen om et par dage som en kort repetition, så du ikke glemmer det.
         </p>
       </Card>
 

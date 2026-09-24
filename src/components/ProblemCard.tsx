@@ -235,8 +235,8 @@ export function ProblemCard({
               <Tick />
             </span>
             <div className="min-w-0 flex-1">
-              <Callout tone="good" title={hintsShown > 0 ? 'Rigtigt — og du fandt selv vejen derhen' : 'Rigtigt!'}>
-                {problem.concept ? <MathText>{`Husk reglen: ${problem.concept}`}</MathText> : <span>Godt klaret.</span>}
+              <Callout tone="good" title={hintsShown > 0 ? 'Rigtigt, med lidt hjælp' : 'Rigtigt'}>
+                {problem.concept ? <MathText>{`Husk reglen: ${problem.concept}`}</MathText> : null}
               </Callout>
             </div>
           </div>
@@ -299,7 +299,7 @@ export function ProblemCard({
         </div>
 
         {tries === 1 && !settled ? (
-          <p className="mt-3 text-xs text-ink-500 dark:text-ink-400">Du har ét forsøg mere — kig på feedbacken ovenfor først.</p>
+          <p className="mt-3 text-xs text-ink-500 dark:text-ink-400">Du har ét forsøg mere. Læs beskeden ovenfor først.</p>
         ) : null}
       </div>
 

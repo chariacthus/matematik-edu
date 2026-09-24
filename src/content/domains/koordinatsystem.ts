@@ -17,7 +17,7 @@ export const koordinatsystem: Domain = {
       prerequisites: [],
       tier: 1,
       explain: [
-        { kind: 'rule', title: 'Rækkefølgen', math: 'P(x, y)', body: 'Første tal er x og fortæller hvor langt hen ad den vandrette akse. Andet tal er y — hvor langt op ad den lodrette.' },
+        { kind: 'rule', title: 'Rækkefølgen', math: 'P(x, y)', body: 'Første tal er x og fortæller hvor langt hen ad den vandrette akse. Andet tal er y og fortæller hvor langt op ad den lodrette.' },
         { kind: 'analogy', body: 'Først hen ad gangen, så op ad trappen. Altid i den rækkefølge.' },
         { kind: 'visual', visual: { kind: 'coordinate', xRange: [-5, 5], yRange: [-5, 5], points: [{ x: 3, y: 2, label: 'A(3, 2)', tone: 'brand' }, { x: -2, y: 3, label: 'B(-2, 3)', tone: 'accent' }] } },
         { kind: 'list', title: 'De fire kvadranter', items: ['1. kvadrant: x > 0, y > 0 (øverst til højre)', '2. kvadrant: x < 0, y > 0', '3. kvadrant: x < 0, y < 0', '4. kvadrant: x > 0, y < 0'] },
@@ -109,7 +109,7 @@ export const koordinatsystem: Domain = {
       prerequisites: ['koord-punkter', 'geo-pythagoras'],
       tier: 4,
       explain: [
-        { kind: 'idea', title: 'Afstand er Pythagoras', body: 'Tegn en retvinklet trekant mellem punkterne. Den vandrette forskel og den lodrette forskel er kateterne — afstanden er hypotenusen.' },
+        { kind: 'idea', title: 'Afstand er Pythagoras', body: 'Tegn en retvinklet trekant mellem punkterne. Den vandrette forskel og den lodrette forskel er kateterne, og afstanden er hypotenusen.' },
         { kind: 'rule', title: 'Afstandsformlen', math: '|AB| = \\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}' },
         { kind: 'rule', title: 'Midtpunktet', math: 'M = \\left(\\frac{x_1 + x_2}{2},\; \\frac{y_1 + y_2}{2}\\right)', body: 'Gennemsnittet af x-værdierne og gennemsnittet af y-værdierne.' },
         { kind: 'warning', body: 'Kvadraterne gør fortegnet ligegyldigt. Det er derfor det er lige meget hvilket punkt du kalder nummer 1.' },

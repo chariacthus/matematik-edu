@@ -7,7 +7,7 @@ export const funktioner: Domain = {
   name: 'Funktioner',
   category: 'tal-algebra',
   area: 'funktioner',
-  blurb: 'Lineære og eksponentielle sammenhænge — forskrift, graf og virkelighed.',
+  blurb: 'Lineære og eksponentielle sammenhænge: forskrift, graf og virkelighed.',
   skills: [
     {
       id: 'funk-begreb',
@@ -30,7 +30,7 @@ export const funktioner: Domain = {
             s('Regn gangestykket.', '= -6 - 5'),
             s('Resultat.', '= -11'),
           ],
-          takeaway: 'Parentes om det indsatte tal — især når det er negativt.',
+          takeaway: 'Sæt parentes om det indsatte tal, især når det er negativt.',
         },
       ],
       generators: [
@@ -101,7 +101,7 @@ export const funktioner: Domain = {
                 s(`Gå til x = ${x}.`),
                 s('Aflæs hvor grafen ligger dér.', `f(${x}) = ${value}`),
               ],
-              traps: trapIfDifferent(value, x, 'koordinat-byttet', 'Du aflæste x-værdien. f(x) er y-værdien — hvor højt grafen ligger.'),
+              traps: trapIfDifferent(value, x, 'koordinat-byttet', 'Du aflæste x-værdien. f(x) er y-værdien, altså hvor højt grafen ligger.'),
               seconds: 45,
             };
           },
@@ -117,11 +117,11 @@ export const funktioner: Domain = {
       prerequisites: ['funk-begreb'],
       tier: 3,
       explain: [
-        { kind: 'rule', title: 'Forskriften', math: 'y = ax + b', body: 'a er hældningen — hvor meget y ændrer sig når x vokser med 1. b er skæringen med y-aksen — værdien når x = 0.' },
+        { kind: 'rule', title: 'Forskriften', math: 'y = ax + b', body: 'a er hældningen: hvor meget y ændrer sig når x vokser med 1. b er skæringen med y-aksen: værdien når x = 0.' },
         { kind: 'visual', visual: { kind: 'coordinate', xRange: [-6, 6], yRange: [-6, 8], lines: [{ a: 2, b: 1, label: 'y = 2x + 1', tone: 'brand' }], points: [{ x: 0, y: 1, label: 'b = 1', tone: 'accent' }] }, caption: 'Grafen skærer y-aksen i 1 og stiger 2 for hvert skridt til højre.' },
         { kind: 'rule', title: 'Hældningen mellem to punkter', math: 'a = \\frac{y_2 - y_1}{x_2 - x_1}', body: 'Op divideret med hen.' },
         { kind: 'list', title: 'Hvad fortæller a?', items: ['a > 0: grafen stiger', 'a < 0: grafen falder', 'a = 0: vandret linje', 'Stor |a|: stejl linje'] },
-        { kind: 'warning', body: 'Hældningen er Δy/Δx — ikke omvendt. Brøken har "op" i tælleren.' },
+        { kind: 'warning', body: 'Hældningen er Δy/Δx, ikke omvendt. Brøken har "op" i tælleren.' },
       ],
       worked: [
         {
@@ -167,7 +167,7 @@ export const funktioner: Domain = {
                 s('Find ændringerne.', `\\Delta y = ${y2 - y1},\\quad \\Delta x = ${x2 - x1}`),
                 s('Divider.', `a = \\frac{${y2 - y1}}{${x2 - x1}} = ${num(a)}`),
               ],
-              traps: trapIfDifferent(a, roundTo((x2 - x1) / (y2 - y1), 6), 'haeldning-omvendt', `Du vendte brøken om. Hældningen er Δy/Δx — "op divideret med hen": ${y2 - y1}/${x2 - x1} = ${num(a)}.`),
+              traps: trapIfDifferent(a, roundTo((x2 - x1) / (y2 - y1), 6), 'haeldning-omvendt', `Du vendte brøken om. Hældningen er Δy/Δx, altså "op divideret med hen": ${y2 - y1}/${x2 - x1} = ${num(a)}.`),
               concept: 'a = Δy / Δx',
               seconds: 70,
             };
@@ -193,7 +193,7 @@ export const funktioner: Domain = {
                 s('Sæt x = 0.', `y = ${a} \\cdot 0 ${signed(b)} = ${b}`),
                 s('Skæringspunktet er.', `(0, ${b})`),
               ],
-              traps: trapIfDifferent(b, a, 'funktion-a-og-b', `${a} er HÆLDNINGEN. Skæringen med y-aksen er det tal der står alene — altså ${b}.`),
+              traps: trapIfDifferent(b, a, 'funktion-a-og-b', `${a} er HÆLDNINGEN. Skæringen med y-aksen er det tal der står alene, altså ${b}.`),
               concept: 'b = skæring med y-aksen',
               seconds: 35,
             };
@@ -307,12 +307,12 @@ export const funktioner: Domain = {
               ],
               visual: { kind: 'coordinate', xRange: [-6, 6], yRange: [-10, 10], lines: [{ a, b, tone: 'brand' }] },
               hints: [
-                'En proportional sammenhæng har formen y = ax — altså uden konstantled.',
+                'En proportional sammenhæng har formen y = ax, altså uden konstantled.',
                 'Går grafen gennem (0,0)?',
-                isProp ? 'Der er ikke lagt noget til.' : `Der er lagt ${b} til, så grafen rammer y-aksen i ${b} — ikke i 0.`,
+                isProp ? 'Der er ikke lagt noget til.' : `Der er lagt ${b} til, så grafen rammer y-aksen i ${b} og ikke i 0.`,
               ],
               solution: [
-                s(isProp ? 'Forskriften har formen y = ax.' : `Forskriften har et konstantled på ${b}.`, undefined, isProp ? 'Grafen går gennem (0,0) — den er proportional.' : 'Grafen går ikke gennem (0,0) — den er lineær, men ikke proportional.'),
+                s(isProp ? 'Forskriften har formen y = ax.' : `Forskriften har et konstantled på ${b}.`, undefined, isProp ? 'Grafen går gennem (0,0), så den er proportional.' : 'Grafen går ikke gennem (0,0). Den er lineær, men ikke proportional.'),
               ],
               seconds: 40,
             });
@@ -353,7 +353,7 @@ export const funktioner: Domain = {
       prerequisites: ['funk-lineaer', 'procent-vaekstfaktor'],
       tier: 5,
       explain: [
-        { kind: 'rule', title: 'Forskriften', math: 'y = b \\cdot a^x', body: 'b er begyndelsesværdien (når x = 0). a er fremskrivningsfaktoren — det tal der GANGES med hver gang.' },
+        { kind: 'rule', title: 'Forskriften', math: 'y = b \\cdot a^x', body: 'b er begyndelsesværdien (når x = 0). a er fremskrivningsfaktoren, altså det tal der GANGES med hver gang.' },
         { kind: 'idea', title: 'Forskellen på de to væksttyper', body: 'Lineær: du lægger det samme til hver gang. Eksponentiel: du ganger med det samme hver gang.' },
         { kind: 'visual', visual: { kind: 'coordinate', xRange: [0, 6], yRange: [0, 40], curves: [{ type: 'exp', a: 1.6, b: 3, label: 'eksponentiel', tone: 'brand' }], lines: [{ a: 5, b: 3, label: 'lineær', tone: 'accent' }] }, caption: 'Eksponentiel vækst starter langsomt og overhaler senere alt.' },
         { kind: 'rule', title: 'Vækstrate', math: 'a = 1 + r', body: 'En vækst på 8 % om året giver a = 1,08. Et fald på 8 % giver a = 0,92.' },
@@ -397,7 +397,7 @@ export const funktioner: Domain = {
                 s('Gang.', `y = ${num(value, 2)}`),
               ],
               traps: [
-                ...trapIfDifferent(value, roundTo(b * a * x, 2), 'eksponentiel-lineaer', `Du gangede kun én gang og ganske med x. Ved eksponentiel udvikling ganges der med ${num(a)} ${x} gange — altså ${num(a)} opløftet i ${x}.`),
+                ...trapIfDifferent(value, roundTo(b * a * x, 2), 'eksponentiel-lineaer', `Du gangede med ${x} i stedet for at opløfte. Ved eksponentiel udvikling ganges der med ${num(a)} ${x} gange, altså ${num(a)} opløftet i ${x}.`),
                 ...trapIfDifferent(value, roundTo(b + a * x, 2), 'eksponentiel-lineaer', 'Det er en lineær model. Her GANGES der med faktoren hver gang i stedet for at lægge til.'),
               ],
               concept: 'y = b · aˣ',

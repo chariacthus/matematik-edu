@@ -54,7 +54,7 @@ export function OnboardingPage() {
           {([
             ['map', 'En kort niveautest viser hvor du står i 21 emner.'],
             ['target', 'Opgaverne følger dit niveau. Går det let, bliver de sværere.'],
-            ['search', 'Samme fejl to gange? Så stopper vi op og forklarer præcis den.'],
+            ['search', 'Laver du samme fejl to gange, får du den forklaret.'],
             ['hand', 'Sidder du fast, kan du få hjælp. Du får ikke svaret, men et skub videre.'],
           ] as const).map(([icon, text]) => (
             <li key={text} className="flex items-start gap-3">
@@ -65,7 +65,7 @@ export function OnboardingPage() {
         </ul>
       </Card>
       <button onClick={() => setStep(1)} className="btn-primary w-full py-3 text-base">
-        Lad os finde dit matematikniveau
+        Find mit niveau
       </button>
     </div>,
 
@@ -138,7 +138,7 @@ export function OnboardingPage() {
 
     /* 3 — svære emner */
     <div key="3" className="space-y-5">
-      <Heading title="Hvilke emner synes du er svære?" sub="Vælg dem du helst vil undgå. Vi starter der — det er der du får mest ud af tiden." />
+      <Heading title="Hvilke emner synes du er svære?" sub="Vælg dem du helst vil undgå. Du starter der, for det er der du lærer mest." />
       <DomainPicker selected={hard} onToggle={toggle(hard, setHard, easy, setEasy)} tone="bad" />
       <div className="flex gap-2">
         <button onClick={() => setStep(2)} className="btn-secondary">Tilbage</button>

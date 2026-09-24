@@ -63,7 +63,7 @@ export function SettingsPage() {
           <div className="px-4 py-4">
             <Toggle
               label="Mindre bevægelse"
-              help="Slår animationerne fra. Vælg den hvis bevægelse på skærmen forstyrrer din koncentration."
+              help="Slår animationerne fra, hvis bevægelse på skærmen forstyrrer dig."
               checked={settings.reducedMotion}
               onChange={(v) => update({ reducedMotion: v })}
             />
@@ -219,7 +219,7 @@ export function SettingsPage() {
               spellCheck={false}
             />
             <button
-              onClick={() => setImportNote(importState(importText) ? 'Dine data er gendannet.' : 'Filen kunne ikke læses — er det den rigtige fil?')}
+              onClick={() => setImportNote(importState(importText) ? 'Dine data er gendannet.' : 'Filen kunne ikke læses. Er det den rigtige fil?')}
               disabled={!importText.trim()}
               className="btn-secondary mt-2"
             >

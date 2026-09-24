@@ -7,7 +7,7 @@ export const modeller: Domain = {
   name: 'Matematiske modeller',
   category: 'kompetencer',
   area: 'modellering',
-  blurb: 'Oversæt virkeligheden til matematik — og husk at vurdere om modellen holder.',
+  blurb: 'Oversæt virkeligheden til matematik, og vurdér om modellen holder.',
   skills: [
     {
       id: 'model-opstil',
@@ -17,8 +17,8 @@ export const modeller: Domain = {
       prerequisites: ['funk-lineaer'],
       tier: 3,
       explain: [
-        { kind: 'idea', title: 'Hvad er en model?', body: 'En model er en forenklet beskrivelse af virkeligheden med matematik. Den er aldrig helt præcis — men den skal være god nok til at svare på spørgsmålet.' },
-        { kind: 'list', title: 'Sådan opstiller du den', items: ['Find den variable — hvad ændrer sig?', 'Find startværdien — hvad gælder når x = 0?', 'Find ændringen pr. enhed', 'Skriv forskriften og navngiv variablene'] },
+        { kind: 'idea', title: 'Hvad er en model?', body: 'En model er en forenklet beskrivelse af virkeligheden med matematik. Den er aldrig helt præcis, men den skal være god nok til at svare på spørgsmålet.' },
+        { kind: 'list', title: 'Sådan opstiller du den', items: ['Find den variable: hvad ændrer sig?', 'Find startværdien: hvad gælder når x = 0?', 'Find ændringen pr. enhed', 'Skriv forskriften og navngiv variablene'] },
         { kind: 'rule', title: 'De to hovedtyper', math: 'y = ax + b \\quad\\text{eller}\\quad y = b \\cdot a^x', body: 'Fast beløb pr. gang → lineær. Fast procent pr. gang → eksponentiel.' },
         { kind: 'warning', body: 'Skriv altid hvad x og y BETYDER, og i hvilke enheder. En model uden enheder kan ikke fortolkes.' },
       ],
@@ -110,8 +110,8 @@ export const modeller: Domain = {
       explain: [
         { kind: 'idea', title: 'Det afgørende spørgsmål', body: 'Lægges der det samme til hver gang, eller ganges der med det samme? Det afgør modeltypen.' },
         { kind: 'list', title: 'Tjek på data', items: ['Konstante forskelle → lineær', 'Konstante kvotienter → eksponentiel', 'Hverken eller → en anden model'] },
-        { kind: 'idea', title: 'Modellens gyldighedsområde', body: 'En model gælder kun i et bestemt interval. En model for en plantes vækst holder ikke i 100 år — planten dør.' },
-        { kind: 'warning', body: 'Ekstrapolation — at bruge modellen langt uden for de data den er lavet på — er den hyppigste fejl ved matematiske modeller.' },
+        { kind: 'idea', title: 'Modellens gyldighedsområde', body: 'En model gælder kun i et bestemt interval. En model for en plantes vækst holder ikke i 100 år, for planten dør.' },
+        { kind: 'warning', body: 'Ekstrapolation betyder at bruge modellen langt uden for de data den er lavet på. Det er den hyppigste fejl ved matematiske modeller.' },
       ],
       worked: [
         {
@@ -138,12 +138,12 @@ export const modeller: Domain = {
               prompt: `Data: når $x$ er 0, 1, 2, 3 er $y$ henholdsvis ${ys.map((y) => num(y)).join(', ')}. Hvilken modeltype passer?`,
               options: [
                 { text: 'Lineær (y = ax + b)', correct: !isExp, misconceptionId: isExp ? 'eksponentiel-lineaer' : undefined, feedback: isExp ? `Forskellene er ikke ens (${num(roundTo((ys[1] as number) - (ys[0] as number), 2))}, så ${num(roundTo((ys[2] as number) - (ys[1] as number), 2))}). Men kvotienterne er: ${num(a)} hver gang. Det er eksponentielt.` : undefined },
-                { text: 'Eksponentiel (y = b · aˣ)', correct: isExp, misconceptionId: !isExp ? 'model-vaelg-forkert' : undefined, feedback: !isExp ? `Her lægges der ${a} til hver gang — forskellene er konstante. Det er en lineær model.` : undefined },
+                { text: 'Eksponentiel (y = b · aˣ)', correct: isExp, misconceptionId: !isExp ? 'model-vaelg-forkert' : undefined, feedback: !isExp ? `Her lægges der ${a} til hver gang, så forskellene er konstante. Det er en lineær model.` : undefined },
               ],
               hints: [
                 'Udregn først forskellene mellem nabotallene.',
                 `${num(roundTo((ys[1] as number) - (ys[0] as number), 2))}, ${num(roundTo((ys[2] as number) - (ys[1] as number), 2))}, ${num(roundTo((ys[3] as number) - (ys[2] as number), 2))}`,
-                isExp ? 'Forskellene er ikke ens — prøv at dividere nabotallene i stedet.' : 'Forskellene er ens hele vejen.',
+                isExp ? 'Forskellene er ikke ens. Prøv at dividere nabotallene i stedet.' : 'Forskellene er ens hele vejen.',
               ],
               solution: [
                 s('Forskellene.', ys.slice(1).map((y, i) => num(roundTo(y - (ys[i] as number), 2))).join(',\; ')),
@@ -162,17 +162,17 @@ export const modeller: Domain = {
             const cases = [
               {
                 q: `${who} er 12 år og 150 cm høj og er vokset 6 cm om året. Modellen h = 6t + 150 bruges til at forudsige højden om 30 år. Hvad er problemet?`,
-                a: 'Mennesker holder op med at vokse — modellen gælder kun nogle få år frem.',
+                a: 'Mennesker holder op med at vokse, så modellen gælder kun nogle få år frem.',
                 wrong: ['Modellen bruger forkerte enheder.', 'Hældningen skulle have været negativ.', 'Der er ingen problemer med modellen.'],
               },
               {
                 q: 'En bakteriekultur fordobles hver time. Modellen bruges til at forudsige antallet efter 3 uger. Hvad er problemet?',
-                a: 'Der er ikke ubegrænset plads og næring — væksten stopper på et tidspunkt.',
+                a: 'Der er ikke ubegrænset plads og næring, så væksten stopper på et tidspunkt.',
                 wrong: ['Fordobling er altid en lineær model.', 'Man kan ikke bruge potenser på tid.', 'Der er ingen problemer med modellen.'],
               },
               {
                 q: 'En taxamodel y = 12x + 45 bruges til at beregne prisen for en tur på −5 km. Hvad er problemet?',
-                a: 'Et negativt antal kilometer giver ingen mening — modellen gælder kun for x ≥ 0.',
+                a: 'Et negativt antal kilometer giver ingen mening, så modellen gælder kun for x ≥ 0.',
                 wrong: ['Starttaksten skulle have været negativ.', 'Modellen burde have været eksponentiel.', 'Der er ingen problemer med modellen.'],
               },
             ];
@@ -182,7 +182,7 @@ export const modeller: Domain = {
               options: [{ text: c.a, correct: true }, ...c.wrong.map((w) => ({ text: w }))],
               hints: [
                 'Spørg: hvilke værdier af x giver overhovedet mening i virkeligheden?',
-                'En model har altid et gyldighedsområde — uden for det holder den ikke.',
+                'En model har altid et gyldighedsområde. Uden for det holder den ikke.',
               ],
               solution: [s('Vurdér modellens gyldighedsområde.', undefined, c.a)],
               seconds: 60,

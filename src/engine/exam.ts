@@ -214,10 +214,10 @@ export function summariseExam(session: ExamSession): ExamResult {
  * afgør den ikke. Teksten i brugerfladen siger det samme.
  */
 export function gradeIndication(percent: number): { grade: string; note: string } {
-  if (percent >= 90) return { grade: '12', note: 'Fremragende — meget få eller ingen uvæsentlige mangler.' };
+  if (percent >= 90) return { grade: '12', note: 'Fremragende, med ingen eller få uvæsentlige mangler.' };
   if (percent >= 78) return { grade: '10', note: 'Fortrinlig, med nogle mindre mangler.' };
   if (percent >= 63) return { grade: '7', note: 'God, med en del mangler.' };
   if (percent >= 45) return { grade: '4', note: 'Jævn, med en del væsentlige mangler.' };
-  if (percent >= 30) return { grade: '02', note: 'Tilstrækkelig — lige akkurat nok til at bestå.' };
-  return { grade: '00', note: 'Ikke tilstrækkelig endnu. Der er noget at arbejde med.' };
+  if (percent >= 30) return { grade: '02', note: 'Tilstrækkelig, lige nok til at bestå.' };
+  return { grade: '00', note: 'Ikke tilstrækkelig endnu.' };
 }

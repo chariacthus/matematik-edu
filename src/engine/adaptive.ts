@@ -149,12 +149,12 @@ export const PHASE_LABELS: Record<LessonPhase, string> = {
 };
 
 export const PHASE_HELP: Record<LessonPhase, string> = {
-  explain: 'Her får du ideen bag emnet — kort og med eksempler.',
+  explain: 'Her får du ideen bag emnet, kort og med eksempler.',
   example: 'Se en opgave blive løst trin for trin.',
   guided: 'Nu prøver du selv, men du får hjælp undervejs.',
-  independent: 'Samme type opgave — denne gang uden hjælp.',
+  independent: 'Samme type opgave, men nu uden hjælp.',
   variation: 'En anden slags opgave i samme emne, så du ikke bare lærer én opskrift.',
-  challenge: 'En sværere opgave. Det er meningen den skal kræve noget.',
+  challenge: 'En sværere opgave. Tag dig god tid.',
   mastery: 'Tre blandede opgaver. Klarer du dem, er emnet mestret.',
 };
 

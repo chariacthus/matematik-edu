@@ -7,7 +7,7 @@ export const statistik: Domain = {
   name: 'Statistik',
   category: 'statistik-sandsynlighed',
   area: 'statistik',
-  blurb: 'Beskriv et datasæt med de rigtige tal — og vælg det der fortæller sandheden.',
+  blurb: 'Beskriv et datasæt med de rigtige tal, og vælg det der passer til spørgsmålet.',
   skills: [
     {
       id: 'stat-deskriptorer',
@@ -85,7 +85,7 @@ export const statistik: Domain = {
               hints: [
                 'Sortér tallene i rækkefølge først.',
                 `Sorteret: ${sorted.join(', ')}`,
-                n % 2 === 0 ? 'Der er et lige antal — tag gennemsnittet af de to midterste.' : 'Tag tallet lige i midten.',
+                n % 2 === 0 ? 'Der er et lige antal, så tag gennemsnittet af de to midterste.' : 'Tag tallet lige i midten.',
               ],
               solution: [
                 s('Sortér.', sorted.join(',\; ')),
@@ -134,10 +134,10 @@ export const statistik: Domain = {
                 ? ['Tæl hvor mange gange hvert tal optræder.', 'Typetallet er den værdi der optræder flest gange.', `Et af tallene går igen ${modeCount} gange.`]
                 : ['Find det største og det mindste tal.', `${Math.max(...values)} og ${Math.min(...values)}`, 'Træk det mindste fra det største.'],
               solution: wantMode
-                ? [s('Tæl forekomsterne.', undefined, `${modes[0]} optræder ${modeCount} gange — flere end nogen anden værdi.`), s('Typetallet er værdien.', `= ${modes[0]}`)]
+                ? [s('Tæl forekomsterne.', undefined, `${modes[0]} optræder ${modeCount} gange, flere end nogen anden værdi.`), s('Typetallet er værdien.', `= ${modes[0]}`)]
                 : [s('Største og mindste.', `${Math.max(...values)},\; ${Math.min(...values)}`), s('Træk fra.', `${Math.max(...values)} - ${Math.min(...values)} = ${rangeOf(values)}`)],
               traps: wantMode
-                ? trapIfDifferent(value, modeCount, 'typetal-hyppighed', `${modeCount} er HYPPIGHEDEN — hvor mange gange værdien optræder. Typetallet er selve værdien, altså ${modes[0]}.`)
+                ? trapIfDifferent(value, modeCount, 'typetal-hyppighed', `${modeCount} er HYPPIGHEDEN, altså hvor mange gange værdien optræder. Typetallet er selve værdien, altså ${modes[0]}.`)
                 : [],
               seconds: 50,
             };
@@ -157,7 +157,7 @@ export const statistik: Domain = {
         { kind: 'idea', title: 'Kvartiler deler data i fire', body: 'Medianen deler i to. Nedre kvartil er medianen af den nedre halvdel, øvre kvartil er medianen af den øvre halvdel.' },
         { kind: 'rule', title: 'Kvartilsættet', math: '(\\text{mindste},\; Q_1,\; \\text{median},\; Q_3,\; \\text{største})', body: 'De fem tal der tegner et boksplot.' },
         { kind: 'visual', visual: { kind: 'boxPlot', min: 2, q1: 5, median: 8, q3: 12, max: 18 }, caption: 'Kassen dækker de midterste 50 % af observationerne.' },
-        { kind: 'idea', title: 'Hvorfor er det nyttigt?', body: 'Boksplottet viser med ét blik hvor data ligger tæt og hvor der er spredt ud — noget et middeltal aldrig kan vise.' },
+        { kind: 'idea', title: 'Hvorfor er det nyttigt?', body: 'Boksplottet viser med ét blik hvor data ligger tæt og hvor der er spredt ud. Det kan et middeltal ikke vise.' },
       ],
       worked: [
         {
@@ -230,7 +230,7 @@ export const statistik: Domain = {
                 s('Aflæs de fem tal.', `(${min},\; ${q1},\; ${med},\; ${q3},\; ${max})`),
                 s(ask === 'median' ? 'Medianen er stregen i kassen.' : ask === 'bredde' ? 'Variationsbredde = største − mindste.' : 'Kvartilbredde = Q₃ − Q₁.', `= ${value}`),
               ],
-              traps: ask === 'bredde' ? trapIfDifferent(value, q3 - q1, 'middel-median', 'Det er kassens bredde (kvartilbredden). Variationsbredden går fra det mindste til det største tal — altså hele boksplottets bredde.') : [],
+              traps: ask === 'bredde' ? trapIfDifferent(value, q3 - q1, 'middel-median', 'Det er kassens bredde (kvartilbredden). Variationsbredden går fra det mindste til det største tal, altså hele boksplottets bredde.') : [],
               seconds: 55,
             };
           },
@@ -246,7 +246,7 @@ export const statistik: Domain = {
       prerequisites: ['stat-deskriptorer', 'procent-find-procenten'],
       tier: 2,
       explain: [
-        { kind: 'idea', title: 'Hyppighed og frekvens', body: 'Hyppighed er ANTALLET af gange noget forekommer. Frekvens er andelen — hyppigheden divideret med det samlede antal, typisk i procent.' },
+        { kind: 'idea', title: 'Hyppighed og frekvens', body: 'Hyppighed er ANTALLET af gange noget forekommer. Frekvens er andelen: hyppigheden divideret med det samlede antal, typisk i procent.' },
         { kind: 'rule', title: 'Frekvens', math: 'f = \\frac{\\text{hyppighed}}{\\text{samlet antal}} \\cdot 100\\,\\%' },
         { kind: 'list', title: 'Vælg det rigtige diagram', items: ['Søjlediagram: sammenlign kategorier', 'Cirkeldiagram: vis andele af en helhed', 'Kurvediagram: udvikling over tid', 'Boksplot: sammenlign spredning'] },
       ],
@@ -320,7 +320,7 @@ export const statistik: Domain = {
                 s('Divider.', `= ${num(roundTo(count / total, 5))}`),
                 s('Gang med 100.', `= ${num(value)}\\,\\%`),
               ],
-              traps: trapIfDifferent(value, count, 'typetal-hyppighed', `${count} er HYPPIGHEDEN — antallet. Frekvensen er andelen: ${count} : ${total} · 100 % = ${num(value)} %.`),
+              traps: trapIfDifferent(value, count, 'typetal-hyppighed', `${count} er HYPPIGHEDEN, altså antallet. Frekvensen er andelen: ${count} : ${total} · 100 % = ${num(value)} %.`),
               seconds: 55,
             };
           },

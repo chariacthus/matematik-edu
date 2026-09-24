@@ -7,7 +7,7 @@ export const uligheder: Domain = {
   name: 'Uligheder',
   category: 'tal-algebra',
   area: 'ligninger',
-  blurb: 'Når svaret ikke er ét tal, men et helt interval — og den ene regel du skal huske.',
+  blurb: 'Når svaret ikke er ét tal, men et helt interval, og den ene regel du skal huske.',
   skills: [
     {
       id: 'ulighed-grund',
@@ -20,7 +20,7 @@ export const uligheder: Domain = {
         { kind: 'idea', title: 'Næsten som en ligning', body: 'Du løser en ulighed på nøjagtig samme måde som en ligning. Svaret er bare ikke ét tal, men alle tal der opfylder betingelsen.' },
         { kind: 'list', title: 'Tegnene', items: ['x < 5: alle tal under 5', 'x ≤ 5: alle tal til og med 5', 'x > 5: alle tal over 5', 'x ≥ 5: alle tal fra 5 og opefter'] },
         { kind: 'visual', visual: { kind: 'numberLine', min: -2, max: 10, step: 1, interval: { from: null, to: 5, openTo: true } }, caption: 'x < 5. Den åbne cirkel viser at 5 selv ikke er med.' },
-        { kind: 'idea', title: 'Åben eller lukket cirkel', body: 'Ved < og > er cirklen åben — tallet er ikke med. Ved ≤ og ≥ er den fyldt.' },
+        { kind: 'idea', title: 'Åben eller lukket cirkel', body: 'Ved < og > er cirklen åben, så tallet er ikke med. Ved ≤ og ≥ er den fyldt.' },
       ],
       worked: [
         {
@@ -28,7 +28,7 @@ export const uligheder: Domain = {
           prompt: '3x + 2 \\le 14',
           steps: [
             s('Træk 2 fra på begge sider.', '3x \\le 12'),
-            s('Divider med 3 — et positivt tal, så tegnet bliver stående.', 'x \\le 4'),
+            s('Divider med 3. Det er et positivt tal, så tegnet bliver stående.', 'x \\le 4'),
             s('Kontrol med et tal i intervallet.', '3 \\cdot 0 + 2 = 2 \\le 14 \;\\checkmark'),
           ],
           takeaway: 'Test altid et tal fra dit svar i den oprindelige ulighed.',
@@ -64,7 +64,7 @@ export const uligheder: Domain = {
               ],
               solution: [
                 s(`${b > 0 ? 'Træk' : 'Læg'} ${Math.abs(b)} ${b > 0 ? 'fra' : 'til'} på begge sider.`, `${coef(a)} ${sign} ${c - b}`),
-                s(`Divider med ${a}.`, `x ${sign} ${x}`, 'Positivt tal — tegnet vendes ikke.'),
+                s(`Divider med ${a}.`, `x ${sign} ${x}`, 'Positivt tal, så tegnet vendes ikke.'),
               ],
               seconds: 60,
             };
@@ -118,7 +118,7 @@ export const uligheder: Domain = {
       explain: [
         { kind: 'idea', title: 'Den ene regel der er anderledes', body: 'Ganger eller dividerer du med et NEGATIVT tal, skal ulighedstegnet vendes om.' },
         { kind: 'math', math: '3 < 5 \\quad\\xrightarrow{\\cdot(-1)}\\quad -3 > -5', caption: '3 er mindre end 5, men −3 er større end −5.' },
-        { kind: 'visual', visual: { kind: 'numberLine', min: -6, max: 6, step: 1, marks: [{ value: 3, label: '3', tone: 'brand' }, { value: 5, label: '5', tone: 'brand' }, { value: -3, label: '-3', tone: 'bad' }, { value: -5, label: '-5', tone: 'bad' }] }, caption: 'Gang med −1 spejler tallene om 0 — og dermed vender rækkefølgen.' },
+        { kind: 'visual', visual: { kind: 'numberLine', min: -6, max: 6, step: 1, marks: [{ value: 3, label: '3', tone: 'brand' }, { value: 5, label: '5', tone: 'brand' }, { value: -3, label: '-3', tone: 'bad' }, { value: -5, label: '-5', tone: 'bad' }] }, caption: 'Gang med −1 spejler tallene om 0, og så vender rækkefølgen.' },
         { kind: 'warning', body: 'Plus og minus vender ALDRIG tegnet. Kun gange og dividere med negative tal gør.' },
       ],
       worked: [
@@ -154,7 +154,7 @@ export const uligheder: Domain = {
               ],
               hints: [
                 `Du skal dividere begge sider med ${a}.`,
-                `${a} er et negativt tal — hvad sker der så med ulighedstegnet?`,
+                `${a} er et negativt tal. Hvad sker der så med ulighedstegnet?`,
                 `${b} : ${a} = ${x}, og tegnet vendes til ${flipped}.`,
               ],
               solution: [
@@ -185,7 +185,7 @@ export const uligheder: Domain = {
               hints: [
                 `Fjern først ${signed(b)} fra venstre side.`,
                 `${coef(a)} < ${c - b}`,
-                `Divider med ${a} — og husk at vende tegnet fordi ${a} er negativt.`,
+                `Divider med ${a}, og husk at vende tegnet fordi ${a} er negativt.`,
               ],
               solution: [
                 s(`${b > 0 ? 'Træk' : 'Læg'} ${Math.abs(b)} ${b > 0 ? 'fra' : 'til'} på begge sider.`, `${coef(a)} < ${c - b}`),

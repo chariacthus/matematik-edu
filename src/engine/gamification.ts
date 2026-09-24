@@ -177,7 +177,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   {
     id: 'streak-7',
     name: 'En hel uge',
-    description: 'Syv dage i træk. Det er sådan man bliver god.',
+    description: 'Syv dage i træk.',
     icon: 'bolt',
     check: (c) => c.gamification.streakDays >= 7,
   },

@@ -7,7 +7,7 @@ export const geometri: Domain = {
   name: 'Geometri',
   category: 'geometri-maaling',
   area: 'geometriske-egenskaber',
-  blurb: 'Vinkler, trekanter, firkanter, cirklen — og Pythagoras.',
+  blurb: 'Vinkler, trekanter, firkanter, cirklen og Pythagoras.',
   skills: [
     {
       id: 'geo-vinkler',
@@ -33,7 +33,7 @@ export const geometri: Domain = {
             s('Den sidste er topvinkel til nabovinklen.', '115^\\circ'),
             s('Kontrol: alle fire skal give 360°.', '65 + 115 + 65 + 115 = 360 \;\\checkmark'),
           ],
-          takeaway: 'Der er kun to forskellige vinkler i figuren — de gentager sig over kryds.',
+          takeaway: 'Der er kun to forskellige vinkler i figuren. De gentager sig over kryds.',
         },
       ],
       generators: [
@@ -55,7 +55,7 @@ export const geometri: Domain = {
                 s('Nabovinkler giver 180° tilsammen.', `v = 180^\\circ - ${v}^\\circ`),
                 s('Regn ud.', `v = ${180 - v}^\\circ`),
               ],
-              traps: trapIfDifferent(180 - v, 360 - v, 'vinkelsum-forkert', 'Du brugte 360°. Det gælder hele vejen rundt om et punkt — på en ret linje er summen 180°.'),
+              traps: trapIfDifferent(180 - v, 360 - v, 'vinkelsum-forkert', 'Du brugte 360°. Det gælder hele vejen rundt om et punkt. På en ret linje er summen 180°.'),
               seconds: 30,
             };
           },
@@ -166,7 +166,7 @@ export const geometri: Domain = {
                 s('Indsæt de kendte.', `${A} + ${B} + C = 180`),
                 s('Isolér C.', `C = 180 - ${A + B} = ${C}^\\circ`),
               ],
-              traps: trapIfDifferent(C, 360 - A - B, 'vinkelsum-forkert', 'Du brugte 360°. En trekant har vinkelsum 180° — det er firkanten der har 360°.'),
+              traps: trapIfDifferent(C, 360 - A - B, 'vinkelsum-forkert', 'Du brugte 360°. En trekant har vinkelsum 180°. Det er firkanten der har 360°.'),
               concept: 'A + B + C = 180°',
               seconds: 40,
             };
@@ -244,7 +244,7 @@ export const geometri: Domain = {
       prerequisites: ['geo-vinkler'],
       tier: 2,
       explain: [
-        { kind: 'rule', title: 'Vinkelsum i en firkant', math: 'A + B + C + D = 360^\\circ', body: 'En firkant kan deles i to trekanter — derfor 2 · 180° = 360°.' },
+        { kind: 'rule', title: 'Vinkelsum i en firkant', math: 'A + B + C + D = 360^\\circ', body: 'En firkant kan deles i to trekanter. Derfor 2 · 180° = 360°.' },
         { kind: 'list', title: 'Firkanttyper', items: ['Kvadrat: fire lige sider, fire rette vinkler', 'Rektangel: fire rette vinkler, modstående sider lige lange', 'Parallelogram: modstående sider parallelle og lige lange', 'Rombe: fire lige sider, men ikke nødvendigvis rette vinkler', 'Trapez: mindst ét par parallelle sider'] },
         { kind: 'idea', title: 'Et kvadrat er også et rektangel', body: 'Alle kvadrater opfylder rektanglets krav. Modsat gælder det ikke.' },
       ],
@@ -286,7 +286,7 @@ export const geometri: Domain = {
                 s('Læg de kendte sammen.', `${A} + ${B} + ${C} = ${A + B + C}`),
                 s('Træk fra.', `D = 360 - ${A + B + C} = ${D}^\\circ`),
               ],
-              traps: trapIfDifferent(D, 180 - A - B - C, 'vinkelsum-forkert', 'Du brugte 180°. Det er trekantens vinkelsum — firkanten har 360°.'),
+              traps: trapIfDifferent(D, 180 - A - B - C, 'vinkelsum-forkert', 'Du brugte 180°. Det er trekantens vinkelsum. Firkanten har 360°.'),
               seconds: 45,
             };
           },
@@ -322,7 +322,7 @@ export const geometri: Domain = {
       prerequisites: ['rod-kvadratrod', 'geo-trekanter'],
       tier: 3,
       explain: [
-        { kind: 'rule', title: 'Pythagoras’ sætning', math: 'a^2 + b^2 = c^2', body: 'c er hypotenusen — den længste side, der ligger over for den rette vinkel. a og b er kateterne.' },
+        { kind: 'rule', title: 'Pythagoras’ sætning', math: 'a^2 + b^2 = c^2', body: 'c er hypotenusen, den længste side, der ligger over for den rette vinkel. a og b er kateterne.' },
         { kind: 'visual', visual: { kind: 'triangle', a: 3, b: 4, c: 5, right: true, labels: { a: 'a', b: 'b', c: 'c' } }, caption: '3² + 4² = 9 + 16 = 25 = 5². Den klassiske 3-4-5-trekant.' },
         { kind: 'idea', title: 'Skal du finde en katete?', body: 'Så vend formlen: a² = c² − b². Træk kvadratet på den kendte katete fra kvadratet på hypotenusen.' },
         { kind: 'warning', body: 'Sætningen gælder KUN i retvinklede trekanter. Og c er altid den længste side.' },
@@ -337,7 +337,7 @@ export const geometri: Domain = {
             s('Læg sammen.', '100 = c^2'),
             s('Tag kvadratroden.', 'c = \\sqrt{100} = 10'),
           ],
-          takeaway: 'Svaret skal altid være større end hver af kateterne — men mindre end deres sum.',
+          takeaway: 'Svaret skal altid være større end hver af kateterne, men mindre end deres sum.',
         },
       ],
       generators: [
@@ -445,10 +445,10 @@ export const geometri: Domain = {
       prerequisites: ['geo-trekanter', 'forhold-grund'],
       tier: 4,
       explain: [
-        { kind: 'idea', title: 'Kongruente figurer', body: 'Kongruente figurer er helt identiske — samme form OG samme størrelse. De kan lægges oven på hinanden.' },
+        { kind: 'idea', title: 'Kongruente figurer', body: 'Kongruente figurer er helt ens: samme form OG samme størrelse. De kan lægges oven på hinanden.' },
         { kind: 'idea', title: 'Ligedannede figurer', body: 'Ligedannede figurer har samme form, men forskellig størrelse. Alle vinkler er ens, og alle sider er skaleret med den samme faktor.' },
         { kind: 'rule', title: 'Skalafaktor', math: 'k = \\frac{\\text{side i den store}}{\\text{tilsvarende side i den lille}}' },
-        { kind: 'warning', body: 'Ligedannethed handler om at GANGE med en faktor — ikke om at lægge det samme til alle sider.' },
+        { kind: 'warning', body: 'Ligedannethed handler om at GANGE med en faktor, ikke om at lægge det samme til alle sider.' },
       ],
       worked: [
         {
@@ -484,7 +484,7 @@ export const geometri: Domain = {
                 s('Gang den anden side med faktoren.', `${b} \\cdot ${k} = ${b * k}`),
               ],
               traps: [
-                ...trapIfDifferent(b * k, b + (a * k - a), 'ligedannet-plus', `Du lagde ${a * k - a} til. Ved ligedannethed GANGES alle sider med den samme faktor — her ${k}.`),
+                ...trapIfDifferent(b * k, b + (a * k - a), 'ligedannet-plus', `Du lagde ${a * k - a} til. Ved ligedannethed GANGES alle sider med den samme faktor, her ${k}.`),
                 ...trapIfDifferent(b * k, roundTo(b / k, 4), 'ligedannet-plus', `Du dividerede. Den store figur er ${k} gange større, så siden skal ganges med ${k}.`),
               ],
               concept: 'Alle sider ganges med den samme skalafaktor.',

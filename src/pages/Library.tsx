@@ -71,7 +71,7 @@ export function LibraryPage() {
     <div className="space-y-6">
       <PageHeader
         title="Emner"
-        subtitle={`Pensum efter Fælles Mål — ${DOMAINS.length} emner, ${DOMAINS.reduce((n, d) => n + d.skills.length, 0)} færdigheder`}
+        subtitle={`Pensum efter Fælles Mål: ${DOMAINS.length} emner, ${DOMAINS.reduce((n, d) => n + d.skills.length, 0)} færdigheder`}
       />
 
       <div className="relative">

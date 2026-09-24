@@ -109,9 +109,9 @@ export function greeting(ctx: TutorContext): TutorMessage {
   const relevant = struggles.find((m) => m.domainId === ctx.problem.domainId);
 
   const text = relevant
-    ? `Hej! Jeg kan se at ${relevant.name.toLowerCase()} har drillet dig før — så lad os holde ekstra øje med det her. Hvor er du henne i opgaven?`
+    ? `Hej! ${relevant.name} har drillet dig før, så hold lidt ekstra øje med det her. Hvor langt er du nået?`
     : ctx.attemptedWrong
-      ? 'Det er helt i orden at den gik galt. Lad os finde ud af hvor det skred — hvad gjorde du først?'
+      ? 'Det er helt i orden at den gik galt. Hvad gjorde du først?'
       : 'Hej! Jeg hjælper dig gerne. Sig hvor du er gået i stå, så tager vi den derfra.';
 
   return tutorMessage(text, {
@@ -163,13 +163,13 @@ export function respond(ctx: TutorContext, intent: Intent, raw: string): TutorMe
 
     case 'tjek-mit-svar':
       return tutorMessage(
-        'Jeg kan ikke se hvad du har skrevet i feltet herfra — men tryk på "Tjek svar", så siger jeg med det samme om det passer, og hvad der gik galt hvis ikke.',
+        'Jeg kan ikke se hvad du har skrevet i feltet. Tryk på "Tjek svar", så får du at vide om det passer, og hvad der gik galt hvis ikke.',
         { suggestions: ['Hvordan starter jeg?', 'Næste trin'], helpLevel: level },
       );
 
     case 'flere-opgaver':
       return tutorMessage(
-        `Ja — når du har den her på plads, kan du trykke "Ny opgave" for at få en af samme slags. Vil du hellere prøve en lidt sværere, kan du skifte niveau i ${ctx.skill.name.toLowerCase()}.`,
+        'Ja. Når du er færdig med den her, kommer der en ny af samme slags.',
         { helpLevel: level },
       );
 
@@ -181,7 +181,7 @@ export function respond(ctx: TutorContext, intent: Intent, raw: string): TutorMe
       // forsøg på et delsvar og reagerer på det.
       if (/[0-9x]/.test(raw)) {
         return tutorMessage(
-          `Godt — du er i gang. ${hints[Math.min(level, hints.length - 1)] ?? (steps[0]?.text ?? '')} Passer det med det du har regnet?`,
+          `Godt, du er i gang. ${hints[Math.min(level, hints.length - 1)] ?? (steps[0]?.text ?? '')} Passer det med det du har regnet?`,
           { suggestions: ['Næste trin', 'Hvorfor er det sådan?'], helpLevel: level + 1 },
         );
       }
@@ -208,7 +208,7 @@ function refuseAnswer(ctx: TutorContext): TutorMessage {
 
   if (level === 0) {
     return tutorMessage(
-      `Jeg kan godt hjælpe dig — men du lærer ingenting af at få tallet. Lad os tage første trin sammen: ${openingQuestion(ctx)}`,
+      `Jeg hjælper dig gerne, men du lærer ingenting af at få tallet. Lad os tage første trin sammen: ${openingQuestion(ctx)}`,
       { suggestions: ['Jeg ved det ikke', 'Hvordan starter jeg?'], helpLevel: 1 },
     );
   }
@@ -237,7 +237,7 @@ function refuseAnswer(ctx: TutorContext): TutorMessage {
 
   // Nu har vi prøvet tre gange. At blive ved ville være stædighed, ikke
   // undervisning — så nu får eleven hele løsningen med forklaring.
-  return fullSolution(ctx, 'Okay — nu tager vi den hele vejen igennem sammen, og så prøver du en tilsvarende bagefter.');
+  return fullSolution(ctx, 'Okay. Her er hele vejen igennem, og så prøver du en magen til bagefter.');
 }
 
 /** Et spørgsmål der får eleven i gang uden at afsløre noget. */
@@ -246,7 +246,7 @@ function openingQuestion(ctx: TutorContext): string {
   const first = problem.hints[0];
   if (first) return first;
   const step = problem.solution[0];
-  return step ? `Hvad tror du vi skal gøre først — ${step.text.toLowerCase()}` : 'Hvad ved du, og hvad leder du efter?';
+  return step ? `Hvad skal du gøre først? Prøv: ${step.text.toLowerCase()}` : 'Hvad ved du, og hvad leder du efter?';
 }
 
 function openingNudge(ctx: TutorContext): TutorMessage {
@@ -263,11 +263,11 @@ function nextStep(ctx: TutorContext): TutorMessage {
   const steps = ctx.problem.solution;
   const idx = Math.min(ctx.helpLevel, steps.length - 1);
   const step = steps[idx];
-  if (!step) return fullSolution(ctx, 'Der er ikke flere trin — så lad os samle op:');
+  if (!step) return fullSolution(ctx, 'Der er ikke flere trin. Her er det hele samlet:');
 
   const isLast = idx >= steps.length - 1;
   return tutorMessage(
-    isLast ? `${step.text} Og dermed er vi færdige.` : `${step.text}${step.why ? ` (${step.why})` : ''}`,
+    isLast ? `${step.text} Så er den løst.` : `${step.text}${step.why ? ` (${step.why})` : ''}`,
     {
       math: step.math ? [step.math] : undefined,
       suggestions: isLast ? ['Forklar hvorfor', 'Ny opgave'] : ['Næste trin', 'Hvorfor gør vi det?'],
@@ -302,7 +302,7 @@ function reframe(ctx: TutorContext): TutorMessage {
     });
   }
   if (rule) {
-    return tutorMessage(`Reglen er den her — ${rule.title.toLowerCase()}:`, {
+    return tutorMessage(`${rule.title}:`, {
       math: [rule.math],
       suggestions: ['Hvordan bruger jeg den?', 'Næste trin'],
       helpLevel: ctx.helpLevel + 1,
@@ -339,14 +339,14 @@ function escalate(ctx: TutorContext): TutorMessage {
   if (level < hints.length) {
     const hint = hints[level] as string;
     return tutorMessage(
-      level === 0 ? `Lad os tage det roligt. ${hint}` : hint,
+      hint,
       { suggestions: ['Næste trin', 'Forklar det på en anden måde'], helpLevel: level + 1 },
     );
   }
   if (level < hints.length + ctx.problem.solution.length) {
     return nextStep({ ...ctx, helpLevel: level - hints.length });
   }
-  return fullSolution(ctx, 'Lad os tage hele opgaven sammen — så prøver du en magen til bagefter.');
+  return fullSolution(ctx, 'Her er hele opgaven regnet. Prøv en magen til bagefter.');
 }
 
 /** Hele løsningen, trin for trin, med facit til sidst. */
@@ -384,8 +384,8 @@ export function feedbackForWrongAnswer(opts: {
     return {
       headline:
         opts.repeatCount >= 2
-          ? `Den her fejl har vi set før — ${opts.misconception.name.toLowerCase()}`
-          : 'Ikke helt — og jeg kan se præcis hvad der skete',
+          ? `Den fejl har vi set før: ${opts.misconception.name.toLowerCase()}`
+          : 'Ikke helt. Her gik det galt',
       body: opts.trapFeedback,
       tip: opts.misconception.tip,
       interrupt: opts.repeatCount >= 2,
@@ -395,7 +395,7 @@ export function feedbackForWrongAnswer(opts: {
   if (opts.triesSoFar === 1) {
     return {
       headline: 'Ikke helt endnu',
-      body: opts.problem.hints[0] ?? 'Prøv at gennemgå opgaven en gang til — hvad ved du, og hvad leder du efter?',
+      body: opts.problem.hints[0] ?? 'Læs opgaven igen. Hvad ved du, og hvad skal du finde?',
       interrupt: false,
     };
   }
@@ -416,13 +416,13 @@ export function feedbackForWrongAnswer(opts: {
 export function misconceptionClinic(m: Misconception): TutorMessage[] {
   return [
     tutorMessage(
-      `Lad os stoppe op her. Du har lavet den samme fejl et par gange nu, og den er værd at få ryddet af vejen — ellers slæber den rundt i alle de næste opgaver.`,
+      'Du har lavet den samme fejl et par gange nu. Den tager vi lige, før den følger med ind i de næste opgaver.',
       { helpLevel: 0 },
     ),
     tutorMessage(`Fejlen hedder "${m.name}". Det der sker, er at man tror: ${m.belief}`),
     tutorMessage(m.correction),
     tutorMessage(`Huskeregel: ${m.tip}`, {
-      suggestions: ['Jeg er med — giv mig en opgave', 'Forklar det en gang til'],
+      suggestions: ['Giv mig en opgave', 'Forklar det en gang til'],
     }),
   ];
 }

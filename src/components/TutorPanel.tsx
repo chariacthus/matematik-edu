@@ -115,7 +115,7 @@ export function TutorPanel({
       const reply = respond(ctx(), detectIntent(trimmed), trimmed);
       setMessages((m) => [...m, reply]);
       setHelpLevel(reply.helpLevel ?? helpLevel + 1);
-      setLlmNote(result.error ?? 'Kunne ikke nå Claude — bruger den indbyggede lærer.');
+      setLlmNote(result.error ?? 'Kunne ikke få fat i Claude. Den indbyggede hjælp svarer i stedet.');
     }
     setBusy(false);
   }
@@ -130,7 +130,7 @@ export function TutorPanel({
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-xp-400 opacity-60" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-xp-500" />
         </span>
-        {useLlm ? 'Claude er tilkoblet' : 'Indbygget lærer — virker uden internet'}
+        {useLlm ? 'Claude er tilkoblet' : 'Indbygget hjælp, virker uden internet'}
       </p>
 
       <div className="flex-1 space-y-3 overflow-y-auto py-4" aria-live="polite">

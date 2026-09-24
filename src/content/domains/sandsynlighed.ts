@@ -139,7 +139,7 @@ export const sandsynlighed: Domain = {
       prerequisites: ['sand-grund', 'broek-gange-dividere'],
       tier: 4,
       explain: [
-        { kind: 'rule', title: 'Multiplikationsreglen', math: 'P(A \\text{ og } B) = P(A) \\cdot P(B)', body: 'Gælder når de to forsøg er uafhængige — når det første ikke påvirker det andet.' },
+        { kind: 'rule', title: 'Multiplikationsreglen', math: 'P(A \\text{ og } B) = P(A) \\cdot P(B)', body: 'Gælder når de to forsøg er uafhængige, altså når det første ikke påvirker det andet.' },
         { kind: 'idea', title: '"Og" betyder gange', body: 'Skal begge dele ske, ganger du. Skal det ene ELLER det andet ske (og de udelukker hinanden), lægger du sammen.' },
         { kind: 'visual', visual: { kind: 'probTree', levels: [{ label: '1. kast', branches: [{ label: 'Plat', p: '1/2' }, { label: 'Krone', p: '1/2' }] }, { label: '2. kast', branches: [{ label: 'Plat', p: '1/2' }, { label: 'Krone', p: '1/2' }] }] }, caption: 'Gang sandsynlighederne langs grenene. Plat-Plat giver ½ · ½ = ¼.' },
         { kind: 'warning', body: 'Sandsynligheder lægges ikke sammen når begge ting skal ske. ½ + ½ = 1 ville betyde at to plat i træk var helt sikkert.' },
@@ -208,7 +208,7 @@ export const sandsynlighed: Domain = {
               ],
               solution: [
                 s('Første træk.', `\\frac{${a}}{${total}}`),
-                s('Andet træk — både tæller og nævner er faldet med 1.', `\\frac{${a - 1}}{${total - 1}}`),
+                s('Andet træk: både tæller og nævner er faldet med 1.', `\\frac{${a - 1}}{${total - 1}}`),
                 s('Gang.', `\\frac{${a}}{${total}} \\cdot \\frac{${a - 1}}{${total - 1}} = ${fracTexBig({ n: a * (a - 1), d: total * (total - 1) })}`),
                 ...(gcd(a * (a - 1), total * (total - 1)) > 1 ? [s('Forkort.', `= ${fracTexBig(res)}`)] : []),
               ],
@@ -235,7 +235,7 @@ export const sandsynlighed: Domain = {
                 : `Du har ${a} trøjer og ${b} par bukser. Hvor mange forskellige sæt tøj kan du sammensætte?`,
               options: [
                 { text: String(value), correct: true },
-                { text: String(c > 1 ? a + b + c : a + b), misconceptionId: 'sandsyn-plus-gange', feedback: `Du lagde antallene sammen. For hver af de ${a} muligheder kan du kombinere med alle ${b}${c > 1 ? ` og alle ${c}` : ''} — derfor ganger man.` },
+                { text: String(c > 1 ? a + b + c : a + b), misconceptionId: 'sandsyn-plus-gange', feedback: `Du lagde antallene sammen. For hver af de ${a} muligheder kan du kombinere med alle ${b}${c > 1 ? ` og alle ${c}` : ''}. Derfor ganger man.` },
                 { text: String(value * 2) },
                 { text: String(Math.max(a, b, c)) },
               ],

@@ -7,7 +7,7 @@ export const roedder: Domain = {
   name: 'Kvadratrødder',
   category: 'tal-algebra',
   area: 'tal',
-  blurb: 'Det omvendte af at kvadrere — og det værktøj Pythagoras hviler på.',
+  blurb: 'Det omvendte af at kvadrere, og det værktøj Pythagoras bygger på.',
   skills: [
     {
       id: 'rod-kvadratrod',
@@ -19,7 +19,7 @@ export const roedder: Domain = {
       explain: [
         { kind: 'idea', title: 'Det omvendte af at kvadrere', body: '√25 spørger: hvilket positivt tal ganget med sig selv giver 25? Svaret er 5, fordi 5 · 5 = 25.' },
         { kind: 'rule', title: 'Definition', math: '\\sqrt{a} = b \\iff b^2 = a \;\; (b \\ge 0)' },
-        { kind: 'warning', body: '√16 er ikke 8. Kvadratroden halverer ikke — den spørger efter tallet der ganget med sig selv giver 16, altså 4.' },
+        { kind: 'warning', body: '√16 er ikke 8. Kvadratroden halverer ikke. Den spørger efter tallet der ganget med sig selv giver 16, altså 4.' },
         { kind: 'list', title: 'Kvadrattal du bør kende', items: ['1, 4, 9, 16, 25, 36, 49, 64, 81, 100', '121, 144, 169, 196, 225'] },
         { kind: 'idea', title: 'Når det ikke går op', body: '√20 ligger mellem √16 = 4 og √25 = 5, altså mellem 4 og 5. Regn med lommeregner og rund af.' },
       ],
@@ -55,7 +55,7 @@ export const roedder: Domain = {
                 s('Find tallet der ganget med sig selv giver tallet under roden.', `${root} \\cdot ${root} = ${value}`),
                 s('Altså.', `\\sqrt{${value}} = ${root}`),
               ],
-              traps: trapIfDifferent(root, value / 2, 'rod-halverer', `Du halverede tallet. Kvadratroden spørger hvilket tal der ganget med SIG SELV giver ${value} — og det er ${root}.`),
+              traps: trapIfDifferent(root, value / 2, 'rod-halverer', `Du halverede tallet. Kvadratroden spørger hvilket tal der ganget med SIG SELV giver ${value}, og det er ${root}.`),
               seconds: 30,
             };
           },
@@ -75,7 +75,7 @@ export const roedder: Domain = {
                 { text: `${lo - 1} og ${lo}` },
                 { text: `${lo + 1} og ${lo + 2}` },
                 ...(half > lo + 2
-                  ? [{ text: `${half} og ${half + 1}`, misconceptionId: 'rod-halverer', feedback: `Du halverede ${value}. Kvadratroden er langt mindre end halvdelen — find i stedet de nærmeste kvadrattal.` }]
+                  ? [{ text: `${half} og ${half + 1}`, misconceptionId: 'rod-halverer', feedback: `Du halverede ${value}. Kvadratroden er langt mindre end halvdelen. Find i stedet de nærmeste kvadrattal.` }]
                   : []),
               ],
               hints: [
@@ -166,7 +166,7 @@ export const roedder: Domain = {
                 s('Del roden op.', `\\sqrt{${a * a} \\cdot ${b * b}} = \\sqrt{${a * a}} \\cdot \\sqrt{${b * b}}`),
                 s('Udregn hver rod.', `= ${a} \\cdot ${b} = ${a * b}`),
               ],
-              traps: trapIfDifferent(a * b, a + b, 'rod-sum', `Du lagde rødderne sammen. √(a·b) = √a · √b — rødderne skal ganges, ikke lægges sammen.`),
+              traps: trapIfDifferent(a * b, a + b, 'rod-sum', `Du lagde rødderne sammen. √(a·b) = √a · √b, så rødderne skal ganges, ikke lægges sammen.`),
               concept: '√(a·b) = √a · √b',
               seconds: 40,
             };

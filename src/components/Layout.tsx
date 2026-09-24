@@ -87,7 +87,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
             <button
               onClick={() => navigate({ name: 'profile' })}
               className="card-interactive w-full rounded-2xl p-3 text-left"
-              title={`Niveau ${progress.level} — ${gamification.xp} XP`}
+              title={`Niveau ${progress.level} · ${gamification.xp} XP`}
             >
               <span className="flex items-center gap-3">
                 <span className="num flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-sm font-semibold text-white shadow-inset">
@@ -148,7 +148,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
               <button
                 onClick={() => navigate({ name: 'profile' })}
                 className="num flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-xs font-semibold text-white shadow-inset"
-                title={`Niveau ${progress.level} — ${gamification.xp} XP`}
+                title={`Niveau ${progress.level} · ${gamification.xp} XP`}
                 aria-label={`Niveau ${progress.level}. Gå til profil`}
               >
                 {progress.level}

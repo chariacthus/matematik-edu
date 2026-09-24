@@ -18,8 +18,8 @@ export const forhold: Domain = {
       tier: 2,
       explain: [
         { kind: 'idea', title: 'Hvad er et forhold?', body: 'Forholdet 2:3 betyder at for hver 2 dele af det første er der 3 dele af det andet. I alt 5 dele.' },
-        { kind: 'rule', title: 'Forkort som en brøk', math: '12:18 = 2:3', body: 'Divider begge tal med største fælles divisor — præcis som når du forkorter en brøk.' },
-        { kind: 'idea', title: 'Fordeling efter forhold', body: 'Læg forholdstallene sammen for at få antal dele. Divider mængden med antal dele — så ved du hvad én del er værd.' },
+        { kind: 'rule', title: 'Forkort som en brøk', math: '12:18 = 2:3', body: 'Divider begge tal med største fælles divisor, ligesom når du forkorter en brøk.' },
+        { kind: 'idea', title: 'Fordeling efter forhold', body: 'Læg forholdstallene sammen for at få antal dele. Divider mængden med antal dele, så ved du hvad én del er værd.' },
       ],
       worked: [
         {
@@ -31,7 +31,7 @@ export const forhold: Domain = {
             s('Gang op.', '2 \\cdot 50 = 100 \\quad\\text{og}\\quad 5 \\cdot 50 = 250'),
             s('Kontrol.', '100 + 250 = 350', 'Altid værd at tjekke at delene giver det hele.'),
           ],
-          takeaway: 'Find værdien af én del — så er resten bare gange.',
+          takeaway: 'Find værdien af én del. Så er resten bare gange.',
         },
       ],
       generators: [
@@ -85,7 +85,7 @@ export const forhold: Domain = {
               ],
               traps: [
                 ...trapIfDifferent(Math.max(a, b) * perPart, Math.min(a, b) * perPart, 'forhold-omvendt', `Det er den mindste andel. Den største andel svarer til forholdstallet ${Math.max(a, b)}.`),
-                ...trapIfDifferent(Math.max(a, b) * perPart, roundTo(total / 2, 2), 'forhold-omvendt', `De deler ikke lige over — forholdet ${a}:${b} betyder at den ene får flere dele end den anden.`),
+                ...trapIfDifferent(Math.max(a, b) * perPart, roundTo(total / 2, 2), 'forhold-omvendt', `De deler ikke lige. Forholdet ${a}:${b} betyder at den ene får flere dele end den anden.`),
               ],
               seconds: 70,
             };
@@ -115,7 +115,7 @@ export const forhold: Domain = {
                 s('Gang op til det ønskede antal.', `${num(roundTo(amount / forPersons, 3))} \\cdot ${target} = ${num(value)}`),
               ],
               traps: trapIfDifferent(value, roundTo(amount * target, 2), 'forhold-omvendt', `Du gangede med antallet af personer uden først at finde mængden pr. person. Divider med ${forPersons} først.`),
-              concept: 'Gå via "én enhed" — så bliver alle skaleringer ens.',
+              concept: 'Gå via "én enhed", så bliver alle skaleringer ens.',
               seconds: 60,
             };
           },
@@ -133,7 +133,7 @@ export const forhold: Domain = {
       explain: [
         { kind: 'rule', title: 'Ligefrem proportional', math: '\\frac{y}{x} = k \\quad\\text{eller}\\quad y = k \\cdot x', body: 'Dobbelt så meget af det ene giver dobbelt så meget af det andet. Grafen er en ret linje gennem (0,0).' },
         { kind: 'rule', title: 'Omvendt proportional', math: 'x \\cdot y = k', body: 'Dobbelt så meget af det ene giver halvt så meget af det andet. Produktet er konstant.' },
-        { kind: 'analogy', body: 'Flere liter benzin koster flere kroner — ligefrem. Flere malere gør arbejdet på kortere tid — omvendt.' },
+        { kind: 'analogy', body: 'Flere liter benzin koster flere kroner. Det er ligefrem proportionalt. Flere malere gør arbejdet på kortere tid. Det er omvendt.' },
       ],
       worked: [
         {
@@ -188,7 +188,7 @@ export const forhold: Domain = {
               input: { kind: 'number', unit: 'timer' },
               answer: numAns(roundTo(k / n2, 4), 0.005),
               hints: [
-                'Flere maskiner betyder kortere tid — det er omvendt proportionalt.',
+                'Flere maskiner betyder kortere tid. Det er omvendt proportionalt.',
                 `Find konstanten: ${n1} · ${k / n1} = ${k}.`,
                 `Del med ${n2}.`,
               ],
@@ -220,14 +220,14 @@ export const forhold: Domain = {
             return mcq(rng, {
               prompt: `${c.text}. Hvilken sammenhæng er der?`,
               options: [
-                { text: 'Ligefrem proportional', correct: c.type === 'ligefrem', misconceptionId: c.type === 'omvendt' ? 'forhold-omvendt' : undefined, feedback: c.type === 'omvendt' ? 'Her bliver det ene mindre når det andet bliver større — så produktet er konstant, ikke forholdet.' : undefined },
+                { text: 'Ligefrem proportional', correct: c.type === 'ligefrem', misconceptionId: c.type === 'omvendt' ? 'forhold-omvendt' : undefined, feedback: c.type === 'omvendt' ? 'Her bliver det ene mindre når det andet bliver større, så produktet er konstant, ikke forholdet.' : undefined },
                 { text: 'Omvendt proportional', correct: c.type === 'omvendt', misconceptionId: c.type === 'ligefrem' ? 'forhold-omvendt' : undefined, feedback: c.type === 'ligefrem' ? 'Her følges de to ad: bliver det ene dobbelt så stort, gør det andet også. Så det er ligefrem proportionalt.' : undefined },
               ],
               hints: [
                 'Spørg: hvis det ene fordobles, hvad sker der så med det andet?',
                 'Fordobles begge → ligefrem. Halveres det ene → omvendt.',
               ],
-              solution: [s(c.type === 'ligefrem' ? 'Begge vokser i takt — y/x er konstant.' : 'Det ene vokser når det andet falder — x·y er konstant.')],
+              solution: [s(c.type === 'ligefrem' ? 'Begge vokser i takt, så y/x er konstant.' : 'Det ene vokser når det andet falder, så x·y er konstant.')],
               seconds: 35,
             });
           },
@@ -245,7 +245,7 @@ export const forhold: Domain = {
       explain: [
         { kind: 'rule', title: 'Målestok 1:n', math: '1\\text{ cm på tegning} = n\\text{ cm i virkeligheden}', body: '1:100 betyder at virkeligheden er 100 gange større end tegningen.' },
         { kind: 'list', title: 'To retninger', items: ['Tegning → virkelighed: gang med n', 'Virkelighed → tegning: divider med n'] },
-        { kind: 'warning', body: 'Husk enhederne. 1:100 giver et svar i cm — det skal du selv lave om til meter bagefter.' },
+        { kind: 'warning', body: 'Husk enhederne. 1:100 giver et svar i cm. Det skal du selv lave om til meter bagefter.' },
       ],
       worked: [
         {

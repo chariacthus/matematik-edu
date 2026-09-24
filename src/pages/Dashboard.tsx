@@ -31,41 +31,41 @@ const TOUR: TourStep[] = [
     target: 'hud',
     title: 'Stime og dagens mål',
     body:
-      'Stimen tæller de dage i træk du har lavet noget. Dagens mål er det du skal nå i dag — omkring ti ' +
-      'minutters arbejde. Dit niveau og din XP står ved dit navn i menuen.',
+      'Stimen tæller hvor mange dage i træk du har lavet noget. Dagens mål er cirka ti minutters arbejde. ' +
+      'Dit niveau og din XP står ved dit navn i menuen.',
   },
   {
     target: 'mission',
     title: 'Dagens mission',
     body:
-      'Her ligger det du skal lave nu. Appen vælger det ud fra din niveautest, hvad du er i gang med, ' +
-      'og hvad der er ved at glide ud igen. Du skal ikke selv finde ud af hvor du begynder — tryk bare.',
+      'Her står det du skal lave nu. Det er valgt ud fra din niveautest, det du er i gang med, ' +
+      'og det du er ved at glemme. Tryk på det, så går du i gang.',
   },
   {
     target: 'tabs',
     title: 'Missioner, repetition og fejl',
     body:
       'Missioner er resten af dagens plan. Repetition er emner du har lært, men som er ved at blive glemt. ' +
-      'Fejl samler de misforståelser du er faldet i mere end én gang, så du kan få dem ryddet af vejen.',
+      'Fejl viser de fejl du har lavet mere end én gang, så du kan få dem rettet.',
   },
   {
     target: 'nav-library',
     title: 'Emner',
     body:
-      'Hele pensum efter Fælles Mål — 21 emner og 70 færdigheder. Hvert emne har et kort, hvor du kan se ' +
-      'hvad der er låst op, hvad du er i gang med, og hvad du har mestret.',
+      'Hele pensum efter Fælles Mål: 21 emner og 70 færdigheder. Hvert emne har et kort, hvor du kan se ' +
+      'hvad der er låst op, hvad du er i gang med, og hvad du kan.',
   },
   {
     target: 'nav-practice',
     title: 'Fri træning',
-    body: 'Vil du bare øve et bestemt emne, uden faser og uden at kunne miste noget, er det her du gør det.',
+    body: 'Her kan du øve et bestemt emne, uden faser og uden at miste noget.',
   },
   {
     target: 'nav-exam',
     title: 'Prøvetræning',
     body:
-      'FP9 som den rigtige prøve: en del uden hjælpemidler på tid, og en del med — hvor du har formelsamlingen ' +
-      'ved hånden, ligesom til den rigtige prøve.',
+      'Begge dele af FP9 på tid. Til delen med hjælpemidler har du formelsamlingen, ' +
+      'ligesom til den rigtige prøve.',
   },
   {
     title: 'Sådan lærer du her',
@@ -128,7 +128,7 @@ export function DashboardPage() {
         </Callout>
       ) : behaviour.hintDependent ? (
         <Callout tone="brand" icon="bulb">
-          Skriv første skridt ned selv, før du åbner et hint. Det er dér læringen sker.
+          Prøv at skrive første skridt selv, før du åbner et hint.
         </Callout>
       ) : null}
 
@@ -152,7 +152,7 @@ export function DashboardPage() {
                 ? 'Løs én opgave i dag.'
                 : gamification.streakDays === 1
                   ? 'Kom igen i morgen.'
-                  : 'Hold fast.'
+                  : 'Kom igen i morgen.'
             }
           >
             <span className="flex gap-1" aria-label="De sidste syv dage">
@@ -248,7 +248,7 @@ export function DashboardPage() {
               </button>
             </Card>
           ) : (
-            <EmptyState icon="seedling" title="Intet at repetere" body="Alt du har mestret sidder stadig fast. Vi giver besked når noget skal op igen." />
+            <EmptyState icon="seedling" title="Intet at repetere" body="Du kan stadig alt det du har lært. Når noget skal repeteres, står det her." />
           )
         ) : null}
 
@@ -306,7 +306,7 @@ export function DashboardPage() {
           icon="exam"
           tone="neutral"
           title="Træn til FP9"
-          subtitle="Begge prøvedele, på tid — med formelsamling i delen med hjælpemidler."
+          subtitle="Begge prøvedele på tid, med formelsamling til delen med hjælpemidler."
           onClick={() => navigate({ name: 'exam' })}
         />
       </Section>

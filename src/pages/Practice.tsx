@@ -101,7 +101,7 @@ export function PracticePage() {
     <Page>
       <PageHeader
         title="Fri træning"
-        subtitle="Øv lige så meget du vil. Her er der ingen faser og ingen mestring at miste — bare opgaver på dit niveau."
+        subtitle="Øv så meget du vil. Her er ingen faser, bare opgaver på dit niveau."
       />
 
       {started.length ? (
@@ -125,8 +125,7 @@ export function PracticePage() {
         </Section>
       ) : (
         <Callout tone="brand" icon="info">
-          Du har ikke trænet nogen færdigheder endnu. Vælg et emne herunder, eller start et forløb fra forsiden — så
-          lærer appen dit niveau at kende.
+          Du har ikke trænet noget endnu. Vælg et emne herunder, eller start fra forsiden.
         </Callout>
       )}
 
@@ -213,7 +212,7 @@ export function ReviewPage() {
       <EmptyState
         icon="check"
         title="Ingenting at repetere lige nu"
-        body="Alle dine mestrede emner sidder stadig fast. Kom tilbage når et af dem er klar igen — appen giver besked på forsiden."
+        body="Du kan stadig alt det du har lært. Når et emne skal repeteres, står det på forsiden."
         action={
           <button onClick={() => navigate({ name: 'dashboard' })} className="btn-primary">
             Til forsiden
@@ -232,7 +231,7 @@ export function ReviewPage() {
         </div>
         <h1 className="text-2xl font-extrabold tracking-tight">Repetition gennemført</h1>
         <p className="text-ink-600 dark:text-ink-300">
-          {correct} af {results.length} rigtige. De emner der drillede, kommer hurtigere tilbage — resten venter længere.
+          {correct} af {results.length} rigtige. Emner der drillede, kommer hurtigere igen.
         </p>
         <Card className="text-left">
           <ul className="space-y-2">

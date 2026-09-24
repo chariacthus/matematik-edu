@@ -7,7 +7,7 @@ export const procenter: Domain = {
   name: 'Procenter',
   category: 'tal-algebra',
   area: 'tal',
-  blurb: 'Rabat, moms, renter og procentvis ændring — den matematik du møder uden for skolen.',
+  blurb: 'Rabat, moms, renter og procentvis ændring: den matematik du møder uden for skolen.',
   skills: [
     {
       id: 'procent-af-tal',
@@ -45,7 +45,7 @@ export const procenter: Domain = {
             s('Læg sammen.', '84 + 42 = 126'),
             s('Kontrol med decimaltal.', '0{,}15 \\cdot 840 = 126'),
           ],
-          takeaway: 'Byg procenten op af 10 %, 5 % og 1 % — så kan du klare det uden lommeregner.',
+          takeaway: 'Byg procenten op af 10 %, 5 % og 1 %. Så kan du klare det uden lommeregner.',
         },
       ],
       generators: [
@@ -166,7 +166,7 @@ export const procenter: Domain = {
             s('Divider.', '18 : 24 = 0{,}75'),
             s('Gang med 100.', '0{,}75 \\cdot 100 = 75\\,\\%'),
           ],
-          takeaway: 'Tjek at svaret er rimeligt: 18 er lidt over trefjerdedele af 24 — 75 % passer.',
+          takeaway: 'Tjek at svaret er rimeligt: 18 er lidt over trefjerdedele af 24, så 75 % passer.',
         },
       ],
       generators: [
@@ -220,7 +220,7 @@ export const procenter: Domain = {
                 s('Opstil ligningen.', `${num(p / 100)} \\cdot x = ${num(part)}`),
                 s('Isolér x.', `x = \\frac{${num(part)}}{${num(p / 100)}} = ${num(total)}`),
               ],
-              traps: trapIfDifferent(total, roundTo((p / 100) * part, 2), 'procent-grundtal', `Du tog ${p} % af ${num(part)}. Men ${num(part)} ER allerede de ${p} % — du skal den anden vej og dividere.`),
+              traps: trapIfDifferent(total, roundTo((p / 100) * part, 2), 'procent-grundtal', `Du tog ${p} % af ${num(part)}. Men ${num(part)} ER allerede de ${p} %. Du skal den anden vej og dividere.`),
               concept: 'Kender du delen og procenten, finder du det hele ved at dividere.',
               seconds: 60,
             };
@@ -241,9 +241,9 @@ export const procenter: Domain = {
           kind: 'rule',
           title: 'Procentvis ændring',
           math: '\\text{ændring i \\%} = \\frac{\\text{ny} - \\text{gammel}}{\\text{gammel}} \\cdot 100\\,\\%',
-          body: 'Det er altid den gamle værdi der står i nævneren — det er den vi sammenligner med.',
+          body: 'Det er altid den gamle værdi der står i nævneren. Det er den vi sammenligner med.',
         },
-        { kind: 'warning', body: 'Procent og procentpoint er ikke det samme. Går noget fra 20 % til 25 %, er det en stigning på 5 procentpoint — men på 25 %.' },
+        { kind: 'warning', body: 'Procent og procentpoint er ikke det samme. Går noget fra 20 % til 25 %, er det en stigning på 5 procentpoint, men på 25 %.' },
         { kind: 'warning', body: 'En stigning på 20 % efterfulgt af et fald på 20 % giver ikke udgangspunktet. 100 → 120 → 96.' },
       ],
       worked: [
@@ -255,7 +255,7 @@ export const procenter: Domain = {
             s('Sammenlign med den gamle pris.', '\\frac{50}{250} = 0{,}2'),
             s('Gang med 100.', '0{,}2 \\cdot 100 = 20\\,\\%'),
           ],
-          takeaway: 'Havde vi delt med 300, havde vi fået 16,7 % — og det er svaret på et andet spørgsmål.',
+          takeaway: 'Havde vi delt med 300, havde vi fået 16,7 %. Det er svaret på et andet spørgsmål.',
         },
       ],
       generators: [
@@ -343,7 +343,7 @@ export const procenter: Domain = {
         },
         { kind: 'rule', title: 'Vækstfaktor', math: 'k = 1 + \\frac{p}{100}', body: 'Fald: k = 1 − p/100. Et fald på 30 % giver k = 0,7.' },
         { kind: 'rule', title: 'Flere ændringer i træk', math: 'N = B \\cdot k^n', body: 'B er begyndelsesværdien, k vækstfaktoren, n antal gange.' },
-        { kind: 'warning', body: 'Vækstfaktorer ganges sammen — de lægges ikke sammen. To stigninger på 10 % giver 1,1 · 1,1 = 1,21, altså 21 %.' },
+        { kind: 'warning', body: 'Vækstfaktorer ganges sammen. De lægges ikke sammen. To stigninger på 10 % giver 1,1 · 1,1 = 1,21, altså 21 %.' },
       ],
       worked: [
         {
@@ -354,7 +354,7 @@ export const procenter: Domain = {
             s('Brug formlen med n = 4.', 'N = 5000 \\cdot 1{,}03^4'),
             s('Regn ud.', '= 5000 \\cdot 1{,}12551 = 5627{,}54', 'Runder til to decimaler til sidst.'),
           ],
-          takeaway: 'Renters rente betyder at renten selv giver rente — derfor potensen.',
+          takeaway: 'Renters rente betyder at renten selv giver rente. Derfor potensen.',
         },
       ],
       generators: [
