@@ -6,7 +6,7 @@ import { Coordinate } from './Coordinate';
 import { TriangleFigure } from './TriangleFigure';
 import { RectFigure, CircleFigure, AngleFigure } from './Shapes';
 import { SolidFigure } from './Solid';
-import { BarChart, BoxPlot, PieChart, DotPlot, PercentBar, ProbTree } from './Charts';
+import { BarChart, BoxPlot, PieChart, DotPlot, PercentBar, ProbTree, type FigureMode } from './Charts';
 
 /** En tabel som i et opgavesæt: tynde streger, ingen farver. */
 function TableFigure({ spec }: { spec: Extract<VisualSpec, { kind: 'table' }> }) {
@@ -49,13 +49,13 @@ function TableFigure({ spec }: { spec: Extract<VisualSpec, { kind: 'table' }> })
  * telefon uden at blive ulæselige, og de bruger currentColor eller
  * temaets farvetokens, så de virker i både lyst og mørkt tema.
  */
-export function Visual({ spec, className }: { spec: VisualSpec; className?: string }) {
+export function Visual({ spec, className, mode = 'teach' }: { spec: VisualSpec; className?: string; mode?: FigureMode }) {
   const body = (() => {
     switch (spec.kind) {
       case 'balance':
         return <Balance spec={spec} />;
       case 'fractionBar':
-        return <FractionBar spec={spec} />;
+        return <FractionBar spec={spec} mode={mode} />;
       case 'numberLine':
         return <NumberLine spec={spec} />;
       case 'coordinate':
@@ -71,15 +71,15 @@ export function Visual({ spec, className }: { spec: VisualSpec; className?: stri
       case 'solid':
         return <SolidFigure spec={spec} />;
       case 'barChart':
-        return <BarChart spec={spec} />;
+        return <BarChart spec={spec} mode={mode} />;
       case 'boxPlot':
-        return <BoxPlot spec={spec} />;
+        return <BoxPlot spec={spec} mode={mode} />;
       case 'pie':
         return <PieChart spec={spec} />;
       case 'dotPlot':
         return <DotPlot spec={spec} />;
       case 'percentBar':
-        return <PercentBar spec={spec} />;
+        return <PercentBar spec={spec} mode={mode} />;
       case 'probTree':
         return <ProbTree spec={spec} />;
       case 'table':

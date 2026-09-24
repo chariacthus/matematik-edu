@@ -67,6 +67,7 @@ export const procenter: Domain = {
               input: { kind: 'number' },
               answer: numAns(value, 0.005),
               visual: { kind: 'percentBar', whole: 100, part: p, wholeLabel: String(base), partLabel: `${p} %` },
+              visualAid: true,
               hints: [
                 'Lav procenten om til et decimaltal ved at dividere med 100.',
                 `${p} % = ${num(p / 100)}`,
@@ -184,6 +185,7 @@ export const procenter: Domain = {
               input: { kind: 'number', unit: '%' },
               answer: numAns(pct, 0.05),
               visual: { kind: 'percentBar', whole: total, part, wholeLabel: String(total), partLabel: String(part) },
+              visualAid: true,
               hints: [
                 'Sæt delen over det hele som en brøk.',
                 `${part}/${total}`,

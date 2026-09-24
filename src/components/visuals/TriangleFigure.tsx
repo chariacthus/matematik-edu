@@ -30,8 +30,9 @@ export function TriangleFigure({ spec }: { spec: Spec }) {
   const Ax = right ? pad : pad + bw * 0.28;
   const Ay = H - pad - bh;
 
-  const label = (key: keyof NonNullable<Spec['labels']>, fallback?: number) =>
-    spec.labels?.[key] ?? (fallback !== undefined ? String(fallback) : undefined);
+  // Kun det opgaven selv skriver på figuren. Et tal der ikke er givet,
+  // er ofte netop det der spørges om.
+  const label = (key: keyof NonNullable<Spec['labels']>) => spec.labels?.[key];
 
   const hot = (k: 'a' | 'b' | 'c' | 'A' | 'B') => spec.highlight?.includes(k);
   const strokeFor = (k: 'a' | 'b' | 'c') => (hot(k) ? TONES.accent.fill : LINE);
@@ -53,31 +54,31 @@ export function TriangleFigure({ spec }: { spec: Spec }) {
         <>
           <path d={`M${Bx - 30} ${By} A 30 30 0 0 0 ${Bx - 30 * Math.cos(Math.atan2(bh, bw))} ${By - 30 * Math.sin(Math.atan2(bh, bw))}`} fill="none" stroke={TONES.brand.fill} strokeWidth="2" />
           <text x={Bx - 46} y={By - 12} fontSize="13" fontWeight="700" fill={TONES.brand.text}>
-            {label('A', spec.angleA)}
+            {label('A')}
           </text>
         </>
       ) : null}
 
       {spec.angleB !== undefined ? (
         <text x={Ax + 14} y={Ay + 22} fontSize="13" fontWeight="700" fill={TONES.brand.text}>
-          {label('B', spec.angleB)}
+          {label('B')}
         </text>
       ) : null}
 
       {/* Sidelængder */}
-      {label('a', spec.a) ? (
+      {label('a') ? (
         <text x={Math.min(Ax, Cx) - 8} y={(Ay + Cy) / 2} textAnchor="end" fontSize="13" fontWeight="600" fill={strokeFor('a')}>
-          {label('a', spec.a)}
+          {label('a')}
         </text>
       ) : null}
-      {label('b', spec.b) ? (
+      {label('b') ? (
         <text x={(Cx + Bx) / 2} y={By + 20} textAnchor="middle" fontSize="13" fontWeight="600" fill={strokeFor('b')}>
-          {label('b', spec.b)}
+          {label('b')}
         </text>
       ) : null}
-      {label('c', spec.c) ? (
+      {label('c') ? (
         <text x={(Ax + Bx) / 2 + 12} y={(Ay + By) / 2 - 8} textAnchor="middle" fontSize="13" fontWeight="600" fill={strokeFor('c')}>
-          {label('c', spec.c)}
+          {label('c')}
         </text>
       ) : null}
     </svg>

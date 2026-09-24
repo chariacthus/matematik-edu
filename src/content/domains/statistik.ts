@@ -187,7 +187,6 @@ export const statistik: Domain = {
               prompt: `Find ${label} i datasættet: ${values.join(', ')}`,
               input: { kind: 'number' },
               answer: numAns(roundTo(value, 4), 0.005),
-              visual: { kind: 'boxPlot', min: Math.min(...values), q1: quartile1(values), median: median(values), q3: quartile3(values), max: Math.max(...values) },
               hints: [
                 'Tallene er sorteret. Find først medianen.',
                 `Medianen er ${num(median(values))}.`,
@@ -206,12 +205,16 @@ export const statistik: Domain = {
           id: 'boksplot-aflaes',
           label: 'Aflæs et boksplot',
           make: ({ rng, level }) => {
+            // Alle fem tal ligger på en inddeling af aksen, så de kan aflæses
+            // præcist, som på et opgaveark.
             const hi = lv(level, [20, 30, 40, 60, 90]);
-            const min = rng.int(0, Math.floor(hi / 5));
-            const q1 = min + rng.int(2, Math.floor(hi / 5));
-            const med = q1 + rng.int(2, Math.floor(hi / 5));
-            const q3 = med + rng.int(2, Math.floor(hi / 5));
-            const max = q3 + rng.int(2, Math.floor(hi / 5));
+            const step = hi <= 20 ? 1 : hi <= 40 ? 2 : 5;
+            const k = Math.max(3, Math.floor(hi / 5 / step));
+            const min = step * rng.int(0, k);
+            const q1 = min + step * rng.int(2, k);
+            const med = q1 + step * rng.int(2, k);
+            const q3 = med + step * rng.int(2, k);
+            const max = q3 + step * rng.int(2, k);
             const ask = rng.pick(['median', 'bredde', 'kasse'] as const);
             const value = ask === 'median' ? med : ask === 'bredde' ? max - min : q3 - q1;
             const question = { median: 'Hvad er medianen?', bredde: 'Hvad er variationsbredden?', kasse: 'Hvor bred er kassen (kvartilbredden)?' }[ask];
@@ -220,7 +223,7 @@ export const statistik: Domain = {
               instruction: 'Aflæs på boksplottet.',
               input: { kind: 'number' },
               answer: numAns(value),
-              visual: { kind: 'boxPlot', min, q1, median: med, q3, max },
+              visual: { kind: 'boxPlot', min, q1, median: med, q3, max, step },
               hints: [
                 'Stregen inde i kassen er medianen.',
                 'Kassens kanter er nedre og øvre kvartil.',
@@ -268,7 +271,9 @@ export const statistik: Domain = {
           label: 'Aflæs søjlediagram',
           make: ({ rng, level }) => {
             const cats = rng.sample(['Fodbold', 'Håndbold', 'Svømning', 'Badminton', 'Basketball', 'Atletik'], lv(level, [3, 4, 4, 5, 5]));
-            const data = cats.map((c) => ({ label: c, value: rng.int(2, lv(level, [12, 18, 25, 40, 60])) }));
+            // Søjlerne ender på en hjælpelinje, så de kan aflæses på aksen.
+            const step = lv(level, [1, 2, 2, 5, 5]);
+            const data = cats.map((c) => ({ label: c, value: step * rng.int(1, Math.floor(lv(level, [12, 18, 25, 40, 60]) / step)) }));
             const total = data.reduce((a, b) => a + b.value, 0);
             const ask = rng.pick(['total', 'diff', 'max'] as const);
             const sorted = [...data].sort((a, b) => b.value - a.value);
@@ -283,7 +288,7 @@ export const statistik: Domain = {
               instruction: 'Aflæs på søjlediagrammet.',
               input: { kind: 'number', unit: 'elever' },
               answer: numAns(value),
-              visual: { kind: 'barChart', data, yLabel: 'Antal elever' },
+              visual: { kind: 'barChart', data, yLabel: 'Antal elever', step },
               hints: [
                 'Aflæs højden af hver søjle.',
                 data.map((d) => `${d.label}: ${d.value}`).join(', '),
@@ -310,6 +315,7 @@ export const statistik: Domain = {
               input: { kind: 'number', unit: '%' },
               answer: numAns(value, 0.05),
               visual: { kind: 'percentBar', whole: total, part: count, wholeLabel: `${total} elever`, partLabel: `${count} med cykel` },
+              visualAid: true,
               hints: [
                 'Frekvens er hyppighed divideret med det samlede antal.',
                 `${count} : ${total} = ${num(roundTo(count / total, 5))}`,

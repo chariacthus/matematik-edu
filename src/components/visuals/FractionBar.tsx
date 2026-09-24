@@ -1,5 +1,6 @@
 import type { Visual } from '../../types';
 import { TONES, LABEL } from './Visual';
+import type { FigureMode } from './Charts';
 
 type Spec = Extract<Visual, { kind: 'fractionBar' }>;
 
@@ -8,7 +9,7 @@ type Spec = Extract<Visual, { kind: 'fractionBar' }>;
  * pointen: så kan man SE at 1/3 er større end 1/8, selvom 8 er et
  * større tal.
  */
-export function FractionBar({ spec }: { spec: Spec }) {
+export function FractionBar({ spec, mode = 'teach' }: { spec: Spec; mode?: FigureMode }) {
   const rowH = 40;
   const gap = 14;
   const width = 360;
@@ -43,7 +44,7 @@ export function FractionBar({ spec }: { spec: Spec }) {
               />
             ))}
             <text x={width + 8} y={y + rowH / 2 + 5} fontSize="15" fontWeight="600" fill={LABEL}>
-              {row.label ?? `${row.num}/${row.den}`}
+              {row.label ?? (mode === 'problem' ? '' : `${row.num}/${row.den}`)}
             </text>
           </g>
         );

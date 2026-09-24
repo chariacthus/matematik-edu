@@ -106,7 +106,6 @@ export const broeker: Domain = {
                 misconceptionId: f === biggestDen && f !== best ? 'broek-stoerre-naevner' : undefined,
                 feedback: f === biggestDen && f !== best ? `${f[0]}/${f[1]} har den største nævner, men det gør netop stykkerne mindre. Omsæt til decimaltal og sammenlign: ${f[0]}/${f[1]} = ${roundTo(f[0] / f[1], 3)}` : undefined,
               })),
-              visual: { kind: 'fractionBar', rows: picks.map((f) => ({ num: f[0], den: f[1], label: `${f[0]}/${f[1]}` })) },
               hints: [
                 'Tegn brøkerne som bjælker, eller find en fælles nævner.',
                 'Du kan også dividere tæller med nævner og sammenligne decimaltallene.',
@@ -331,6 +330,7 @@ export const broeker: Domain = {
               input: { kind: 'fraction' },
               answer: fracAns(res),
               visual: { kind: 'fractionBar', rows: [{ num: a, den: d1, label: `${a}/${d1}` }, { num: b, den: d2, label: `${b}/${d2}`, tone: 'accent' }] },
+              visualAid: true,
               hints: [
                 'Du kan ikke regne før stykkerne er lige store. Find fællesnævneren.',
                 `Fællesnævneren er ${mfn}.`,
@@ -516,6 +516,7 @@ export const broeker: Domain = {
               concept: 'Brøkdel af et tal: divider med nævneren, gang med tælleren.',
               seconds: 45,
               visual: { kind: 'fractionBar', rows: [{ num: numr, den: d, label: `${numr}/${d} af ${total}`, tone: 'accent' }] },
+              visualAid: true,
             };
           },
         },

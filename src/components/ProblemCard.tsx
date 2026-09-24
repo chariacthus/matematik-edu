@@ -182,7 +182,7 @@ export function ProblemCard({
           <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">{problem.instruction}</p>
         ) : null}
 
-        {problem.visual ? <Visual spec={problem.visual} className="mt-4" /> : null}
+        {problem.visual && !problem.visualAid ? <Visual spec={problem.visual} mode="problem" className="mt-4" /> : null}
 
         {/* Svar */}
         <div className="mt-5">
@@ -235,6 +235,14 @@ export function ProblemCard({
                 <MathText>{h}</MathText>
               </Callout>
             ))}
+            {/* En hjælpetegning hører til hjælpen. Den står ikke i opgaven,
+                ligesom den heller ikke ville stå på et prøveark. */}
+            {problem.visual && problem.visualAid ? (
+              <div className="roll-in" data-aid>
+                <p className="eyebrow mb-1.5 mt-3">Tegning</p>
+                <Visual spec={problem.visual} mode="problem" />
+              </div>
+            ) : null}
           </div>
         ) : null}
 

@@ -438,6 +438,7 @@ export const tal: Domain = {
                 step: Math.max(1, Math.round((Math.abs(value - a) + 4) / 10)),
                 marks: [{ value: a, label: 'start', tone: 'brand' }],
               },
+              visualAid: true,
               hints: [
                 'Skriv først stykket om, så der ikke står to tegn i træk.',
                 minus && b < 0 ? 'Minus og minus bliver til plus.' : 'Start ved det første tal på tallinjen og flyt dig.',
@@ -517,13 +518,6 @@ export const tal: Domain = {
                 'Et negativt tal er altid mindre end et positivt.',
               ],
               solution: [s('Placér tallene på tallinjen og tag det yderste til højre.', undefined, `${max} ligger længst mod højre.`)],
-              visual: {
-                kind: 'numberLine',
-                min: -hi - 1,
-                max: hi + 1,
-                step: Math.max(1, Math.round(hi / 5)),
-                marks: vals.map((v) => ({ value: v, label: String(v), tone: 'brand' as const })),
-              },
               seconds: 25,
             });
           },
@@ -550,6 +544,7 @@ export const tal: Domain = {
                   { value: highT, label: 'dag', tone: 'good' },
                 ],
               },
+              visualAid: true,
               hints: [
                 'Tegn de to temperaturer på en tallinje.',
                 'Forskellen er hvor mange skridt der er fra det ene til det andet, også hen over nul.',

@@ -46,7 +46,7 @@ export const geometri: Domain = {
               prompt: `To vinkler ligger som nabovinkler på en ret linje. Den ene er ${v}°. Hvor stor er den anden?`,
               input: { kind: 'number', unit: '°' },
               answer: numAns(180 - v),
-              visual: { kind: 'angles', type: 'single', values: [v, null], labels: [`${v}°`, 'v'] },
+              visual: { kind: 'angles', type: 'straight', values: [v], labels: [`${v}°`, 'v'] },
               hints: [
                 'To nabovinkler på en ret linje giver tilsammen 180°.',
                 `180° − ${v}°`,
@@ -410,16 +410,28 @@ export const geometri: Domain = {
           make: ({ rng, level }) => {
             const [a, b, c] = rng.pick(PYTHAGOREAN_TRIPLES.slice(2, lv(level, [6, 6, 8, 10, 12])));
             const scenario = rng.pick([
-              { text: `En stige på ${c} m står op ad en mur. Stigens fod står ${b} m fra muren. Hvor højt op ad muren når stigen?`, answer: a },
-              { text: `En flagstang er ${a} m høj. Der spændes en wire fra toppen ned til et punkt ${b} m fra foden. Hvor lang er wiren?`, answer: c },
-              { text: `En rektangulær have er ${a} m gange ${b} m. Hvor lang er stien tværs over fra hjørne til hjørne?`, answer: c },
+              { text: `En stige på ${c} m står op ad en mur. Stigens fod står ${b} m fra muren. Hvor højt op ad muren når stigen?`, answer: a, unknown: 'a' as const },
+              { text: `En flagstang er ${a} m høj. Der spændes en wire fra toppen ned til et punkt ${b} m fra foden. Hvor lang er wiren?`, answer: c, unknown: 'c' as const },
+              { text: `En rektangulær have er ${a} m gange ${b} m. Hvor lang er stien tværs over fra hjørne til hjørne?`, answer: c, unknown: 'c' as const },
             ]);
             return {
               prompt: scenario.text,
               instruction: 'Svar i meter.',
               input: { kind: 'number', unit: 'm' },
               answer: numAns(scenario.answer, 0.005),
-              visual: { kind: 'triangle', a, b, c, right: true, labels: { a: String(a), b: String(b), c: String(c) } },
+              visual: {
+                kind: 'triangle',
+                a,
+                b,
+                c,
+                right: true,
+                labels: {
+                  a: scenario.unknown === 'a' ? '?' : `${a} m`,
+                  b: `${b} m`,
+                  c: scenario.unknown === 'c' ? '?' : `${c} m`,
+                },
+                highlight: [scenario.unknown],
+              },
               hints: [
                 'Tegn situationen. Der dannes en retvinklet trekant.',
                 'Find ud af hvilke to sider du kender, og om den ukendte er hypotenusen eller en katete.',

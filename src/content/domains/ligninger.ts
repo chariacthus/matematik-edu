@@ -49,6 +49,7 @@ export const ligninger: Domain = {
               input: { kind: 'number' },
               answer: numAns(x),
               visual: a > 0 ? { kind: 'balance', left: { x: 1, ones: a }, right: { x: 0, ones: b } } : undefined,
+              visualAid: true,
               hints: [
                 `Der står ${signed(a)} på x's side. Hvordan får du det væk?`,
                 `${a > 0 ? 'Træk' : 'Læg'} ${Math.abs(a)} ${a > 0 ? 'fra' : 'til'} på BEGGE sider.`,
@@ -136,6 +137,7 @@ export const ligninger: Domain = {
               input: { kind: 'number' },
               answer: numAns(x),
               visual: a > 0 && b > 0 && c > 0 && a <= 5 && b <= 8 && c <= 20 ? { kind: 'balance', left: { x: a, ones: b }, right: { x: 0, ones: c } } : undefined,
+              visualAid: true,
               hints: [
                 `Få først ${b} væk fra venstre side.`,
                 `${b > 0 ? 'Træk' : 'Læg'} ${Math.abs(b)} ${b > 0 ? 'fra' : 'til'} på begge sider: ${coef(a)} = ${c - b}.`,

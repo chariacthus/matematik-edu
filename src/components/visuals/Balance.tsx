@@ -5,19 +5,15 @@ type Spec = Extract<Visual, { kind: 'balance' }>;
 
 /**
  * Vægten der bærer hele forståelsen af ligninger: det du gør på den ene
- * side, skal du gøre på den anden. Vippen hælder efter hvad der faktisk
- * er tungest, så figuren ikke lyver når siderne er i ubalance.
+ * side, skal du gøre på den anden. En ligning er altid i balance, så
+ * vippen står vandret; x vejer netop det der skal til.
  */
 export function Balance({ spec }: { spec: Spec }) {
-  // x antages at veje 2 enheder — nok til at klodserne ser forskellige ud.
-  const weight = (pan: Spec['left']) => pan.x * 2 + pan.ones;
-  const diff = weight(spec.left) - weight(spec.right);
-  const tilt = Math.max(-7, Math.min(7, diff * 1.4));
 
   return (
-    <svg viewBox="0 0 420 200" className="mx-auto h-auto w-full max-w-md text-ink-500 dark:text-ink-400" role="img" aria-label="Vægt der viser en ligning">
+    <svg viewBox="0 0 420 182" className="mx-auto h-auto w-full max-w-md text-ink-500 dark:text-ink-400" role="img" aria-label="Vægt der viser en ligning">
       {/* Vippearm */}
-      <g transform={`rotate(${tilt} 210 70)`}>
+      <g>
         <line x1="60" y1="70" x2="360" y2="70" stroke={LINE} strokeWidth="4" strokeLinecap="round" />
         <Pan x={110} pan={spec.left} tone="brand" />
         <Pan x={310} pan={spec.right} tone="accent" />
@@ -28,9 +24,6 @@ export function Balance({ spec }: { spec: Spec }) {
       <rect x="160" y="165" width="100" height="10" rx="5" fill={LABEL} opacity="0.4" />
       <circle cx="210" cy="70" r="7" fill={LABEL} />
 
-      <text x="210" y="192" textAnchor="middle" fontSize="13" fill={LABEL} opacity="0.7">
-        {diff === 0 ? 'i balance' : 'ude af balance'}
-      </text>
     </svg>
   );
 }

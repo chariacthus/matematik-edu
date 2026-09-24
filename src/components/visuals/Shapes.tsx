@@ -288,6 +288,36 @@ export function AngleFigure({ spec }: { spec: AngleSpec }) {
     );
   }
 
+  if (spec.type === 'straight') {
+    // To nabovinkler på en ret linje, som de tegnes på et opgaveark: den
+    // kendte med sit gradtal, den ukendte med et bogstav.
+    const deg = spec.values[0] ?? 60;
+    const rad = (deg * Math.PI) / 180;
+    const cx = W / 2;
+    const cy = H - 52;
+    const L = 150;
+    const ray = 132;
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-sm" role="img" aria-label="To nabovinkler på en ret linje">
+        <line x1={cx - L} y1={cy} x2={cx + L} y2={cy} stroke={LINE} strokeWidth="2" strokeLinecap="round" />
+        <line x1={cx} y1={cy} x2={cx + ray * Math.cos(rad)} y2={cy - ray * Math.sin(rad)} stroke={LINE} strokeWidth="2" strokeLinecap="round" />
+        <AngleMark cx={cx} cy={cy} from={0} to={rad} r={34} />
+        <AngleMark cx={cx} cy={cy} from={rad} to={Math.PI} r={26} />
+        <circle cx={cx} cy={cy} r="3" fill={LINE} />
+        {labels[0] ? (
+          <AngleLabel cx={cx} cy={cy} from={0} to={rad} r={58}>
+            {labels[0]}
+          </AngleLabel>
+        ) : null}
+        {labels[1] ? (
+          <AngleLabel cx={cx} cy={cy} from={rad} to={Math.PI} r={50}>
+            {labels[1]}
+          </AngleLabel>
+        ) : null}
+      </svg>
+    );
+  }
+
   const deg = spec.values[0] ?? 45;
   const rad = (deg * Math.PI) / 180;
   const ox = 62;
@@ -297,7 +327,7 @@ export function AngleFigure({ spec }: { spec: AngleSpec }) {
   // figuren; spidse en større, så tallet ikke klemmes sammen i spidsen.
   const arcR = deg < 30 ? 54 : deg > 140 ? 32 : 42;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-sm" role="img" aria-label={`Vinkel på ${deg} grader`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-sm" role="img" aria-label="Vinkel">
       <line x1={ox} y1={oy} x2={ox + L} y2={oy} stroke={LINE} strokeWidth="2" strokeLinecap="round" />
       <line x1={ox} y1={oy} x2={ox + L * Math.cos(rad)} y2={oy - L * Math.sin(rad)} stroke={LINE} strokeWidth="2" strokeLinecap="round" />
       <AngleMark cx={ox} cy={oy} from={0} to={rad} r={arcR} />

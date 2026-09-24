@@ -35,19 +35,24 @@ export function ExamPage() {
   const recordAttempt = useStore((s) => s.recordAttempt);
   const [session, setSession] = useState<ExamSession | null>(null);
   const [finished, setFinished] = useState(false);
-  const [seconds, setSeconds] = useState(0);
+  const [, setTick] = useState(0);
+  const running = session !== null && !finished;
 
-  // Uret opdateres hvert sekund mens prøven kører.
+  // Tiden regnes altid ud fra prøvens starttidspunkt. Uret tikker kun for
+  // at tegne siden igen; det startede før på 0:00, og et forsinket tik
+  // kunne få prøven til at blive afleveret af sig selv.
   useEffect(() => {
-    if (!session || finished) return;
-    const t = setInterval(() => setSeconds(Math.round(timeLeft(session))), 500);
+    if (!running) return;
+    const t = setInterval(() => setTick((n) => n + 1), 500);
     return () => clearInterval(t);
-  }, [session, finished]);
+  }, [running]);
+
+  const seconds = session ? Math.round(timeLeft(session)) : 0;
 
   // Tiden er gået: prøven lukker af sig selv, som til den rigtige prøve.
   useEffect(() => {
-    if (session && !finished && seconds <= 0 && Date.now() - session.startedAt > 2000) setFinished(true);
-  }, [seconds, session, finished]);
+    if (running && seconds <= 0) setFinished(true);
+  }, [running, seconds]);
 
   if (!session) return <ExamPicker onStart={(part) => { setSession(createExam(part, skills)); setFinished(false); }} />;
 

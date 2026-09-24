@@ -9,38 +9,61 @@ type DotSpec = Extract<Visual, { kind: 'dotPlot' }>;
 type PercentSpec = Extract<Visual, { kind: 'percentBar' }>;
 type TreeSpec = Extract<Visual, { kind: 'probTree' }>;
 
+export type FigureMode = 'teach' | 'problem';
+
 /**
  * Diagrammerne til statistik og sandsynlighed.
  *
- * De er bygget til at blive AFLÆST, ikke til at imponere: værdien står
- * altid på eller ved siden af figuren, så eleven kan tjekke sin aflæsning.
+ * I en forklaring står værdierne på figuren, så eleven kan tjekke sin
+ * aflæsning. I en opgave gør de ikke: der aflæses på aksen, som til
+ * prøven, og tallet der spørges om, står ikke skrevet.
  */
 
-export function BarChart({ spec }: { spec: BarSpec }) {
+/** Et pænt trin mellem akseinddelingerne: 1, 2, 5, 10, 20, 25, 50 … */
+function niceStep(span: number, target = 6): number {
+  const raw = Math.max(span, 1) / target;
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  const f = raw / mag;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
+}
+
+/** Hvor ofte en inddeling får et tal, så der højst står omkring ti. */
+function labelEvery(count: number): number {
+  return [1, 2, 5, 10].find((n) => count / n <= 10) ?? 10;
+}
+
+export function BarChart({ spec, mode = 'teach' }: { spec: BarSpec; mode?: FigureMode }) {
   const W = 400;
   const H = 240;
   const padL = 42;
   const padB = 46;
   const padT = 18;
-  const max = Math.max(...spec.data.map((d) => d.value), 1);
+  const peak = Math.max(...spec.data.map((d) => d.value), 1);
+  const problem = mode === 'problem';
+  const step = spec.step ?? (problem ? niceStep(peak) : peak / 4);
+  const top = problem ? Math.ceil(peak / step) * step : peak;
+  const lines = Math.round(top / step);
+  const every = problem ? labelEvery(lines) : 1;
   const bw = (W - padL - 16) / spec.data.length;
-  const scale = (v: number) => ((H - padB - padT) * v) / max;
+  const scale = (v: number) => ((H - padB - padT) * v) / top;
 
-  const ticks = 4;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-md" role="img" aria-label="Søjlediagram">
-      {Array.from({ length: ticks + 1 }, (_, i) => {
-        const v = (max / ticks) * i;
+      {Array.from({ length: lines + 1 }, (_, i) => {
+        const v = step * i;
         const y = H - padB - scale(v);
         return (
           <g key={i}>
-            <line x1={padL} y1={y} x2={W - 8} y2={y} stroke={LINE} strokeWidth="1" opacity="0.16" />
-            <text x={padL - 7} y={y + 4} textAnchor="end" fontSize="10.5" fill={LABEL} opacity="0.75">
-              {num(Math.round(v))}
-            </text>
+            <line x1={padL} y1={y} x2={W - 8} y2={y} stroke={LINE} strokeWidth="1" opacity={problem ? 0.22 : 0.16} />
+            {i % every === 0 ? (
+              <text x={padL - 7} y={y + 4} textAnchor="end" fontSize="10.5" fill={LABEL} opacity="0.8">
+                {num(Math.round(v * 100) / 100)}
+              </text>
+            ) : null}
           </g>
         );
       })}
+      <line x1={padL} y1={padT - 6} x2={padL} y2={H - padB} stroke={LINE} strokeWidth="1.5" />
       <line x1={padL} y1={H - padB} x2={W - 8} y2={H - padB} stroke={LINE} strokeWidth="2" />
 
       {spec.data.map((d, i) => {
@@ -49,10 +72,12 @@ export function BarChart({ spec }: { spec: BarSpec }) {
         const w = bw * 0.68;
         return (
           <g key={d.label}>
-            <rect x={x} y={H - padB - h} width={w} height={h} rx="3" fill={TONES.brand.fill} opacity={0.88} />
-            <text x={x + w / 2} y={H - padB - h - 6} textAnchor="middle" fontSize="11" fontWeight="700" fill={TONES.brand.text}>
-              {num(d.value)}
-            </text>
+            <rect x={x} y={H - padB - h} width={w} height={h} rx="2" fill={TONES.brand.fill} opacity={0.88} />
+            {problem ? null : (
+              <text x={x + w / 2} y={H - padB - h - 6} textAnchor="middle" fontSize="11" fontWeight="700" fill={TONES.brand.text}>
+                {num(d.value)}
+              </text>
+            )}
             <text x={x + w / 2} y={H - padB + 16} textAnchor="middle" fontSize="10.5" fill={LABEL}>
               {d.label.length > 9 ? `${d.label.slice(0, 8)}.` : d.label}
             </text>
@@ -68,17 +93,27 @@ export function BarChart({ spec }: { spec: BarSpec }) {
   );
 }
 
-export function BoxPlot({ spec }: { spec: BoxSpec }) {
+export function BoxPlot({ spec, mode = 'teach' }: { spec: BoxSpec; mode?: FigureMode }) {
   const W = 420;
-  const H = 150;
   const pad = 34;
-  const lo = spec.min;
-  const hi = spec.max;
+  const problem = mode === 'problem';
+  // I en opgave står boksplottet over en tallinje, og værdierne aflæses
+  // på den. I en forklaring står de fem tal direkte ved figuren.
+  const step = spec.step ?? niceStep(spec.max - spec.min, 10);
+  // Tallene på aksen står på runde værdier (0, 4, 8 …), og aksen går ikke
+  // under nul når data ikke gør.
+  const every = labelEvery(Math.round((spec.max - spec.min) / step) + 2);
+  const major = step * every;
+  const lo = problem ? Math.max(spec.min >= 0 ? 0 : -Infinity, Math.floor((spec.min - step) / major) * major) : spec.min;
+  const hi = problem ? Math.ceil((spec.max + step) / major) * major : spec.max;
+  const H = problem ? 142 : 150;
   const span = hi - lo || 1;
   const x = (v: number) => pad + ((v - lo) / span) * (W - pad * 2);
-  const cy = 62;
+  const cy = problem ? 52 : 62;
   const boxT = cy - 26;
   const boxH = 52;
+  const axisY = cy + 48;
+  const ticks = Math.round(span / step);
 
   const marks: [number, string][] = [
     [spec.min, 'min'],
@@ -97,19 +132,39 @@ export function BoxPlot({ spec }: { spec: BoxSpec }) {
       <line x1={x(spec.max)} y1={cy - 14} x2={x(spec.max)} y2={cy + 14} stroke={LINE} strokeWidth="2.5" />
 
       {/* Kassen */}
-      <rect x={x(spec.q1)} y={boxT} width={Math.max(2, x(spec.q3) - x(spec.q1))} height={boxH} rx="3" fill={TONES.brand.soft} stroke={TONES.brand.fill} strokeWidth="2.5" />
+      <rect x={x(spec.q1)} y={boxT} width={Math.max(2, x(spec.q3) - x(spec.q1))} height={boxH} rx="2" fill={TONES.brand.soft} stroke={TONES.brand.fill} strokeWidth="2.5" />
       <line x1={x(spec.median)} y1={boxT} x2={x(spec.median)} y2={boxT + boxH} stroke={TONES.accent.fill} strokeWidth="3.5" />
 
-      {marks.map(([v, label], i) => (
-        <g key={i}>
-          <text x={x(v)} y={cy + 40} textAnchor="middle" fontSize="11.5" fontWeight="600" fill={LABEL}>
-            {num(v)}
-          </text>
-          <text x={x(v)} y={boxT - 8} textAnchor="middle" fontSize="10" fill={LABEL} opacity="0.7">
-            {label}
-          </text>
+      {problem ? (
+        <g>
+          <line x1={x(lo)} y1={axisY} x2={x(hi)} y2={axisY} stroke={LINE} strokeWidth="1.5" />
+          {Array.from({ length: ticks + 1 }, (_, i) => {
+            const v = lo + i * step;
+            const big = Math.abs(Math.round(v / step)) % every === 0;
+            return (
+              <g key={i}>
+                <line x1={x(v)} y1={axisY} x2={x(v)} y2={axisY + (big ? 7 : 4)} stroke={LINE} strokeWidth={big ? 1.5 : 1} />
+                {big ? (
+                  <text x={x(v)} y={axisY + 21} textAnchor="middle" fontSize="11" fill={LABEL}>
+                    {num(Math.round(v * 100) / 100)}
+                  </text>
+                ) : null}
+              </g>
+            );
+          })}
         </g>
-      ))}
+      ) : (
+        marks.map(([v, label], i) => (
+          <g key={i}>
+            <text x={x(v)} y={cy + 40} textAnchor="middle" fontSize="11.5" fontWeight="600" fill={LABEL}>
+              {num(v)}
+            </text>
+            <text x={x(v)} y={boxT - 8} textAnchor="middle" fontSize="10" fill={LABEL} opacity="0.7">
+              {label}
+            </text>
+          </g>
+        ))
+      )}
     </svg>
   );
 }
@@ -189,7 +244,7 @@ export function DotPlot({ spec }: { spec: DotSpec }) {
   );
 }
 
-export function PercentBar({ spec }: { spec: PercentSpec }) {
+export function PercentBar({ spec, mode = 'teach' }: { spec: PercentSpec; mode?: FigureMode }) {
   const W = 400;
   const H = 96;
   const pad = 14;
@@ -206,9 +261,11 @@ export function PercentBar({ spec }: { spec: PercentSpec }) {
       <text x={W - pad} y={20} textAnchor="end" fontSize="12" fill={LABEL} opacity="0.8">
         {spec.wholeLabel ?? num(spec.whole)}
       </text>
-      <text x={pad + barW * frac} y={80} textAnchor={frac > 0.85 ? 'end' : 'middle'} fontSize="12.5" fontWeight="700" fill={TONES.brand.text}>
-        {num(Math.round(frac * 1000) / 10)} %
-      </text>
+      {mode === 'problem' ? null : (
+        <text x={pad + barW * frac} y={80} textAnchor={frac > 0.85 ? 'end' : 'middle'} fontSize="12.5" fontWeight="700" fill={TONES.brand.text}>
+          {num(Math.round(frac * 1000) / 10)} %
+        </text>
+      )}
     </svg>
   );
 }

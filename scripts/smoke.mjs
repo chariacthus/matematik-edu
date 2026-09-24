@@ -400,6 +400,7 @@ try {
   });
   await shot('07-feedback');
 
+
   await step('åbner hjælpen som flydende panel og beder om svaret', async () => {
     await page.getByRole('button', { name: 'Få hjælp', exact: true }).click();
     const dock = page.getByRole('dialog', { name: 'Hjælp' });
@@ -489,6 +490,39 @@ try {
     }
   });
 
+  await step('en hjælpetegning kommer først med et hint', async () => {
+    for (let round = 0; round < 6; round++) {
+      await page.goto('http://127.0.0.1:4173/#/laer/ligning-ettrin');
+      await page.reload({ waitUntil: 'networkidle' });
+      const intro = page.getByRole('button', { name: /Vis mig et eksempel/ });
+      if (await intro.count()) {
+        await intro.click();
+        for (let i = 0; i < 6; i++) {
+          const b = page.getByRole('button', { name: 'Vis næste trin' });
+          if (!(await b.count())) break;
+          await b.click();
+        }
+        await page.getByRole('button', { name: /Nu prøver jeg selv/ }).click();
+      }
+      await page.locator('main article.card').first().waitFor({ timeout: 8000 });
+      const before = await page.evaluate(() => ({
+        aid: document.querySelectorAll('main [data-aid]').length,
+        figures: document.querySelectorAll('main article figure').length,
+      }));
+      if (before.aid) throw new Error('hjælpetegningen står i opgaven før eleven har bedt om hjælp');
+      const hint = page.getByRole('button', { name: /^Hint/ });
+      if (!(await hint.count())) continue;
+      await hint.click();
+      await page.waitForTimeout(300);
+      const after = await page.locator('main [data-aid]').count();
+      if (after && before.figures) throw new Error('hjælpetegningen stod der allerede før hintet');
+      if (after) {
+        await shot('39-tegning-efter-hint');
+        return;
+      }
+    }
+  });
+
   await step('viser profilen', async () => {
     await page.goto('http://127.0.0.1:4173/#/profil');
     await page.getByRole('heading', { name: 'Freja' }).waitFor({ timeout: 8000 });
@@ -551,6 +585,8 @@ try {
   await step('kører en prøve uden hjælpemidler', async () => {
     await page.getByRole('button', { name: 'Start' }).first().click();
     await page.getByText(/Opgave 1 af 20/).waitFor({ timeout: 8000 });
+    const clock = await page.locator('[role="timer"]').innerText();
+    if (!/^(60:00|59:5\d)$/.test(clock.trim())) throw new Error(`uret viser ${clock} lige efter start`);
     // Uret skal blive stående øverst når man ruller ned i en opgave. En
     // lav skærm sikrer at der faktisk er noget at rulle - ellers ville
     // tjekket bestå uden at bevise noget.
@@ -571,8 +607,15 @@ try {
     if (await page.getByRole('button', { name: 'Formelsamling' }).count()) {
       throw new Error('formelsamlingen er tilgængelig i prøven uden hjælpemidler');
     }
-    for (let i = 0; i < 3; i++) {
-      await page.getByRole('button', { name: 'Spring over' }).click();
+    // Som på et rigtigt opgaveark: ingen hjælpetegninger (vægtskål,
+    // procentbjælke) og ingen hints.
+    for (let i = 0; i < 12; i++) {
+      const aids = await page.locator('main article svg[aria-label="Vægt der viser en ligning"], main article svg[aria-label="Andel af en helhed"], main [data-aid]').count();
+      if (aids) throw new Error(`opgave ${i + 1} i prøven viser en hjælpetegning`);
+      if (await page.getByRole('button', { name: /^Hint/ }).count()) throw new Error('prøven tilbyder hints');
+      const skip = page.getByRole('button', { name: 'Spring over' });
+      await skip.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+      await skip.click();
       await page.waitForTimeout(120);
     }
     await page.getByRole('button', { name: 'Aflevér prøven' }).click();
@@ -1152,12 +1195,15 @@ try {
     // Svarfeltet tager selv fokus lidt efter at siden er åbnet; det
     // skal være sket først.
     await page.waitForTimeout(400);
-    await help.focus();
-    await page.keyboard.press('Shift+Tab');
-    for (let i = 0; i < 6; i++) {
+    await page.getByLabel('Dit svar').or(page.locator('main [role="radio"]').first()).first().focus();
+    let reached = false;
+    for (let i = 0; i < 30 && !reached; i++) {
       await page.keyboard.press('Tab');
-      if ((await page.evaluate(() => document.activeElement?.textContent?.trim())) === 'Få hjælp') break;
+      reached = (await page.evaluate(() => document.activeElement?.textContent?.trim())) === 'Få hjælp';
     }
+    if (!reached) throw new Error('"Få hjælp" kan ikke nås med tabulatortasten');
+    // Knapper animerer deres kant på 150 ms; mål efter den er færdig.
+    await page.waitForTimeout(250);
     const ring = await help.evaluate((el) => ({ style: getComputedStyle(el).outlineStyle, width: getComputedStyle(el).outlineWidth }));
     if (ring.style === 'none' || ring.width === '0px') throw new Error('knappen viser ikke hvor fokus er');
     await page.keyboard.press('Enter');

@@ -75,7 +75,7 @@ export const funktioner: Domain = {
                 prompt: `Aflæs $f(${safeX})$ på grafen.`,
                 input: { kind: 'number' as const },
                 answer: numAns(a * safeX + b),
-                visual: { kind: 'coordinate' as const, xRange: [-8, 8] as [number, number], yRange: [-12, 12] as [number, number], lines: [{ a, b, label: 'f', tone: 'brand' as const }], points: [{ x: safeX, y: a * safeX + b, tone: 'accent' as const }] },
+                visual: { kind: 'coordinate' as const, xRange: [-8, 8] as [number, number], yRange: [-12, 12] as [number, number], lines: [{ a, b, label: 'f', tone: 'brand' as const }] },
                 hints: [`Gå til x = ${safeX} på den vandrette akse.`, 'Gå lodret op eller ned til grafen og aflæs y-værdien.'],
                 solution: [s('Aflæs y-værdien over x.', `f(${safeX}) = ${a * safeX + b}`)],
                 seconds: 40,
@@ -90,7 +90,6 @@ export const funktioner: Domain = {
                 xRange: [-8, 8],
                 yRange: [-12, 12],
                 lines: [{ a, b, label: 'f', tone: 'brand' }],
-                points: [{ x, y: value, tone: 'accent' }],
               },
               hints: [
                 `Find ${x} på den vandrette akse.`,

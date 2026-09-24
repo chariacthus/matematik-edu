@@ -211,6 +211,8 @@ export interface ProblemDraft {
   /** Kendte fejlsvar, så vi kan sige *hvorfor* det gik galt. */
   traps?: Trap[];
   visual?: Visual;
+  /** Tegningen er en hjælp, ikke en del af opgaven. Den vises først med et hint, og aldrig til prøven. */
+  visualAid?: boolean;
   /** Regel der bruges — vises i "Husk". */
   concept?: string;
   /** Forventet tid i sekunder; bruges til at opdage gæt. */
@@ -355,14 +357,18 @@ export type Visual =
     }
   | {
       kind: 'angles';
-      /** 'triangle' = vinkelsum, 'lines' = to linjer der skærer, 'parallel' = parallelle linjer. */
-      type: 'triangle' | 'lines' | 'parallel' | 'single';
+      /**
+       * 'triangle' = vinkelsum, 'lines' = to linjer der skærer, 'parallel' = parallelle linjer,
+       * 'straight' = to nabovinkler på en ret linje.
+       */
+      type: 'triangle' | 'lines' | 'parallel' | 'single' | 'straight';
       values: (number | null)[];
       labels?: string[];
       caption?: string;
     }
-  | { kind: 'barChart'; data: { label: string; value: number }[]; yLabel?: string; caption?: string }
-  | { kind: 'boxPlot'; min: number; q1: number; median: number; q3: number; max: number; caption?: string }
+  /** step: afstanden mellem hjælpelinjerne, så søjlerne kan aflæses på aksen. */
+  | { kind: 'barChart'; data: { label: string; value: number }[]; yLabel?: string; step?: number; caption?: string }
+  | { kind: 'boxPlot'; min: number; q1: number; median: number; q3: number; max: number; step?: number; caption?: string }
   | { kind: 'pie'; slices: { label: string; value: number }[]; caption?: string }
   | { kind: 'dotPlot'; values: number[]; caption?: string }
   | {
