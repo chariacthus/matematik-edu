@@ -16,7 +16,7 @@ import { CATEGORIES } from '../content';
 import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, Chip, IconTile, LabelledBar, PageHeader, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
+import { Callout, Card, ChoiceCard, Chip, LabelledBar, PageHeader, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { FormelsamlingButton } from '../components/Formelsamling';
 
@@ -131,22 +131,22 @@ function ExamPicker({ onStart }: { onStart: (part: ExamPart) => void }) {
         back={{ label: 'Forsiden', onClick: () => navigate({ name: 'dashboard' }) }}
       />
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {(['uden', 'med'] as const).map((part) => {
           const c = EXAM_PARTS[part];
           return (
-            <Card key={part} pad="lg" className="flex flex-col">
-              <IconTile name={part === 'uden' ? 'pencil' : 'calculator'} tone={part === 'uden' ? 'brand' : 'accent'} size="lg" className="mb-3" />
-              <h2 className="text-lg font-extrabold">{c.title}</h2>
-              <p className="mt-1.5 flex-1 text-sm leading-relaxed text-ink-600 dark:text-ink-300">{c.description}</p>
-              <div className="mt-3 flex gap-1.5">
-                <Chip tone="neutral">{c.count} opgaver</Chip>
-                <Chip tone="neutral">{c.minutes} min</Chip>
-              </div>
-              <button onClick={() => onStart(part)} className="btn-primary mt-4 w-full">
-                Start
-              </button>
-            </Card>
+            <ChoiceCard
+              key={part}
+              icon={part === 'uden' ? 'pencil' : 'calculator'}
+              tone={part === 'uden' ? 'brand' : 'accent'}
+              title={c.title}
+              description={c.description}
+              meta={[
+                { icon: 'layers', label: `${c.count} opgaver` },
+                { icon: 'clock', label: `${c.minutes} min` },
+              ]}
+              action={{ label: 'Start', onClick: () => onStart(part) }}
+            />
           );
         })}
       </div>

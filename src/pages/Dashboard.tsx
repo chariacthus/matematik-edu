@@ -11,9 +11,10 @@ import { DAY_MS, dayKey, relativeDays } from '../lib/dates';
 import { Icon, type IconName } from '../components/Icon';
 import { Tour, type TourStep } from '../components/Tour';
 import {
-  Callout, Card, Chip, CountUp, EmptyState, IconTile, Page,
-  ProgressBar, ProgressRing, Section, Segmented, StreakStrip, XpBar,
+  Callout, Card, ChoiceCard, Chip, EmptyState, IconTile, ListRow, Page,
+  ProgressBar, Section, Segmented, StatTile, XpBar,
 } from '../components/ui';
+import { LESSON_PHASES } from '../types';
 
 type Tab = 'plan' | 'repetition' | 'fejl';
 
@@ -28,10 +29,10 @@ type Tab = 'plan' | 'repetition' | 'fejl';
 const TOUR: TourStep[] = [
   {
     target: 'hud',
-    title: 'Din fremgang',
+    title: 'Stime og dagens mål',
     body:
-      'XP og niveau viser hvor langt du er kommet i alt. Stimen tæller de dage i træk du har lavet noget — ' +
-      'og dagens mål er det du skal nå i dag. Det tager omkring ti minutter.',
+      'Stimen tæller de dage i træk du har lavet noget. Dagens mål er det du skal nå i dag — omkring ti ' +
+      'minutters arbejde. Dit niveau og din XP står ved dit navn i menuen.',
   },
   {
     target: 'mission',
@@ -108,83 +109,86 @@ export function DashboardPage() {
   const goalPct = Math.min(100, (gamification.todayXp / gamification.dailyGoalXp) * 100);
   const hour = new Date().getHours();
 
+  const daysLabel = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
+  const firstState = first ? skills[first.skillId] : undefined;
+  const firstPhase = first?.kind === 'fortsaet' && firstState ? LESSON_PHASES.indexOf(firstState.phase) : -1;
+
   return (
     <Page className="animate-fade-in">
       {profile.onboarded && !profile.tourDone ? <Tour steps={TOUR} onDone={() => setTourDone(true)} /> : null}
 
-      {/* HUD */}
-      <section>
-        <p className="eyebrow mb-1">{hour < 10 ? 'Godmorgen' : hour < 17 ? 'Eftermiddag' : 'Godaften'}</p>
-        <h1 className="title-page mb-3 truncate">{profile.name || 'Kom i gang'}</h1>
-
-        <div data-tour="hud">
-        <Card pad="lg" className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <span className="min-w-0">
-              <span className="eyebrow block">{levelTitle(level.level)}</span>
-              <span className="num mt-0.5 block text-lg font-extrabold">
-                <CountUp value={gamification.xp} /> <span className="text-sm text-ink-400">XP i alt</span>
-              </span>
-            </span>
-            <ProgressRing value={overall.percent} size={48} stroke={5} />
-          </div>
-
-          <XpBar level={level.level} into={level.into} needed={level.needed} levelUp={pendingLevelUp !== null} />
-
-          <div className="grid gap-3 border-t border-ink-200/60 pt-4 dark:border-white/[0.07] sm:grid-cols-2">
-            <div>
-              <p className="eyebrow mb-2">Din stime</p>
-              <StreakStrip days={week} active={gamification.streakDays} />
-              <p className="mt-2 text-xs text-ink-500 dark:text-ink-400">
-                {gamification.streakDays === 0
-                  ? 'Løs én opgave i dag, så er stimen i gang.'
-                  : gamification.streakDays === 1
-                    ? 'Første dag. Kom igen i morgen, så vokser den.'
-                    : `${gamification.streakDays} dage i træk. Hold fast.`}
-              </p>
-            </div>
-            <div className="sm:border-l sm:border-ink-200/60 sm:pl-4 sm:dark:border-white/[0.07]">
-              <p className="eyebrow mb-2">Dagens mål</p>
-              <p className={clsx('num text-2xl font-extrabold leading-none', goalPct >= 100 && 'text-xp-500')}>
-                {gamification.todayXp}
-                <span className="text-base text-ink-400">/{gamification.dailyGoalXp} XP</span>
-              </p>
-              <div className="mt-2">
-                <ProgressBar value={goalPct} tone="xp" size="sm" label="Dagens mål" />
-              </div>
-              <p className="mt-2 text-xs text-ink-500 dark:text-ink-400">
-                {goalPct >= 100 ? 'Målet er nået i dag. Alt herfra er bonus.' : 'Cirka ti minutters arbejde.'}
-              </p>
-            </div>
-          </div>
-        </Card>
-        </div>
-      </section>
+      <header className="paper-head">
+        <p className="eyebrow mb-1">{hour < 10 ? 'Godmorgen' : hour < 17 ? 'God eftermiddag' : 'Godaften'}</p>
+        <h1 className="title-page truncate">{profile.name || 'Kom i gang'}</h1>
+      </header>
 
       {behaviour.rushing ? (
-        <div>
-          <Callout tone="warn" icon="clock">
-            Du svarer hurtigere end opgaverne kan læses, og de fleste bliver forkerte. Læs opgaven færdig først.
-          </Callout>
-        </div>
+        <Callout tone="warn" icon="clock">
+          Du svarer hurtigere end opgaverne kan læses, og de fleste bliver forkerte. Læs opgaven færdig først.
+        </Callout>
       ) : behaviour.hintDependent ? (
-        <div>
-          <Callout tone="brand" icon="bulb">
-            Skriv første skridt ned selv, før du åbner et hint. Det er dér læringen sker.
-          </Callout>
-        </div>
+        <Callout tone="brand" icon="bulb">
+          Skriv første skridt ned selv, før du åbner et hint. Det er dér læringen sker.
+        </Callout>
       ) : null}
 
-      {/* Dagens mål */}
-      {first ? (
-        <Section title="Dagens Missioner" className="scroll-mt-24" >
-          <div data-tour="mission">
-            <MissionCard item={first} />
+      <div className="grid gap-4 lg:grid-cols-3">
+        {first ? (
+          <div className="lg:col-span-2" data-tour="mission">
+            <p className="eyebrow mb-2.5">Dagens Missioner</p>
+            <MissionCard item={first} phase={firstPhase} />
           </div>
-        </Section>
-      ) : null}
+        ) : null}
 
-      {/* Resten */}
+        <div data-tour="hud" className={clsx('grid grid-cols-2 gap-3 lg:grid-cols-1 lg:content-start', first && 'lg:pt-[26px]')}>
+          <StatTile
+            label="Stime"
+            icon="flame"
+            tone="warn"
+            value={gamification.streakDays}
+            suffix={gamification.streakDays === 1 ? 'dag' : 'dage'}
+            hint={
+              gamification.streakDays === 0
+                ? 'Løs én opgave i dag.'
+                : gamification.streakDays === 1
+                  ? 'Kom igen i morgen.'
+                  : 'Hold fast.'
+            }
+          >
+            <span className="flex gap-1" aria-label="De sidste syv dage">
+              {week.map((on, i) => (
+                <span key={i} className="flex flex-1 flex-col items-center gap-1">
+                  <span
+                    className={clsx(
+                      'h-1.5 w-full animate-streak-lift rounded-full transition-colors',
+                      on ? 'bg-orange-400' : 'bg-ink-200 dark:bg-white/[0.08]',
+                    )}
+                    style={{ animationDelay: `${i * 40}ms` }}
+                  />
+                  <span className="text-[9px] font-medium text-ink-400">{daysLabel[(new Date(Date.now() - (6 - i) * DAY_MS).getDay() + 6) % 7]}</span>
+                </span>
+              ))}
+            </span>
+          </StatTile>
+          <StatTile
+            label="Dagens mål"
+            icon="target"
+            tone="xp"
+            value={gamification.todayXp}
+            suffix={`/ ${gamification.dailyGoalXp} XP`}
+            hint={goalPct >= 100 ? 'Nået. Resten er bonus.' : 'Cirka ti minutter.'}
+          >
+            <ProgressBar value={goalPct} tone="xp" size="sm" label="Dagens mål" />
+          </StatTile>
+        </div>
+      </div>
+
+      {/* Niveauet står i sidemenuen på en computer; på telefon får det sin egen række. */}
+      <Card pad="md" className="lg:hidden">
+        <p className="eyebrow mb-3">{levelTitle(level.level)}</p>
+        <XpBar level={level.level} into={level.into} needed={level.needed} levelUp={pendingLevelUp !== null} />
+      </Card>
+
       <section data-tour="tabs">
         <Segmented
           value={tab}
@@ -199,29 +203,41 @@ export function DashboardPage() {
         {tab === 'plan' ? (
           rest.length ? (
             <div className="stagger grid gap-2 sm:grid-cols-2">
-              {rest.slice(0, 4).map((item) => (
-                <PlanCard key={`${item.kind}-${item.skillId}`} item={item} />
-              ))}
+              {rest.slice(0, 4).map((item) => {
+                const k = KIND[item.kind];
+                return (
+                  <ListRow
+                    key={`${item.kind}-${item.skillId}`}
+                    icon={k.icon}
+                    tone={k.tone}
+                    title={item.title}
+                    subtitle={item.reason}
+                    trailing={<span className="num text-xs text-ink-400">{item.estimatedMinutes} min</span>}
+                    onClick={() => go(item)}
+                  />
+                );
+              })}
             </div>
           ) : (
-            <EmptyState icon="check" title="Planen er tom" body="Du har taget alt det vi anbefalede. Vælg selv et emne på kortet." />
+            <EmptyState icon="check" title="Planen er tom" body="Du har taget alt det vi anbefalede. Vælg selv et emne under Emner." />
           )
         ) : null}
 
         {tab === 'repetition' ? (
           due.length ? (
-            <Card>
-              <p className="mb-3 text-sm text-ink-600 dark:text-ink-300">
-                De her emner er ved at falde ud igen. Fem minutter nu sparer en genindlæring senere.
-              </p>
-              <ul className="mb-3 divide-y divide-ink-100 dark:divide-white/[0.07]">
+            <Card pad="sm">
+              <div className="mb-2 space-y-0.5">
                 {due.slice(0, 5).map((s) => (
-                  <li key={s.skillId} className="flex items-center justify-between gap-3 py-2 text-sm">
-                    <span className="truncate font-semibold">{getSkill(s.skillId)?.name ?? s.skillId}</span>
-                    <span className="shrink-0 text-xs text-ink-500 dark:text-ink-400">{relativeDays(s.due)}</span>
-                  </li>
+                  <ListRow
+                    key={s.skillId}
+                    variant="plain"
+                    icon="refresh"
+                    tone="accent"
+                    title={getSkill(s.skillId)?.name ?? s.skillId}
+                    trailing={<span className="text-xs text-ink-500 dark:text-ink-400">{relativeDays(s.due)}</span>}
+                  />
                 ))}
-              </ul>
+              </div>
               <button onClick={() => navigate({ name: 'review' })} className="btn-primary w-full">
                 <Icon name="refresh" size={16} /> Start repetition ({due.length})
               </button>
@@ -239,9 +255,9 @@ export function DashboardPage() {
                   <div className="flex items-start gap-3">
                     <IconTile name="search" tone="warn" size="sm" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold">{def.name}</p>
+                      <p className="text-sm font-semibold">{def.name}</p>
                       <p className="mt-0.5 text-sm text-ink-600 dark:text-ink-300">{def.correction}</p>
-                      <p className="mt-1.5 text-xs font-semibold text-brand-600 dark:text-brand-300">{def.tip}</p>
+                      <p className="mt-1.5 text-xs font-medium text-brand-600 dark:text-brand-300">{def.tip}</p>
                     </div>
                     <Chip tone="warn">{state.count}×</Chip>
                   </div>
@@ -254,16 +270,8 @@ export function DashboardPage() {
         ) : null}
       </section>
 
-      {/* Kompetenceområder */}
-      <Section
-        title="Kompetenceområder"
-        action={
-          <button onClick={() => navigate({ name: 'library' })} className="text-xs font-bold text-brand-600 dark:text-brand-300">
-            Se alle emner
-          </button>
-        }
-      >
-        <div className="grid gap-2 sm:grid-cols-2">
+      <Section title="Kompetenceområder" hint={`${overall.percent} % af pensum`}>
+        <div className="stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {CATEGORIES.map((cat) => {
             const inCat = domains.filter((d) => d.category === cat.id);
             if (!inCat.length) return null;
@@ -272,42 +280,30 @@ export function DashboardPage() {
             const total = inCat.reduce((n, d) => n + d.total, 0);
             const icon: IconName = { 'tal-algebra': 'sigma', 'geometri-maaling': 'shapes', 'statistik-sandsynlighed': 'chart', kompetencer: 'brain' }[cat.id] as IconName;
             return (
-              <button
+              <ChoiceCard
                 key={cat.id}
+                size="md"
+                icon={icon}
+                tone={pct >= 70 ? 'xp' : 'brand'}
+                title={cat.name}
+                meta={[{ icon: 'star', label: `${mastered}/${total} mestret` }]}
                 onClick={() => navigate({ name: 'library' })}
-                className="card-interactive group flex items-center gap-3 p-3 text-left"
               >
-                <IconTile name={icon} tone="brand" />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-bold">{cat.name}</span>
-                  <span className="mt-1 block">
-                    <ProgressBar value={pct} size="sm" tone={pct >= 70 ? 'xp' : 'brand'} label={cat.name} />
-                  </span>
-                </span>
-                <span className="shrink-0 text-xs font-extrabold tabular-nums text-ink-400">
-                  {mastered}/{total}
-                </span>
-              </button>
+                <ProgressBar value={pct} size="sm" tone={pct >= 70 ? 'xp' : 'brand'} label={cat.name} />
+              </ChoiceCard>
             );
           })}
         </div>
       </Section>
 
-      {/* FP9 */}
       <Section title="Prøvetræning">
-        <button
+        <ListRow
+          icon="exam"
+          tone="neutral"
+          title="Træn til FP9"
+          subtitle="Begge prøvedele, på tid — med formelsamling i delen med hjælpemidler."
           onClick={() => navigate({ name: 'exam' })}
-          className="card-interactive group flex w-full items-center gap-3 p-4 text-left"
-        >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink-900 text-[11px] font-extrabold tracking-tight text-white dark:bg-white dark:text-ink-950">
-            FP9
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-bold">Træn til prøven</span>
-            <span className="block text-sm text-ink-500 dark:text-ink-400">Begge prøvedele, på tid.</span>
-          </span>
-          <Icon name="chevron" size={18} className="shrink-0 text-ink-400 transition-transform group-hover:translate-x-0.5" />
-        </button>
+        />
       </Section>
     </Page>
   );
@@ -326,50 +322,20 @@ const KIND: Record<PlanItem['kind'], { icon: IconName; label: string; tone: 'war
 const go = (item: PlanItem) =>
   item.kind === 'diagnose' ? navigate({ name: 'diagnose' }) : navigate({ name: 'lesson', skillId: item.skillId });
 
-/** Det store, trykbare mål. Det skal se ud som en knap man vil trykke på. */
-function MissionCard({ item }: { item: PlanItem }) {
+/** Dagens mission: prøvevalgets kort, med det der skal ske som eneste handling. */
+function MissionCard({ item, phase }: { item: PlanItem; phase: number }) {
   const style = KIND[item.kind];
+  const meta: { icon: IconName; label: string }[] = [{ icon: 'clock', label: `${item.estimatedMinutes} min` }];
+  if (phase >= 0) meta.push({ icon: 'layers', label: `Trin ${phase + 1} af 7` });
   return (
-    <button
-      onClick={() => go(item)}
-      className="card-interactive group flex w-full items-start gap-4 p-5 text-left"
-    >
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-inset">
-        <Icon name={style.icon} size={22} />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600 dark:text-brand-300">
-          {style.label}
-        </span>
-        <span className="mt-0.5 block text-lg font-extrabold leading-tight">{item.title}</span>
-        <span className="mt-1.5 block text-sm leading-snug text-ink-500 dark:text-ink-400">{item.reason}</span>
-        <span className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-ink-100 px-2 py-1 text-[11px] font-bold text-ink-600 dark:bg-white/[0.07] dark:text-ink-300">
-          <Icon name="clock" size={12} />
-          {item.estimatedMinutes} min
-        </span>
-      </span>
-      <Icon
-        name="chevron"
-        size={20}
-        className="mt-1 shrink-0 text-ink-400 transition-transform group-hover:translate-x-0.5"
-      />
-    </button>
-  );
-}
-
-function PlanCard({ item }: { item: PlanItem }) {
-  const style = KIND[item.kind];
-  return (
-    <button
-      onClick={() => go(item)}
-      className="card-interactive group flex w-full items-start gap-3 p-4 text-left"
-    >
-      <IconTile name={style.icon} tone={style.tone} size="sm" />
-      <span className="min-w-0 flex-1">
-        <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">{style.label}</span>
-        <span className="block text-sm font-bold leading-snug">{item.title}</span>
-        <span className="mt-1 block text-xs leading-snug text-ink-500 dark:text-ink-400">{item.reason}</span>
-      </span>
-    </button>
+    <ChoiceCard
+      icon={style.icon}
+      tone={style.tone}
+      eyebrow={style.label}
+      title={item.title}
+      description={item.reason}
+      meta={meta}
+      action={{ label: item.kind === 'fortsaet' ? 'Fortsæt' : 'Start', onClick: () => go(item) }}
+    />
   );
 }

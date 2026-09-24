@@ -10,17 +10,18 @@ import { navigate } from "../lib/router";
 import { relativeDays } from "../lib/dates";
 import {
   Card,
+  ChoiceCard,
   Chip,
   EmptyState,
-  IconTile,
   LevelDots,
+  MetaChip,
   PageHeader,
   ProgressBar,
   ProgressRing,
   Segmented,
 } from "../components/ui";
 import { SkillMap } from "../components/SkillMap";
-import { domainIcon } from "../components/Icon";
+import { Icon, domainIcon } from "../components/Icon";
 import { MathText } from "../components/MathText";
 
 /**
@@ -73,14 +74,17 @@ export function LibraryPage() {
         subtitle={`Pensum efter Fælles Mål — ${DOMAINS.length} emner, ${DOMAINS.reduce((n, d) => n + d.skills.length, 0)} færdigheder`}
       />
 
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Søg efter emne eller færdighed …"
-        className="field"
-        aria-label="Søg i biblioteket"
-        type="search"
-      />
+      <div className="relative">
+        <Icon name="search" size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Søg efter emne eller færdighed …"
+          className="field pl-10"
+          aria-label="Søg i biblioteket"
+          type="search"
+        />
+      </div>
 
       {CATEGORIES.map((cat) => {
         const domains = DOMAINS.filter(
@@ -91,10 +95,11 @@ export function LibraryPage() {
           <section key={cat.id}>
             {/* Kompetenceområdets navn står alene, og Fælles Måls egen
                 formulering står under - ikke klemt ind ved siden af. */}
-            <h2 className="text-[11px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">
-              {cat.name}
-            </h2>
-            <p className="mb-3 mt-0.5 text-xs leading-relaxed text-ink-500 dark:text-ink-400">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="eyebrow">{cat.name}</h2>
+              <span className="num text-xs text-ink-400">{domains.length} emner</span>
+            </div>
+            <p className="mb-4 mt-1 max-w-2xl text-xs leading-relaxed text-ink-500 dark:text-ink-400">
               {cat.faellesMaal}
             </p>
             {/*
@@ -111,38 +116,27 @@ export function LibraryPage() {
                     {areaName(area)}
                   </h3>
                 ) : null}
-                <div className="stagger grid gap-2.5 sm:grid-cols-2">
+                <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-3">
                   {inArea.map((d) => {
                     const p = byId.get(d.id);
+                    const done = p ? p.mastered === p.total : false;
                     return (
-                      <button
+                      <ChoiceCard
                         key={d.id}
-                        onClick={() =>
-                          navigate({ name: "domain", domainId: d.id })
-                        }
-                        className="card flex items-start gap-3 p-3.5 text-left transition-all duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-lift"
+                        size="md"
+                        icon={domainIcon(d.id)}
+                        tone={done ? "xp" : "brand"}
+                        title={d.name}
+                        meta={[{ icon: "star", label: `${p?.mastered ?? 0}/${p?.total ?? d.skills.length}` }]}
+                        onClick={() => navigate({ name: "domain", domainId: d.id })}
                       >
-                        <IconTile
-                          name={domainIcon(d.id)}
-                          tone={p && p.mastered === p.total ? "xp" : "brand"}
+                        <ProgressBar
+                          value={p?.percent ?? 0}
+                          size="sm"
+                          tone={(p?.percent ?? 0) >= 70 ? "xp" : "brand"}
+                          label={d.name}
                         />
-                        <span className="min-w-0 flex-1">
-                          <span className="flex items-baseline justify-between gap-2">
-                            <span className="truncate font-bold">{d.name}</span>
-                            <span className="shrink-0 text-[11px] font-extrabold tabular-nums text-ink-400">
-                              {p?.mastered ?? 0}/{p?.total ?? d.skills.length}
-                            </span>
-                          </span>
-                          <span className="mt-1.5 block">
-                            <ProgressBar
-                              value={p?.percent ?? 0}
-                              size="sm"
-                              tone={(p?.percent ?? 0) >= 70 ? "xp" : "brand"}
-                              label={d.name}
-                            />
-                          </span>
-                        </span>
-                      </button>
+                      </ChoiceCard>
                     );
                   })}
                 </div>
@@ -205,17 +199,15 @@ export function DomainPage({ domainId }: { domainId: string }) {
         right={<ProgressRing value={percent} size={56} />}
       />
 
-      <div className="mb-4 flex flex-wrap items-center gap-1.5">
-        <Chip tone="neutral" icon={domainIcon(domain.id)}>
-          {areaName(domain.area)}
-        </Chip>
-        <Chip tone={mastered === list.length ? "xp" : "neutral"} icon="star">
+      <div className="mb-5 mt-4 flex flex-wrap items-center gap-1.5">
+        <MetaChip icon={domainIcon(domain.id)}>{areaName(domain.area)}</MetaChip>
+        <MetaChip icon="star" tone={mastered === list.length ? "xp" : "neutral"}>
           {mastered}/{list.length} mestret
-        </Chip>
+        </MetaChip>
         {diagnostic !== undefined ? (
-          <Chip tone="brand" icon="target">
+          <MetaChip icon="target" tone="brand">
             niveautest {diagnostic} %
-          </Chip>
+          </MetaChip>
         ) : null}
       </div>
 

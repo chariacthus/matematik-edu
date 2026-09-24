@@ -135,28 +135,24 @@ export function ProblemCard({
   return (
     <article
       className={clsx(
-        'card relative overflow-visible transition-colors duration-300',
-        // Grønt pulsslag ved rigtigt svar, ryst ved forkert. Begge slås
-        // fra af prefers-reduced-motion.
-        //
-        // Ved et rigtigt svar løber lyset desuden én gang rundt om
-        // kortet i grønt. Det er belønningen: man kan se den i
-        // øjenkrogen uden at skulle læse noget.
+        'card relative overflow-visible rounded-3xl transition-colors duration-300',
+        // Grønt pulsslag ved rigtigt svar, ryst ved forkert, og kanten
+        // tager svarets farve. Bevægelsen slås fra af "Mindre bevægelse".
         verdict === 'correct' && 'animate-pulse-correct border-xp-500/50',
         verdict === 'wrong' && 'animate-shake border-bad-500/50',
       )}
     >
       {xpPop && xpOnCorrect ? <XpPop amount={xpOnCorrect} onDone={() => setXpPop(false)} /> : null}
       {/* Hoved */}
-      <div className="flex flex-wrap items-center gap-2 rounded-t-2xl border-b border-ink-200 px-5 py-2.5 dark:border-white/[0.07]">
+      <div className="flex flex-wrap items-center gap-2 rounded-t-3xl border-b border-ink-200 px-5 py-3 dark:border-white/[0.07] sm:px-6">
         <Chip tone="neutral">{skill.name}</Chip>
         <LevelDots level={problem.level} />
         <span className="ml-auto flex items-center gap-2">{headerRight}</span>
       </div>
 
-      <div className="p-5">
+      <div className="p-5 sm:p-6">
         {/* Opgaven */}
-        <div className="prose-math text-lg leading-relaxed text-ink-900 dark:text-ink-50">
+        <div className="prose-math text-xl leading-relaxed text-ink-900 dark:text-ink-50">
           <MathText>{problem.prompt}</MathText>
         </div>
         {problem.instruction ? (

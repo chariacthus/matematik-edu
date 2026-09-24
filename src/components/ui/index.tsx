@@ -72,10 +72,12 @@ export function IconTile({
 
 /** Et kort faktum: "8 min", "20 opgaver", "0/5 mestret". */
 export function MetaChip({ icon, children, tone = 'neutral' }: { icon?: IconName; children: ReactNode; tone?: 'neutral' | 'brand' | 'xp' }) {
+  // Udfyldt som chipsene på prøvevalget, med en hårfin kant så de står
+  // skarpt på både lyst og mørkt.
   const tones = {
-    neutral: 'border-ink-200 text-ink-600 dark:border-white/10 dark:text-ink-300',
-    brand: 'border-brand-200 text-brand-700 dark:border-brand-400/30 dark:text-brand-300',
-    xp: 'border-xp-200 text-xp-700 dark:border-xp-400/30 dark:text-xp-300',
+    neutral: 'border-ink-200 bg-ink-100 text-ink-600 dark:border-white/[0.06] dark:bg-white/[0.06] dark:text-ink-300',
+    brand: 'border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-400/20 dark:bg-brand-500/15 dark:text-brand-300',
+    xp: 'border-xp-200 bg-xp-100 text-xp-700 dark:border-xp-400/20 dark:bg-xp-500/15 dark:text-xp-300',
   }[tone];
   return (
     <span className={clsx('num inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs font-medium', tones)}>
@@ -123,6 +125,10 @@ export function ChoiceCard({
   className?: string;
 } & Omit<HTMLAttributes<HTMLElement>, 'className' | 'children' | 'title' | 'onClick'>) {
   const lg = size === 'lg';
+  // Står kortet stille med en knap, er titlen en overskrift, så en
+  // skærmlæser kan hoppe mellem valgene. Er hele kortet en knap, må der
+  // ikke ligge en overskrift inde i den.
+  const Title = onClick ? 'span' : 'h3';
   const body = (
     <>
       {selected ? (
@@ -134,7 +140,7 @@ export function ChoiceCard({
         {icon ? <IconTile name={icon} tone={tone} size={lg ? 'lg' : 'md'} /> : null}
         {eyebrow && !selected ? <span className="eyebrow pt-1 text-right">{eyebrow}</span> : null}
       </span>
-      <span className={clsx('block font-semibold tracking-tight', lg ? 'mt-4 text-lg' : 'mt-3 text-[15px]')}>{title}</span>
+      <Title className={clsx('block font-semibold tracking-tight', lg ? 'mt-4 text-lg' : 'mt-3 text-[15px]')}>{title}</Title>
       {description ? (
         <span className={clsx('mt-1.5 block leading-relaxed text-ink-600 dark:text-ink-400', lg ? 'text-sm' : 'line-clamp-2 text-[13px]')}>
           {description}
@@ -172,10 +178,14 @@ export function ChoiceCard({
     <div className={clsx('card relative', frame)} {...rest}>
       {body}
       {action ? (
-        <button onClick={action.onClick} className={clsx('btn-primary mt-auto w-full', lg ? 'btn-lg mt-5' : 'mt-4')}>
-          {action.label}
-          <Icon name={action.icon ?? 'arrow-right'} size={16} />
-        </button>
+        // mt-auto skubber knappen til bunden når kort står side om side;
+        // afstanden til indholdet ligger i padding, så de to ikke kæmper.
+        <span className={clsx('mt-auto block', lg ? 'pt-5' : 'pt-4')}>
+          <button onClick={action.onClick} className={clsx('btn-primary w-full', lg && 'btn-lg')}>
+            {action.label}
+            <Icon name={action.icon ?? 'arrow-right'} size={16} />
+          </button>
+        </span>
       ) : null}
     </div>
   );
