@@ -8,6 +8,7 @@ import { levelProgress, levelTitle } from '../engine/gamification';
 import { CATEGORIES, getSkill } from '../content';
 import { CATEGORY_SIGNATURES, skillSignature } from '../content/signatures';
 import { navigate } from '../lib/router';
+import { openPlanItem } from '../lib/plan';
 import { DAY_MS, dayKey, relativeDays } from '../lib/dates';
 import { Icon, type IconName } from '../components/Icon';
 import { Tour, type TourStep } from '../components/Tour';
@@ -89,6 +90,7 @@ export function DashboardPage() {
   const overall = useMemo(() => overallProgress(skills), [skills]);
   const domains = useMemo(() => domainProgress(skills, profile), [skills, profile]);
   const due = useMemo(() => dueSkills(skills), [skills]);
+  const anyMastered = useMemo(() => Object.values(skills).some((s) => s.masteredAt !== null), [skills]);
   const errors = useMemo(() => activeMisconceptions(misconceptions).filter((m) => m.state.count >= 2), [misconceptions]);
   const behaviour = useMemo(() => readBehaviour(attempts, 10), [attempts]);
   const level = levelProgress(gamification.xp);
@@ -150,7 +152,7 @@ export function DashboardPage() {
             suffix={gamification.streakDays === 1 ? 'dag' : 'dage'}
             hint={
               gamification.streakDays === 0
-                ? 'Løs én opgave i dag.'
+                ? 'Start i dag. Én opgave er nok.'
                 : gamification.streakDays === 1
                   ? 'Kom igen i morgen.'
                   : 'Kom igen i morgen.'
@@ -219,7 +221,7 @@ export function DashboardPage() {
                     title={item.title}
                     subtitle={item.reason}
                     trailing={<span className="num text-xs text-ink-400">{item.estimatedMinutes} min</span>}
-                    onClick={() => go(item)}
+                    onClick={() => openPlanItem(item)}
                   />
                 );
               })}
@@ -249,7 +251,15 @@ export function DashboardPage() {
               </button>
             </Card>
           ) : (
-            <EmptyState icon="seedling" title="Intet at repetere" body="Du kan stadig alt det du har lært. Når noget skal repeteres, står det her." />
+            <EmptyState
+              icon="seedling"
+              title="Intet at repetere endnu"
+              body={
+                anyMastered
+                  ? 'Du kan stadig det du har lært. Når et emne skal repeteres, står det her.'
+                  : 'Når du har lært et emne, kommer det tilbage her efter et par dage, så du ikke glemmer det.'
+              }
+            />
           )
         ) : null}
 
@@ -271,7 +281,7 @@ export function DashboardPage() {
               ))}
             </ul>
           ) : (
-            <EmptyState icon="check" title="Ingen fejl der går igen" body="Når den samme fejl dukker op to gange, stopper vi op og forklarer den her." />
+            <EmptyState icon="check" title="Ingen fejl der går igen" body="Laver du den samme fejl to gange, kommer den her, så du kan få den forklaret." />
           )
         ) : null}
       </section>
@@ -284,6 +294,7 @@ export function DashboardPage() {
             const pct = Math.round(inCat.reduce((n, d) => n + d.percent, 0) / inCat.length);
             const mastered = inCat.reduce((n, d) => n + d.mastered, 0);
             const total = inCat.reduce((n, d) => n + d.total, 0);
+            const started = inCat.some((d) => d.mastered + d.inProgress > 0);
             return (
               <ChoiceCard
                 key={cat.id}
@@ -291,10 +302,10 @@ export function DashboardPage() {
                 preview={<FormulaTile tex={CATEGORY_SIGNATURES[cat.id]} />}
                 tone={pct >= 70 ? 'xp' : 'brand'}
                 title={cat.name}
-                meta={[{ icon: 'star', label: `${mastered}/${total} mestret` }]}
+                meta={started ? [{ icon: 'star', label: `${mastered}/${total} mestret` }] : [{ label: 'Ikke startet' }]}
                 onClick={() => navigate({ name: 'library' })}
               >
-                <ProgressBar value={pct} size="sm" tone={pct >= 70 ? 'xp' : 'brand'} label={cat.name} />
+                {started ? <ProgressBar value={pct} size="sm" tone={pct >= 70 ? 'xp' : 'brand'} label={cat.name} /> : null}
               </ChoiceCard>
             );
           })}
@@ -324,9 +335,6 @@ const KIND: Record<PlanItem['kind'], { icon: IconName; label: string; tone: 'war
   diagnose: { icon: 'map', label: 'Niveautest', tone: 'brand' },
 };
 
-const go = (item: PlanItem) =>
-  item.kind === 'diagnose' ? navigate({ name: 'diagnose' }) : navigate({ name: 'lesson', skillId: item.skillId });
-
 /** Dagens mission: prøvevalgets kort, med det der skal ske som eneste handling. */
 function MissionCard({ item, phase }: { item: PlanItem; phase: number }) {
   const style = KIND[item.kind];
@@ -342,7 +350,7 @@ function MissionCard({ item, phase }: { item: PlanItem; phase: number }) {
       title={item.title}
       description={item.reason}
       meta={meta}
-      action={{ label: item.kind === 'fortsaet' ? 'Fortsæt' : 'Start', onClick: () => go(item) }}
+      action={{ label: item.kind === 'fortsaet' ? 'Fortsæt' : 'Start', onClick: () => openPlanItem(item) }}
     />
   );
 }

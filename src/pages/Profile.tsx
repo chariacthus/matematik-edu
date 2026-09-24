@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { useStore } from '../state/store';
 import { ACHIEVEMENTS, levelProgress, levelTitle, xpForLevel } from '../engine/gamification';
-import { domainProgress, overallProgress } from '../engine/planner';
+import { buildPlan, domainProgress, overallProgress } from '../engine/planner';
 import { activeMisconceptions } from '../engine/diagnosis';
 import { formatMinutes } from '../lib/dates';
 import { navigate } from '../lib/router';
-import { Card, MetaChip, IconTile, LabelledBar, ListRow, Section, SectionTitle, StatTile, XpBar } from '../components/ui';
+import { openPlanItem } from '../lib/plan';
+import { Card, IconTile, LabelledBar, ListRow, MetaChip, Section, SectionTitle, StatTile, XpBar } from '../components/ui';
 import { Icon, domainIcon } from '../components/Icon';
 
 /** Elevens profil: fremgang, styrker, svagheder og badges. */
@@ -22,11 +23,19 @@ export function ProfilePage() {
   const domains = useMemo(() => domainProgress(skills, profile), [skills, profile]);
   const errors = useMemo(() => activeMisconceptions(misconceptions), [misconceptions]);
 
+  const next = useMemo(() => buildPlan({ states: skills, misconceptions, profile }, 1)[0], [skills, misconceptions, profile]);
+  const [allBadges, setAllBadges] = useState(false);
+
+  const fresh = attempts.length === 0;
   const correct = attempts.filter((a) => a.correct).length;
   const accuracy = attempts.length ? Math.round((correct / attempts.length) * 100) : 0;
-  const ranked = [...domains].sort((a, b) => b.percent - a.percent);
+  const started = domains.filter((d) => d.mastered + d.inProgress > 0);
+  const ranked = [...started].sort((a, b) => b.percent - a.percent);
   const strong = ranked.filter((d) => d.percent > 0).slice(0, 3);
-  const weak = ranked.filter((d) => d.total > 0).slice(-3).reverse();
+  const weak = ranked.filter((d) => !strong.includes(d)).slice(-3).reverse();
+  const earned = ACHIEVEMENTS.filter((a) => gamification.achievements[a.id]);
+  const locked = ACHIEVEMENTS.filter((a) => !gamification.achievements[a.id]);
+  const badges = allBadges ? [...earned, ...locked] : [...earned, ...locked.slice(0, 3)];
 
   return (
     <div className="space-y-6">
@@ -42,42 +51,72 @@ export function ProfilePage() {
         </div>
       </header>
 
-      <Card pad="md">
-        <XpBar level={level.level} into={level.into} needed={level.needed} />
-        <p className="num mt-2 text-xs text-ink-500 dark:text-ink-400">
-          {gamification.xp} XP i alt · næste niveau ved {xpForLevel(level.level)} XP
-        </p>
-      </Card>
-
-      {/* Nøgletal */}
-      <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Opgaver løst" icon="check" value={attempts.length} />
-        <StatTile label="Rigtige" icon="target" value={accuracy} suffix="%" />
-        <StatTile label="Mestret" icon="star" tone="xp" value={overall.mastered} suffix={`/ ${overall.total}`} />
-        <StatTile label="Tid brugt" icon="clock" value={formatMinutes(gamification.totalMinutes)} />
-      </div>
-
-      {/* Emneprofil */}
-      <section>
-        <SectionTitle hint={`${overall.percent} % samlet`}>Din profil, emne for emne</SectionTitle>
-        <Card>
-          <ul className="stagger space-y-3">
-            {domains.map((d) => (
-              <li key={d.domainId}>
-                <LabelledBar
-                  label={d.name}
-                  value={d.percent}
-                  right={`${d.percent} %`}
-                  onClick={() => navigate({ name: 'domain', domainId: d.domainId })}
-                />
-              </li>
-            ))}
-          </ul>
+      {fresh ? (
+        <Card pad="lg" className="paper-tile">
+          <h2 className="text-lg font-semibold">Din profil fyldes ud når du går i gang</h2>
+          <p className="mt-1.5 max-w-md text-sm text-ink-600 dark:text-ink-300">
+            Her kommer dine tal, de emner du arbejder med, og de badges du får. Løs de første opgaver, så er der noget at se.
+          </p>
+          {next ? (
+            <button onClick={() => openPlanItem(next)} className="btn-primary mt-5">
+              Start dagens mission <Icon name="arrow-right" size={16} />
+            </button>
+          ) : null}
         </Card>
-      </section>
+      ) : (
+        <>
+          <Card pad="md">
+            <XpBar level={level.level} into={level.into} needed={level.needed} />
+            <p className="num mt-2 text-xs text-ink-500 dark:text-ink-400">
+              {gamification.xp} XP i alt · næste niveau ved {xpForLevel(level.level)} XP
+            </p>
+          </Card>
+
+          <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StatTile label="Opgaver løst" icon="check" value={attempts.length} />
+            <StatTile label="Rigtige" icon="target" value={accuracy} suffix="%" />
+            <StatTile label="Mestret" icon="star" tone="xp" value={overall.mastered} suffix={`/ ${overall.total}`} />
+            <StatTile label="Tid brugt" icon="clock" value={formatMinutes(gamification.totalMinutes)} />
+          </div>
+
+          <section>
+            <SectionTitle hint={`${overall.percent} % samlet`}>Dine emner</SectionTitle>
+            <Card>
+              {started.length ? (
+                <ul className="stagger space-y-3">
+                  {started.map((d) => (
+                    <li key={d.domainId}>
+                      <LabelledBar
+                        label={d.name}
+                        value={d.percent}
+                        right={`${d.percent} %`}
+                        onClick={() => navigate({ name: 'domain', domainId: d.domainId })}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {domains.length > started.length ? (
+                <button
+                  onClick={() => navigate({ name: 'library' })}
+                  className={clsx(
+                    'flex w-full items-center justify-between gap-3 text-left text-sm text-ink-500 transition-colors hover:text-ink-900 dark:text-ink-400 dark:hover:text-white',
+                    started.length && 'mt-4 border-t border-ink-100 pt-3.5 dark:border-white/[0.06]',
+                  )}
+                >
+                  <span>
+                    {domains.length - started.length} {domains.length - started.length === 1 ? 'emne' : 'emner'} ikke startet endnu
+                  </span>
+                  <Icon name="chevron" size={16} />
+                </button>
+              ) : null}
+            </Card>
+          </section>
+        </>
+      )}
 
       {/* Styrker og svagheder */}
-      {attempts.length > 0 ? (
+      {started.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
           <Section title="Dine styrker">
             {strong.length ? (
@@ -100,6 +139,7 @@ export function ProfilePage() {
             )}
           </Section>
 
+          {weak.length ? (
           <Section title="Her er der mest at hente">
             <div className="space-y-2">
               {weak.map((d) => (
@@ -114,6 +154,7 @@ export function ProfilePage() {
               ))}
             </div>
           </Section>
+          ) : null}
         </div>
       ) : null}
 
@@ -140,9 +181,9 @@ export function ProfilePage() {
 
       {/* Badges */}
       <section>
-        <SectionTitle hint={`${Object.keys(gamification.achievements).length} af ${ACHIEVEMENTS.length}`}>Badges</SectionTitle>
+        <SectionTitle hint={`${earned.length} af ${ACHIEVEMENTS.length}`}>{earned.length ? 'Badges' : 'Dine første badges'}</SectionTitle>
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-          {ACHIEVEMENTS.map((a) => {
+          {badges.map((a) => {
             const earned = Boolean(gamification.achievements[a.id]);
             return (
               <div
@@ -158,6 +199,11 @@ export function ProfilePage() {
             );
           })}
         </div>
+        {locked.length > 3 ? (
+          <button onClick={() => setAllBadges((v) => !v)} className="btn-ghost btn-sm mt-2.5">
+            {allBadges ? 'Vis færre' : `Vis alle ${ACHIEVEMENTS.length}`}
+          </button>
+        ) : null}
       </section>
 
       <div className="flex justify-center">

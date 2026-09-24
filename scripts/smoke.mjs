@@ -710,6 +710,51 @@ try {
   });
   await shot('17-proeve-moerk');
 
+  await step('første dag: ingen vægge af nuller', async () => {
+    const fresh = await browser.newContext({ viewport: { width: 420, height: 900 } });
+    // Profilen skal ligge klar før appen starter, ellers når den at gemme
+    // en tom profil oven i den.
+    await fresh.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return;
+      localStorage.clear();
+      localStorage.setItem(
+        'matematik-ai:profile',
+        JSON.stringify({ name: 'Ny', onboarded: true, diagnosticDone: true, tourDone: true, createdAt: Date.now() }),
+      );
+      sessionStorage.setItem('seeded', '1');
+    });
+    const p = await fresh.newPage();
+    p.on('pageerror', (e) => errors.push(`pageerror (første dag): ${e.message}`));
+    try {
+      for (const [w, h] of [[420, 900], [1280, 860]]) {
+        await p.setViewportSize({ width: w, height: h });
+        await p.goto('http://127.0.0.1:4173/#/profil');
+        await p.reload({ waitUntil: 'networkidle' });
+        await p.getByText('Din profil fyldes ud når du går i gang').waitFor({ timeout: 8000 });
+        const profile = await p.evaluate(() => document.querySelector('main').innerText);
+        if (/\b0 %/.test(profile)) throw new Error(`profilen viser 0 % ved ${w}px`);
+        await p.getByRole('button', { name: /Start dagens mission/ }).waitFor({ timeout: 3000 });
+        await p.waitForTimeout(600);
+        await p.screenshot({ path: `/tmp/claude-0/shot-29-foerste-dag-profil-${w}.png` });
+        shots.push(`/tmp/claude-0/shot-29-foerste-dag-profil-${w}.png`);
+
+        await p.goto('http://127.0.0.1:4173/#/');
+        await p.getByText('Dagens Missioner').waitFor({ timeout: 8000 });
+        const home = await p.evaluate(() => document.querySelector('main').innerText);
+        if (/0\/\d+ mestret/.test(home)) throw new Error(`forsiden viser "0/… mestret" ved ${w}px`);
+        const notStarted = await p.getByText('Ikke startet', { exact: true }).count();
+        if (notStarted < 4) throw new Error(`kun ${notStarted} kompetenceområder står som ikke startet`);
+
+        await p.goto('http://127.0.0.1:4173/#/bibliotek');
+        await p.getByRole('heading', { name: 'Emner', exact: true }).waitFor({ timeout: 8000 });
+        const lib = await p.getByText('Ikke startet', { exact: true }).count();
+        if (lib < 21) throw new Error(`kun ${lib} emner står som ikke startet i Emner`);
+      }
+    } finally {
+      await fresh.close();
+    }
+  });
+
   await step('telefonens tastrække skriver minus i feltet', async () => {
     const touch = await browser.newContext({
       viewport: { width: 390, height: 844 },

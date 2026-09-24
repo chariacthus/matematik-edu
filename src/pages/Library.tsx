@@ -121,6 +121,7 @@ export function LibraryPage() {
                   {inArea.map((d) => {
                     const p = byId.get(d.id);
                     const done = p ? p.mastered === p.total : false;
+                    const started = p ? p.mastered + p.inProgress > 0 : false;
                     return (
                       <ChoiceCard
                         key={d.id}
@@ -128,15 +129,21 @@ export function LibraryPage() {
                         preview={<FormulaTile tex={DOMAIN_SIGNATURES[d.id]} />}
                         tone={done ? "xp" : "brand"}
                         title={d.name}
-                        meta={[{ icon: "star", label: `${p?.mastered ?? 0}/${p?.total ?? d.skills.length}` }]}
+                        meta={
+                          started
+                            ? [{ icon: "star", label: `${p?.mastered ?? 0}/${p?.total ?? d.skills.length}` }]
+                            : [{ label: "Ikke startet" }]
+                        }
                         onClick={() => navigate({ name: "domain", domainId: d.id })}
                       >
-                        <ProgressBar
-                          value={p?.percent ?? 0}
-                          size="sm"
-                          tone={(p?.percent ?? 0) >= 70 ? "xp" : "brand"}
-                          label={d.name}
-                        />
+                        {started ? (
+                          <ProgressBar
+                            value={p?.percent ?? 0}
+                            size="sm"
+                            tone={(p?.percent ?? 0) >= 70 ? "xp" : "brand"}
+                            label={d.name}
+                          />
+                        ) : null}
                       </ChoiceCard>
                     );
                   })}
