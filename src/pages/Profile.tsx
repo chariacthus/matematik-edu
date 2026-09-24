@@ -3,12 +3,14 @@ import clsx from 'clsx';
 import { useStore } from '../state/store';
 import { ACHIEVEMENTS, levelProgress, levelTitle, xpForLevel } from '../engine/gamification';
 import { buildPlan, domainProgress, overallProgress } from '../engine/planner';
+import { dailyActivity } from '../engine/activity';
 import { activeMisconceptions } from '../engine/diagnosis';
 import { formatMinutes } from '../lib/dates';
 import { navigate } from '../lib/router';
 import { openPlanItem } from '../lib/plan';
 import { Card, IconTile, LabelledBar, ListRow, MetaChip, Section, SectionTitle, StatTile, XpBar } from '../components/ui';
 import { Icon, domainIcon } from '../components/Icon';
+import { ActivityChart } from '../components/ActivityChart';
 
 /** Elevens profil: fremgang, styrker, svagheder og badges. */
 export function ProfilePage() {
@@ -25,6 +27,8 @@ export function ProfilePage() {
 
   const next = useMemo(() => buildPlan({ states: skills, misconceptions, profile }, 1)[0], [skills, misconceptions, profile]);
   const [allBadges, setAllBadges] = useState(false);
+  const days = useMemo(() => dailyActivity(attempts), [attempts]);
+  const recent = days.reduce((n, d) => n + d.total, 0);
 
   const fresh = attempts.length === 0;
   const correct = attempts.filter((a) => a.correct).length;
@@ -78,6 +82,15 @@ export function ProfilePage() {
             <StatTile label="Mestret" icon="star" tone="xp" value={overall.mastered} suffix={`/ ${overall.total}`} />
             <StatTile label="Tid brugt" icon="clock" value={formatMinutes(gamification.totalMinutes)} />
           </div>
+
+          {recent ? (
+            <section>
+              <SectionTitle hint={`${recent} ${recent === 1 ? 'opgave' : 'opgaver'}`}>De sidste 14 dage</SectionTitle>
+              <Card>
+                <ActivityChart days={days} />
+              </Card>
+            </section>
+          ) : null}
 
           <section>
             <SectionTitle hint={`${overall.percent} % samlet`}>Dine emner</SectionTitle>

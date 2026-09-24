@@ -755,6 +755,58 @@ try {
     }
   });
 
+  await step('profilen viser de sidste 14 dage', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 420, height: 900 } });
+    await ctx.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return;
+      localStorage.clear();
+      localStorage.setItem(
+        'matematik-ai:profile',
+        JSON.stringify({ name: 'Ida', onboarded: true, diagnosticDone: true, tourDone: true, createdAt: Date.now() }),
+      );
+      const attempts = [];
+      const day = 24 * 60 * 60 * 1000;
+      for (const [ago, n, right] of [[0, 9, 7], [1, 14, 11], [3, 6, 2], [4, 11, 10], [8, 4, 4], [12, 7, 5]]) {
+        for (let i = 0; i < n; i++) {
+          attempts.push({
+            ts: Date.now() - ago * day - i * 60000, skillId: 'ligning-totrin', domainId: 'ligninger', generatorId: 'x',
+            level: 2, correct: i < right, seconds: 30, hints: 0, tries: 1, phase: 'practice',
+          });
+        }
+      }
+      localStorage.setItem('matematik-ai:attempts', JSON.stringify(attempts));
+      sessionStorage.setItem('seeded', '1');
+    });
+    const p = await ctx.newPage();
+    p.on('pageerror', (e) => errors.push(`pageerror (profil): ${e.message}`));
+    try {
+      for (const [w, h] of [[420, 900], [1280, 860]]) {
+        await p.setViewportSize({ width: w, height: h });
+        await p.goto('http://127.0.0.1:4173/#/profil');
+        await p.reload({ waitUntil: 'networkidle' });
+        const chart = p.getByRole('group', { name: 'Opgaver pr. dag' });
+        await chart.waitFor({ timeout: 8000 });
+        const bars = chart.getByRole('button');
+        if ((await bars.count()) !== 14) throw new Error(`diagrammet har ${await bars.count()} søjler, ikke 14`);
+        const caption = chart.locator('xpath=preceding-sibling::p[1]');
+        if (!(await caption.innerText()).startsWith('I dag: 9 opgaver, 7 rigtige')) {
+          throw new Error(`teksten over diagrammet siger "${await caption.innerText()}"`);
+        }
+        await bars.nth(12).click();
+        await p.waitForTimeout(100);
+        if (!(await caption.innerText()).startsWith('I går: 14 opgaver, 11 rigtige')) {
+          throw new Error(`et tryk på gårsdagens søjle viser "${await caption.innerText()}"`);
+        }
+        await chart.scrollIntoViewIfNeeded();
+        await p.waitForTimeout(700);
+        await p.screenshot({ path: `/tmp/claude-0/shot-30-diagram-${w}.png` });
+        shots.push(`/tmp/claude-0/shot-30-diagram-${w}.png`);
+      }
+    } finally {
+      await ctx.close();
+    }
+  });
+
   await step('telefonens tastrække skriver minus i feltet', async () => {
     const touch = await browser.newContext({
       viewport: { width: 390, height: 844 },
