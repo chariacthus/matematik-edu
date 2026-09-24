@@ -1,10 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
-import type { LessonPhase, Misconception, Problem, Skill } from '../types';
+import type { Difficulty, LessonPhase, Misconception, Problem, Skill } from '../types';
 import { LESSON_PHASES } from '../types';
-import { domainName, getSkill } from '../content';
-import { PHASE_HELP, PHASE_LABELS, PHASE_TARGETS, isPracticePhase, nextProblem } from '../engine/adaptive';
-import { newSkillState } from '../engine/mastery';
+import { buildProblem, domainName, getSkill } from '../content';
+import {
+  PHASE_HELP,
+  PHASE_LABELS,
+  PHASE_TARGETS,
+  isPracticePhase,
+  nextProblem,
+  type ProblemOverride,
+} from '../engine/adaptive';
+import { abilityToLevel, newSkillState } from '../engine/mastery';
+import { isDue, retention } from '../engine/srs';
+import { solidEnough } from '../engine/planner';
 import { INTERRUPT_THRESHOLD } from '../engine/diagnosis';
 import { misconceptionClinic } from '../tutor/tutor';
 import { getMisconception } from '../content/misconceptions';
@@ -14,7 +23,7 @@ import { randomSeed } from '../lib/math';
 import { MathBlock, MathText } from './../components/MathText';
 import { Visual } from '../components/visuals/Visual';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, CardTitle, MetaChip, ComboMeter, EmptyState, FocusBar, Page, PageHeader, Skeleton } from '../components/ui';
+import { Callout, Card, CardTitle, MetaChip, ComboMeter, EmptyState, FocusBar, Modal, Page, PageHeader, Skeleton } from '../components/ui';
 import { useFocusMode } from '../components/Layout';
 import { Icon } from '../components/Icon';
 import { SessionSummary } from '../components/SessionSummary';
@@ -35,7 +44,10 @@ export function LessonPage({ skillId }: { skillId: string }) {
   const ensureSkill = useStore((s) => s.ensureSkill);
   const recordAttempt = useStore((s) => s.recordAttempt);
   const setPhase = useStore((s) => s.setPhase);
+  const reviewSkill = useStore((s) => s.reviewSkill);
   const addMinutes = useStore((s) => s.addMinutes);
+  const profile = useStore((s) => s.profile);
+  const allStates = useStore((s) => s.skills);
   const xpNow = useStore((s) => s.gamification.xp);
 
   const state = stored ?? newSkillState(skillId);
@@ -51,6 +63,12 @@ export function LessonPage({ skillId }: { skillId: string }) {
   const [xpGained, setXpGained] = useState(0);
   const [stopped, setStopped] = useState(false);
   const [answered, setAnswered] = useState(false);
+  /** Efter en tabt opgave kommer en magen til, så løsningen kan bruges med det samme. */
+  const [retry, setRetry] = useState<{ generatorId: string; level: Difficulty } | null>(null);
+  /** En opgave i noget den her bygger på, hvis det er ved at blive glemt. */
+  const [warmup, setWarmup] = useState<{ skill: Skill; problem: Problem } | null>(null);
+  const warmedUp = useRef(false);
+  const [rereading, setRereading] = useState(false);
   const enteredAt = useRef(Date.now());
   const xpAtStart = useRef(xpNow);
 
@@ -66,9 +84,15 @@ export function LessonPage({ skillId }: { skillId: string }) {
   }, [skillId]);
 
   const makeProblem = useCallback(
-    (phase: LessonPhase) => {
+    (phase: LessonPhase, override: ProblemOverride = {}) => {
       if (!skill) return;
-      const { problem: p, decision } = nextProblem(skill, state, attempts, phase, randomSeed());
+      // Tilstanden læses frisk, så en fase der lige er skiftet kommer med.
+      const store = useStore.getState();
+      const fresh = store.skills[skillId] ?? newSkillState(skillId);
+      // Springer eleven forklaringen over, skal testen ikke kunne klares på
+      // de letteste opgaver.
+      const floor: ProblemOverride = fresh.testingOut ? { minLevel: 3 } : {};
+      const { problem: p, decision } = nextProblem(skill, fresh, store.attempts, phase, randomSeed(), { ...floor, ...override });
       setProblem(p);
       setLevelNote(
         decision.changed
@@ -84,9 +108,7 @@ export function LessonPage({ skillId }: { skillId: string }) {
           : null,
       );
     },
-    // `state` og `attempts` læses bevidst på kaldstidspunktet.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [skill, state.ability, state.cleanStreak, attempts.length],
+    [skill, skillId],
   );
 
   // Hold altid en opgave klar når vi er i en øvefase.
@@ -101,6 +123,21 @@ export function LessonPage({ skillId }: { skillId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skill, skillId, state.phase, clinic]);
 
+  // Opvarmning: er noget af det den her færdighed bygger på, ved at
+  // blive glemt, tages én opgave i det først. Det genopfrisker netop det
+  // der skal bruges, og tæller som repetition.
+  useEffect(() => {
+    if (!skill || warmedUp.current || !isPracticePhase(state.phase) || state.testingOut) return;
+    warmedUp.current = true;
+    const states = useStore.getState().skills;
+    const fading = skill.prerequisites
+      .map((id) => states[id])
+      .find((st) => st && st.masteredAt !== null && (isDue(st) || retention(st) < 0.8));
+    const pre = fading ? getSkill(fading.skillId) : undefined;
+    if (!fading || !pre) return;
+    setWarmup({ skill: pre, problem: buildProblem(pre, { level: abilityToLevel(fading.ability), seed: randomSeed() }) });
+  }, [skill, state.phase, state.testingOut]);
+
   const phaseIdx = LESSON_PHASES.indexOf(state.phase);
 
   const handleSubmit = (info: SubmitInfo) => {
@@ -114,13 +151,23 @@ export function LessonPage({ skillId }: { skillId: string }) {
       setCombo(0);
     }
 
+    const before = state.phase;
     const result = recordAttempt({ problem, ...info, phase: state.phase });
     setXpGained((x) => x + result.xp);
 
     if (result.mastered) setJustMastered(true);
-    if (result.regressed) {
+    if (result.testOutFailed) {
+      setLevelNote('Den sad ikke i første hug. Du får et par opgaver med hjælp først, så sidder det bedre bagefter.');
+    } else if (result.regressed) {
       setLevelNote('Du går et trin tilbage og får lidt mere øvelse.');
+    } else if (!result.mastered && result.phase !== before) {
+      const next = LESSON_PHASES.indexOf(result.phase) + 1;
+      setLevelNote(`Videre til trin ${next} af 7: ${PHASE_LABELS[result.phase].toLowerCase()}. ${PHASE_HELP[result.phase]}`);
     }
+
+    // En tabt opgave følges af en magen til: samme type, ikke sværere.
+    if (!info.correct && info.tries >= 2) setRetry({ generatorId: problem.generatorId, level: problem.level });
+    else if (info.correct) setRetry(null);
 
     // Gentagen fejl: stop progressionen og forklar netop den fejl.
     if (!info.correct && info.misconceptionId) {
@@ -154,6 +201,54 @@ export function LessonPage({ skillId }: { skillId: string }) {
           </button>
         }
       />
+    );
+  }
+
+  const missing = skill.prerequisites
+    .filter((id) => !solidEnough(allStates[id]))
+    .map((id) => getSkill(id))
+    .filter((p): p is Skill => p !== undefined);
+  // Stærk nok til at springe forklaringen over? Niveautesten, elevens eget
+  // valg i onboarding, eller det eleven allerede har vist.
+  const strong =
+    (profile.diagnostic[skill.domainId] ?? 0) >= 65 || profile.easyTopics.includes(skill.domainId) || state.pKnown >= 0.6;
+  const testOut = () => {
+    setPhase(skillId, 'mastery', true);
+    makeProblem('mastery');
+    setLevelNote('Tre opgaver i første hug, så er den mestret. Går én galt, får du nogle med hjælp i stedet.');
+  };
+
+  /* ---------------- Opvarmning ---------------- */
+  if (warmup && working) {
+    const pre = warmup.skill;
+    return (
+      <Page>
+        <FocusBar
+          title={skill.name}
+          meta="Opvarmning"
+          progress={0}
+          progressLabel="Opvarmning"
+          onExit={() => setWarmup(null)}
+          exitLabel="Spring opvarmningen over"
+        />
+        <p className="text-sm text-ink-500 dark:text-ink-400">
+          <span className="font-semibold text-ink-800 dark:text-ink-100">Opvarmning.</span> {skill.name} bygger på{' '}
+          {pre.name.toLowerCase()}. Én hurtig opgave i den først, så den er frisk.
+        </p>
+        <ProblemCard
+          key={warmup.problem.id}
+          problem={warmup.problem}
+          skill={pre}
+          state={allStates[pre.id]}
+          onSubmit={(info) => {
+            recordAttempt({ problem: warmup.problem, ...info, phase: 'review' });
+            if (!info.correct && info.tries < 2) return;
+            reviewSkill(pre.id, info.correct, info.hints, info.tries, info.seconds, warmup.problem.seconds);
+          }}
+          onNext={() => setWarmup(null)}
+          nextLabel={`Videre til ${skill.name.toLowerCase()}`}
+        />
+      </Page>
     );
   }
 
@@ -247,7 +342,13 @@ export function LessonPage({ skillId }: { skillId: string }) {
       ) : null}
 
       {state.phase === 'explain' ? (
-        <ExplainStep skill={skill} onDone={() => setPhase(skillId, 'example')} />
+        <ExplainStep
+          skill={skill}
+          missing={missing}
+          strong={strong}
+          onTestOut={testOut}
+          onDone={() => setPhase(skillId, 'example')}
+        />
       ) : state.phase === 'example' ? (
         <ExampleStep
           skill={skill}
@@ -258,9 +359,10 @@ export function LessonPage({ skillId }: { skillId: string }) {
           onBack={() => setPhase(skillId, 'explain')}
         />
       ) : problem ? (
-        // key på fasen og opgaven: hver ny opgave glider ind i stedet for
-        // at bytte tekst ud på stedet, så man kan se at der ER en ny.
-        <div key={`${state.phase}-${problem.id}`} className="animate-swap-in space-y-4">
+        // key på opgaven: hver ny opgave glider ind, så man kan se at der
+        // ER en ny. Ikke på fasen - så kom den samme opgave igen, tom, når
+        // et rigtigt svar gjorde fasen færdig.
+        <div key={problem.id} className="animate-swap-in space-y-4">
           <p className="text-sm text-ink-500 dark:text-ink-400">
             <span className="font-semibold text-ink-800 dark:text-ink-100">{PHASE_LABELS[state.phase]}.</span>{' '}
             {PHASE_HELP[state.phase]}
@@ -270,8 +372,11 @@ export function LessonPage({ skillId }: { skillId: string }) {
             skill={skill}
             state={state}
             onSubmit={handleSubmit}
-            onNext={() => makeProblem(state.phase)}
-            nextLabel="Næste opgave"
+            onNext={() => {
+              makeProblem(state.phase, retry ? { generatorId: retry.generatorId, maxLevel: retry.level } : {});
+              setRetry(null);
+            }}
+            nextLabel={retry ? 'Prøv en magen til' : 'Næste opgave'}
             allowHints={state.phase !== 'mastery'}
             showConfidence={state.phase === 'mastery'}
             xpOnCorrect={xpForAttempt({ correct: true, level: problem.level, hints: 0, tries: 1, phase: state.phase })}
@@ -289,15 +394,17 @@ export function LessonPage({ skillId }: { skillId: string }) {
 
       {phaseIdx > 1 ? (
         <div className="flex justify-center">
-          <button
-            onClick={() => setPhase(skillId, 'explain')}
-            className="btn-ghost text-xs"
-            title="Gå tilbage til forklaringen uden at miste din fremgang"
-          >
+          {/* Forklaringen åbner ovenpå. Før sendte knappen eleven tilbage til
+              trin 1, og det man havde nået i faserne var væk. */}
+          <button onClick={() => setRereading(true)} className="btn-ghost text-xs">
             Læs forklaringen igen
           </button>
         </div>
       ) : null}
+
+      <Modal open={rereading} onClose={() => setRereading(false)} title={skill.name} wide>
+        <ExplainBlocks skill={skill} />
+      </Modal>
     </Page>
   );
 }
@@ -306,7 +413,59 @@ export function LessonPage({ skillId }: { skillId: string }) {
 /* Trin 1: forklaringen                                                */
 /* ------------------------------------------------------------------ */
 
-function ExplainStep({ skill, onDone }: { skill: Skill; onDone: () => void }) {
+function ExplainStep({
+  skill,
+  missing,
+  strong,
+  onTestOut,
+  onDone,
+}: {
+  skill: Skill;
+  /** Forudsætninger eleven ikke har på plads endnu. */
+  missing: Skill[];
+  strong: boolean;
+  onTestOut: () => void;
+  onDone: () => void;
+}) {
+  const first = missing[0];
+  return (
+    <div className="space-y-4">
+      {first ? (
+        <Callout tone="warn" icon="layers" title="Den her bygger på noget du ikke er færdig med">
+          <p>
+            {skill.name} bruger {missing.map((m) => m.name.toLowerCase()).join(' og ')}. Det går hurtigere at tage{' '}
+            {missing.length > 1 ? 'dem' : 'den'} først.
+          </p>
+          <button onClick={() => navigate({ name: 'lesson', skillId: first.id })} className="btn-secondary btn-sm mt-3">
+            Tag {first.name.toLowerCase()} først
+          </button>
+        </Callout>
+      ) : strong ? (
+        <Callout tone="good" icon="bolt" title="Du kan måske det meste allerede">
+          <p>Tag tre opgaver med det samme. Klarer du dem i første hug, er den mestret, og du sparer forklaringen.</p>
+          <button onClick={onTestOut} className="btn-primary btn-sm mt-3">
+            Tag testen
+          </button>
+        </Callout>
+      ) : null}
+
+      <ExplainBlocks skill={skill} />
+
+      <button onClick={onDone} className="btn-primary w-full py-3 text-base">
+        Vis mig et eksempel
+      </button>
+      {!strong && !first ? (
+        <div className="flex justify-center">
+          <button onClick={onTestOut} className="btn-ghost text-xs">
+            Jeg kan det allerede. Giv mig testen
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ExplainBlocks({ skill }: { skill: Skill }) {
   return (
     <div className="space-y-4">
       {skill.explain.map((block, i) => {
@@ -376,10 +535,6 @@ function ExplainStep({ skill, onDone }: { skill: Skill; onDone: () => void }) {
             );
         }
       })}
-
-      <button onClick={onDone} className="btn-primary w-full py-3 text-base">
-        Vis mig et eksempel
-      </button>
     </div>
   );
 }
@@ -418,9 +573,12 @@ function ExampleStep({ skill, onDone, onBack }: { skill: Skill; onDone: () => vo
         {/* Trinene afsløres ét ad gangen, så eleven får en chance for selv
             at gætte næste skridt i stedet for bare at læse hele facit. */}
         {!allShown ? (
-          <button onClick={() => setRevealed((r) => r + 1)} className="btn-secondary mt-4 w-full">
-            Vis næste trin
-          </button>
+          <>
+            <p className="mt-4 text-center text-xs text-ink-500 dark:text-ink-400">Gæt selv næste skridt, før du trykker.</p>
+            <button onClick={() => setRevealed((r) => r + 1)} className="btn-secondary mt-2 w-full">
+              Vis næste trin
+            </button>
+          </>
         ) : example.takeaway ? (
           <Callout tone="good" title="Det du skal tage med dig" icon="target">
             <MathText>{example.takeaway}</MathText>

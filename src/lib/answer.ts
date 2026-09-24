@@ -49,24 +49,60 @@ export function isBlank(r: Response): boolean {
  * enheder ryddes væk.
  */
 export function parseNumber(raw: string): number | null {
+  const s = cleanNumber(raw);
+  if (s === null) return null;
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+
+const UNITS =
+  /(kroner|kr|procent|%|cm²|cm³|dm²|dm³|m²|m³|km²|mm²|cm2|cm3|dm2|dm3|m2|m3|km2|mm2|cm|dm|mm|km\/t|km|m|kg|g|dl|cl|ml|l|stk|grader|°|timer|time|t|minutter|min|sekunder|sek|s|år|dage|dag|personer|elever)\.?$/i;
+
+/** Rydder et tal-svar: "x = 2.500 kr." bliver "2.500". */
+function cleanNumber(raw: string): string | null {
   if (typeof raw !== 'string') return null;
   let s = raw
     .trim()
     .toLowerCase()
     .replace(/−|–|—/g, '-')
     .replace(/\s| /g, '')
-    .replace(/(kr|kroner|%|cm2|cm3|m2|m3|cm|mm|km|m|kg|g|l|dl|ml|stk|grader|°)\.?$/i, '');
+    // "x = 5" er et fuldt gyldigt svar på "løs ligningen".
+    .replace(/^[a-zæøå]=/, '')
+    .replace(UNITS, '');
   if (s === '') return null;
   // "2.500,50" -> punktum er tusindtalsseparator
   if (s.includes(',') && s.includes('.')) s = s.replace(/\./g, '');
+  // "1.250.000" kan kun være tusindtal.
+  if (/^[+-]?\d{1,3}(\.\d{3}){2,}$/.test(s)) s = s.replace(/\./g, '');
   s = s.replace(',', '.');
   if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/.test(s)) return null;
-  const v = Number(s);
-  return Number.isFinite(v) ? v : null;
+  return s;
+}
+
+/**
+ * De tal et svar kan betyde. "2.500" er 2500 på dansk, men 2,5 for en
+ * elev der er vant til engelsk tastatur - begge læsninger godtages.
+ */
+export function numberReadings(raw: string): number[] {
+  const v = parseNumber(raw);
+  if (v === null) return [];
+  const cleaned = cleanNumber(raw) ?? '';
+  if (/^[+-]?[1-9]\d{0,2}\.\d{3}$/.test(cleaned)) return [v, Number(cleaned.replace('.', ''))];
+  return [v];
 }
 
 /** Tolker "3/4", "-3/4" og almindelige tal som brøk. */
 export function parseFraction(raw: string): Frac | null {
+  // Blandet tal: "1 3/4" er 7/4. Mellemrummet må ikke bare fjernes,
+  // for så bliver det til 13/4.
+  const mixed = raw.trim().replace(/−/g, '-').match(/^([+-]?)(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+  if (mixed) {
+    const [, sign, whole, num, den] = mixed;
+    const d = Number(den);
+    if (d === 0) return null;
+    const n = Number(whole) * d + Number(num);
+    return { n: sign === '-' ? -n : n, d };
+  }
   const s = raw.trim().replace(/\s| /g, '').replace(/−/g, '-');
   const m = s.match(/^([+-]?\d+)\s*\/\s*([+-]?\d+)$/);
   if (m) {
@@ -161,8 +197,7 @@ export function checkAnswer(spec: AnswerSpec, r: Response): boolean {
   switch (spec.type) {
     case 'number': {
       if (r.kind !== 'text') return false;
-      const v = parseNumber(r.value);
-      return v !== null && numbersMatch(v, spec.value, spec.tolerance);
+      return numberReadings(r.value).some((v) => numbersMatch(v, spec.value, spec.tolerance));
     }
     case 'fraction': {
       if (r.kind !== 'text') return false;
@@ -180,7 +215,9 @@ export function checkAnswer(spec: AnswerSpec, r: Response): boolean {
     }
     case 'expression': {
       if (r.kind !== 'text') return false;
-      const got = normalizeExpression(r.value);
+      // "y = 2x + 3" og "f(x) = 2x + 3" er samme svar som "2x + 3".
+      const bare = spec.value.includes('=') ? r.value : r.value.replace(/^\s*(y|f\s*\(\s*x\s*\))\s*=/i, '');
+      const got = normalizeExpression(bare);
       if (got === '') return false;
       return [spec.value, ...(spec.accept ?? [])].some((a) => normalizeExpression(a) === got);
     }
@@ -194,10 +231,10 @@ export function checkAnswer(spec: AnswerSpec, r: Response): boolean {
     }
     case 'pair': {
       if (r.kind !== 'pair') return false;
-      const a = parseNumber(r.a);
-      const b = parseNumber(r.b);
-      if (a === null || b === null) return false;
-      return numbersMatch(a, spec.values[0], spec.tolerance) && numbersMatch(b, spec.values[1], spec.tolerance);
+      return (
+        numberReadings(r.a).some((a) => numbersMatch(a, spec.values[0], spec.tolerance)) &&
+        numberReadings(r.b).some((b) => numbersMatch(b, spec.values[1], spec.tolerance))
+      );
     }
     case 'point': {
       if (r.kind !== 'point') return false;

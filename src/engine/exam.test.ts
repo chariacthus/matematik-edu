@@ -63,7 +63,7 @@ describe('prøveresultat', () => {
   it('tæller rigtige og fordeler dem på kompetenceområder', () => {
     let exam = createExam('uden', {}, 5);
     exam.items.forEach((_, i) => {
-      exam = answerExamItem(exam, i % 2 === 0);
+      exam = answerExamItem(exam, i % 2 === 0, String(i));
     });
     expect(examFinished(exam)).toBe(true);
 
@@ -88,11 +88,20 @@ describe('prøveresultat', () => {
 
   it('håndterer en prøve der afsluttes før tid', () => {
     let exam = createExam('uden', {}, 12);
-    exam = answerExamItem(exam, true);
-    exam = answerExamItem(exam, false);
+    exam = answerExamItem(exam, true, '4');
+    exam = answerExamItem(exam, false, '9');
     const r = summariseExam(exam);
     expect(r.answered).toBe(2);
     expect(r.total).toBe(exam.items.length);
+  });
+
+  it('tæller ikke en overspringning som besvaret', () => {
+    let exam = createExam('uden', {}, 12);
+    exam = answerExamItem(exam, true, '4');
+    exam = answerExamItem(exam, false);
+    const r = summariseExam(exam);
+    expect(r.answered).toBe(1);
+    expect(r.correct).toBe(1);
   });
 });
 

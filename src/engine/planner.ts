@@ -24,13 +24,25 @@ export interface PlanItem {
   estimatedMinutes: number;
 }
 
+/**
+ * Er eleven gået i gang med selve lektionen? Opgaver fra en prøve, en
+ * træningsrunde eller niveautesten tæller ikke - kun at have læst
+ * forklaringen og være kommet videre.
+ */
+export function lessonStarted(state: SkillState | undefined): boolean {
+  return state !== undefined && state.phase !== 'explain';
+}
+
+/**
+ * Sidder færdigheden godt nok til at bygge videre på? Enten mestret,
+ * eller tydeligt på vej.
+ */
+export function solidEnough(state: SkillState | undefined): boolean {
+  return state !== undefined && (state.masteredAt !== null || state.pKnown >= 0.6);
+}
+
 export function prerequisitesMet(skill: Skill, states: Record<string, SkillState>): boolean {
-  return skill.prerequisites.every((id) => {
-    const st = states[id];
-    // Forudsætningen tæller som opfyldt hvis eleven enten har mestret
-    // den eller er tydeligt på vej.
-    return st !== undefined && (st.masteredAt !== null || st.pKnown >= 0.6);
-  });
+  return skill.prerequisites.every((id) => solidEnough(states[id]));
 }
 
 /** Færdigheder eleven kan gå i gang med nu. */
@@ -107,7 +119,7 @@ export function buildPlan(ctx: PlanContext, limit = 6): PlanItem[] {
 
   /* 3. Fortsæt hvor eleven slap. */
   for (const state of Object.values(ctx.states)) {
-    if (state.masteredAt !== null || state.attempts === 0) continue;
+    if (state.masteredAt !== null || !lessonStarted(state)) continue;
     const skill = getSkill(state.skillId);
     if (!skill) continue;
     items.push({
@@ -124,7 +136,7 @@ export function buildPlan(ctx: PlanContext, limit = 6): PlanItem[] {
 
   /* 4. Nyt stof, styret af diagnosen og af hvad der er lav-hængende. */
   const weakest = [...ctx.profile.recommended];
-  const ready = availableSkills(ctx.states).filter((s) => (ctx.states[s.id]?.attempts ?? 0) === 0);
+  const ready = availableSkills(ctx.states).filter((s) => !lessonStarted(ctx.states[s.id]));
   for (const skill of ready) {
     const domainRank = weakest.indexOf(skill.domainId);
     const diagnosticScore = ctx.profile.diagnostic[skill.domainId] ?? 50;
@@ -224,7 +236,7 @@ export function nextSkillInDomain(domainId: DomainId, states: Record<string, Ski
   const skills = skillsOf(domainId);
   const started = skills.find((s) => {
     const st = states[s.id];
-    return st && st.masteredAt === null && st.attempts > 0;
+    return st && st.masteredAt === null && lessonStarted(st);
   });
   if (started) return started;
   const ready = skills.find((s) => {

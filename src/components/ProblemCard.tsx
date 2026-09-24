@@ -48,6 +48,7 @@ export function ProblemCard({
   headerRight,
   sounds = true,
   label,
+  maxTries = 2,
 }: {
   problem: Problem;
   skill: Skill;
@@ -67,6 +68,8 @@ export function ProblemCard({
   sounds?: boolean;
   /** Til prøven: "Opgave 2.3" i stedet for emnets navn, som ellers ville afsløre metoden. */
   label?: string;
+  /** Niveautesten giver ét forsøg: et andet forsøg ville ikke tælle alligevel. */
+  maxTries?: number;
 }) {
   const [response, setResponse] = useState<Response>(() => emptyResponse(inputKind(problem)));
   const [verdict, setVerdict] = useState<Verdict>('idle');
@@ -135,7 +138,7 @@ export function ProblemCard({
 
     // To forsøg er nok: derefter er det mere hjælpsomt at vise vejen end
     // at lade eleven blive ved med at gætte.
-    const done = nextTries >= 2;
+    const done = nextTries >= maxTries;
     if (done) setSettled(true);
     onSubmit({
       correct: false,

@@ -89,6 +89,9 @@ export function DiagnosticPage() {
           onNext={() => advance(outcome ?? false)}
           nextLabel="Næste opgave"
           allowHints={false}
+          // Testen skal måle hvad eleven kan alene.
+          allowTutor={false}
+          maxTries={1}
         />
       ) : null}
 
@@ -112,7 +115,11 @@ function DiagnosticResult({
   onSave,
 }: {
   session: DiagnosticSession;
-  onSave: (scores: Partial<Record<DomainId, number>>, abilities: Partial<Record<DomainId, number>>) => void;
+  onSave: (
+    scores: Partial<Record<DomainId, number>>,
+    abilities: Partial<Record<DomainId, number>>,
+    untested: DomainId[],
+  ) => void;
 }) {
   const outcome = useMemo(() => summarise(session), [session]);
   const hardTopics = useStore((s) => s.profile.hardTopics);
@@ -128,7 +135,7 @@ function DiagnosticResult({
   const tested = rows.filter((r) => r.tested).length;
 
   const save = () => {
-    onSave(outcome.scores, outcome.abilities);
+    onSave(outcome.scores, outcome.abilities, outcome.untested);
     navigate({ name: 'dashboard' });
   };
 

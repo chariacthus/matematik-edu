@@ -237,7 +237,10 @@ export interface ExamResult {
 }
 
 export function summariseExam(session: ExamSession): ExamResult {
-  const answered = session.answers.filter((a) => a !== null).length;
+  // En overspringning er gemt som forkert uden svar. Den tæller med som
+  // forkert, men ikke som besvaret.
+  const skipped = (i: number) => session.answers[i] === false && (session.responses?.[i] ?? null) === null;
+  const answered = session.answers.filter((a, i) => a !== null && !skipped(i)).length;
   const correct = session.answers.filter((a) => a === true).length;
 
   const catMap = new Map<CategoryId, { correct: number; total: number }>();

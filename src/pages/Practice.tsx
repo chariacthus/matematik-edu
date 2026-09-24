@@ -208,6 +208,9 @@ export function ReviewPage() {
         state={skills[skill.id]}
         onSubmit={(info) => {
           recordAttempt({ problem, ...info, phase: 'review' });
+          // Et forkert første forsøg giver et forsøg mere. Først når
+          // opgaven er afgjort, planlægges næste repetition.
+          if (!info.correct && info.tries < 2) return;
           reviewSkill(skill.id, info.correct, info.hints, info.tries, info.seconds, problem.seconds);
           setResults((r) => [...r, { skillId: skill.id, correct: info.correct }]);
         }}

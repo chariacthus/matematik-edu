@@ -22,14 +22,8 @@ export function OnboardingPage() {
   const [hard, setHard] = useState<DomainId[]>([]);
   const [easy, setEasy] = useState<DomainId[]>([]);
 
-  const toggle = (list: DomainId[], set: (v: DomainId[]) => void, other: DomainId[], setOther: (v: DomainId[]) => void) => (id: DomainId) => {
-    if (list.includes(id)) set(list.filter((x) => x !== id));
-    else {
-      set([...list, id]);
-      // Et emne kan ikke både være svært og nemt.
-      if (other.includes(id)) setOther(other.filter((x) => x !== id));
-    }
-  };
+  const toggle = (list: DomainId[], set: (v: DomainId[]) => void) => (id: DomainId) =>
+    set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
 
   const finish = () => {
     complete({ name, confidence, hard, easy });
@@ -139,7 +133,7 @@ export function OnboardingPage() {
     /* 3 — svære emner */
     <div key="3" className="space-y-5">
       <Heading title="Hvilke emner synes du er svære?" sub="Vælg dem du helst vil undgå. Du starter der, for det er der du lærer mest." />
-      <DomainPicker selected={hard} onToggle={toggle(hard, setHard, easy, setEasy)} tone="bad" />
+      <DomainPicker selected={hard} taken={easy} takenLabel="nemt" onToggle={toggle(hard, setHard)} tone="bad" />
       <div className="flex gap-2">
         <button onClick={() => setStep(2)} className="btn-secondary">Tilbage</button>
         <button onClick={() => setStep(4)} className="btn-primary flex-1 py-3">
@@ -151,7 +145,7 @@ export function OnboardingPage() {
     /* 4 — nemme emner */
     <div key="4" className="space-y-5">
       <Heading title="Og hvilke er nemme?" sub="Dem kører vi hurtigere igennem, så du ikke spilder tid på noget du allerede kan." />
-      <DomainPicker selected={easy} onToggle={toggle(easy, setEasy, hard, setHard)} tone="good" />
+      <DomainPicker selected={easy} taken={hard} takenLabel="svært" onToggle={toggle(easy, setEasy)} tone="good" />
       <div className="flex gap-2">
         <button onClick={() => setStep(3)} className="btn-secondary">Tilbage</button>
         <button onClick={finish} className="btn-primary flex-1 py-3 text-base">Start niveautesten</button>
@@ -184,10 +178,15 @@ function Heading({ title, sub }: { title: string; sub: string }) {
 
 function DomainPicker({
   selected,
+  taken,
+  takenLabel,
   onToggle,
   tone,
 }: {
   selected: DomainId[];
+  /** Emner der allerede er valgt på det andet trin. Et emne kan ikke både være svært og nemt. */
+  taken: DomainId[];
+  takenLabel: string;
   onToggle: (id: DomainId) => void;
   tone: 'bad' | 'good';
 }) {
@@ -200,19 +199,24 @@ function DomainPicker({
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
       {DOMAINS.map((d) => {
         const on = selected.includes(d.id);
+        const blocked = taken.includes(d.id);
         return (
           <button
             key={d.id}
             onClick={() => onToggle(d.id)}
             aria-pressed={on}
+            disabled={blocked}
+            title={blocked ? `Du har valgt ${d.name} som ${takenLabel}` : undefined}
             className={clsx(
               'card-interactive flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium',
               tone === 'bad' ? 'tone-bad' : 'tone-good',
               on ? active : 'text-ink-700 dark:text-ink-200',
+              blocked && 'pointer-events-none opacity-50',
             )}
           >
             <Icon name={on ? 'check' : domainIcon(d.id)} size={15} className={clsx('shrink-0', on ? '' : 'text-ink-500 dark:text-ink-400')} />
-            <span className="min-w-0 leading-snug">{d.name}</span>
+            <span className="min-w-0 flex-1 leading-snug">{d.name}</span>
+            {blocked ? <span className="shrink-0 text-2xs text-ink-500 dark:text-ink-400">{takenLabel}</span> : null}
           </button>
         );
       })}

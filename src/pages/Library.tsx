@@ -4,7 +4,7 @@ import type { DomainId, Skill, SkillState } from "../types";
 import { ALL_SKILLS, CATEGORIES, DOMAINS, areaName, domainName, getDomain, groupByArea, skillsOf } from "../content";
 import { DOMAIN_SIGNATURES } from "../content/signatures";
 import { useStore } from "../state/store";
-import { domainProgress, nextSkillInDomain, prerequisitesMet } from "../engine/planner";
+import { domainProgress, lessonStarted, nextSkillInDomain, prerequisitesMet } from "../engine/planner";
 import { abilityToLevel, skillStatus } from "../engine/mastery";
 import { retention } from "../engine/srs";
 import { navigate } from "../lib/router";
@@ -40,7 +40,7 @@ export function LibraryPage() {
   const byId = new Map(progress.map((p) => [p.domainId, p]));
   const recent = useMemo(
     () =>
-      ALL_SKILLS.filter((s) => (skills[s.id]?.attempts ?? 0) > 0)
+      ALL_SKILLS.filter((s) => lessonStarted(skills[s.id]))
         .sort((a, b) => (skills[b.id]?.lastSeen ?? 0) - (skills[a.id]?.lastSeen ?? 0))
         .slice(0, 3),
     [skills],

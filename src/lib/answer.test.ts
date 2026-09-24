@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { checkAnswer, normalizeExpression, parseFraction, parseNumber } from './answer';
+import type { AnswerSpec } from '../types';
 
 describe('parseNumber', () => {
   it('accepterer både dansk komma og engelsk punktum', () => {
@@ -93,5 +94,41 @@ describe('svar tastet på tastrækken', () => {
   it('forstår potens og rod', () => {
     expect(checkAnswer({ type: 'expression', value: '2x² - 3' }, { kind: 'text', value: '2x^2 − 3' })).toBe(true);
     expect(checkAnswer({ type: 'expression', value: '3√2' }, { kind: 'text', value: '3√2' })).toBe(true);
+  });
+});
+
+describe('svar eleverne faktisk skriver', () => {
+  const text = (value: string) => ({ kind: 'text' as const, value });
+  const num = (value: number): AnswerSpec => ({ type: 'number', value });
+
+  it('godtager "x = 5" på en ligning', () => {
+    expect(checkAnswer(num(5), text('x = 5'))).toBe(true);
+    expect(checkAnswer(num(-3), text('x=−3'))).toBe(true);
+  });
+
+  it('godtager enheder med hævet 2 og 3', () => {
+    expect(checkAnswer(num(24), text('24 cm²'))).toBe(true);
+    expect(checkAnswer(num(8), text('8 m³'))).toBe(true);
+    expect(checkAnswer(num(90), text('90 min'))).toBe(true);
+  });
+
+  it('læser 2.500 som både 2500 og 2,5', () => {
+    expect(checkAnswer(num(2500), text('2.500'))).toBe(true);
+    expect(checkAnswer(num(2.5), text('2.500'))).toBe(true);
+    expect(checkAnswer(num(1250000), text('1.250.000'))).toBe(true);
+    expect(checkAnswer(num(0.125), text('0.125'))).toBe(true);
+    expect(checkAnswer(num(125), text('0.125'))).toBe(false);
+  });
+
+  it('læser et blandet tal som et blandet tal', () => {
+    expect(parseFraction('1 3/4')).toEqual({ n: 7, d: 4 });
+    expect(parseFraction('-2 1/2')).toEqual({ n: -5, d: 2 });
+    expect(checkAnswer({ type: 'fraction', value: { n: 7, d: 4 } }, text('1 3/4'))).toBe(true);
+    expect(checkAnswer({ type: 'fraction', value: { n: 13, d: 4 } }, text('1 3/4'))).toBe(false);
+  });
+
+  it('godtager "y =" foran en forskrift', () => {
+    expect(checkAnswer({ type: 'expression', value: '2x+3' }, text('y = 2x + 3'))).toBe(true);
+    expect(checkAnswer({ type: 'expression', value: '2x+3' }, text('f(x) = 3 + 2x'))).toBe(true);
   });
 });

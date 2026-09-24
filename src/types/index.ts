@@ -430,6 +430,10 @@ export interface SkillState {
   hintsUsed: number;
   /** Rettelser i træk uden hints — bruges til at hæve niveau. */
   cleanStreak: number;
+  /** Opgaver i træk eleven ikke klarede, siden fasen begyndte. */
+  phaseMisses?: number;
+  /** Eleven sprang forklaringen over og tager mestringstjekket direkte. */
+  testingOut?: boolean;
 }
 
 export interface MisconceptionState {

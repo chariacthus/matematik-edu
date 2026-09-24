@@ -257,6 +257,10 @@ try {
     await page.getByRole('button', { name: 'Brøker', exact: true }).click();
     await shot('26-emnevalg');
     await page.getByRole('button', { name: /^Videre \(1 valgt\)$/ }).click();
+    // Et emne kan ikke både være svært og nemt.
+    if (!(await page.getByRole('button', { name: /^Brøker/ }).isDisabled())) {
+      throw new Error('Brøker kan vælges som nemt, selvom det allerede er valgt som svært');
+    }
     await page.getByRole('button', { name: 'Statistik', exact: true }).click();
     await page.getByRole('button', { name: /Start niveautesten/ }).click();
     await page.getByText(/Opgave 1 af 42/).waitFor({ timeout: 8000 });
@@ -635,8 +639,8 @@ try {
     // Uret skal blive stående øverst når man ruller ned i en opgave. En
     // lav skærm sikrer at der faktisk er noget at rulle - ellers ville
     // tjekket bestå uden at bevise noget.
-    await page.setViewportSize({ width: 420, height: 480 });
-    await page.mouse.move(200, 300);
+    await page.setViewportSize({ width: 420, height: 300 });
+    await page.mouse.move(200, 200);
     await page.mouse.wheel(0, 600);
     await page.waitForTimeout(400);
     const pos = await page.evaluate(() => ({
@@ -1157,10 +1161,26 @@ try {
   });
   await shot('31-fortegn');
 
+  // Samme som settleWrong, men på en anden side end hovedsiden.
+  async function settleWrongOn(p) {
+    for (let t = 0; t < 2; t++) {
+      if (await p.getByRole('button', { name: /^(Ny opgave|Næste opgave|Prøv en magen til)/ }).count()) return;
+      const fields = p.locator('main article input:not([disabled])');
+      const n = await fields.count();
+      if (n) {
+        for (let i = 0; i < n; i++) await fields.nth(i).fill('999999');
+      } else {
+        await p.locator('main [role="radio"], main [role="checkbox"]').nth(t).click();
+      }
+      await p.getByRole('button', { name: 'Tjek svar' }).click();
+      await p.waitForTimeout(150);
+    }
+  }
+
   // Svarer forkert to gange, uanset opgavetype, så opgaven er afgjort.
   async function settleWrong() {
     for (let t = 0; t < 2; t++) {
-      if (await page.getByRole('button', { name: /^(Ny opgave|Se runden|Næste opgave)/ }).count()) return;
+      if (await page.getByRole('button', { name: /^(Ny opgave|Se runden|Næste opgave|Prøv en magen til)/ }).count()) return;
       const fields = page.locator('main article input:not([disabled])');
       const n = await fields.count();
       if (n) {
@@ -1242,6 +1262,120 @@ try {
     await page.getByRole('button', { name: 'Fortsæt alligevel' }).click();
     await page.locator('main article.card').first().waitFor({ timeout: 5000 });
     await page.setViewportSize({ width: 420, height: 900 });
+  });
+
+  await step('lektionen sparer tid: opvarmning, test, huller og en magen til', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 420, height: 900 } });
+    await ctx.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return;
+      localStorage.clear();
+      const day = 24 * 60 * 60 * 1000;
+      localStorage.setItem(
+        'matematik-ai:profile',
+        JSON.stringify({
+          name: 'Liv', onboarded: true, diagnosticDone: true, tourDone: true, createdAt: Date.now(),
+          diagnostic: { ligninger: 84 }, easyTopics: ['broeker'], hardTopics: [], recommended: [],
+        }),
+      );
+      const base = {
+        pKnown: 0.4, ability: 2, attempts: 3, correct: 2, streak: 0, bestStreak: 1, phase: 'guided', phaseProgress: 0,
+        lastSeen: Date.now(), masteredAt: null, interval: 0, ease: 2.5, due: null, reviews: 0, lapses: 0,
+        avgSeconds: 30, hintsUsed: 0, cleanStreak: 0,
+      };
+      localStorage.setItem('matematik-ai:skills', JSON.stringify({
+        // Mestret for fem dage siden og nu ved at blive glemt.
+        'ligning-ettrin': { ...base, skillId: 'ligning-ettrin', phase: 'mastery', pKnown: 0.95, ability: 1.4,
+          masteredAt: Date.now() - 6 * day, lastSeen: Date.now() - 5 * day, interval: 2, due: Date.now() - day },
+        'ligning-totrin': { ...base, skillId: 'ligning-totrin' },
+      }));
+      sessionStorage.setItem('seeded', '1');
+    });
+    const p = await ctx.newPage();
+    p.on('pageerror', (e) => errors.push(`pageerror (undervisning): ${e.message}`));
+    const bar = p.locator('[data-focusbar]');
+    try {
+      // Opvarmning i det den nye færdighed bygger på.
+      await p.goto('http://127.0.0.1:4173/#/laer/ligning-totrin', { waitUntil: 'networkidle' });
+      await p.getByText('Opvarmning.', { exact: true }).waitFor({ timeout: 8000 });
+      await p.screenshot({ path: '/tmp/claude-0/shot-43-opvarmning.png' });
+      shots.push('/tmp/claude-0/shot-43-opvarmning.png');
+      const prompt = (await p.locator('main article .prose-math').first().evaluate((el) => {
+        const copy = el.cloneNode(true);
+        copy.querySelectorAll('.katex-mathml').forEach((n) => n.remove());
+        return copy.textContent ?? '';
+      })).replace(/[−–]/g, '-').replace(/\s+/g, '');
+      const m = prompt.match(/x([+-]\d+)=(-?\d+)/);
+      if (!m) throw new Error(`opvarmningen er ikke en ligning i ét trin: "${prompt}"`);
+      await p.getByLabel('Dit svar').fill(String(Number(m[2]) - Number(m[1])));
+      await p.getByRole('button', { name: 'Tjek svar' }).click();
+      await p.getByRole('button', { name: /^Videre til ligninger i to trin/ }).click();
+      await bar.getByText('Trin 3 af 7').waitFor({ timeout: 5000 });
+      const review = await p.evaluate(() => JSON.parse(localStorage.getItem('matematik-ai:skills'))['ligning-ettrin']);
+      if (!(review.due > Date.now())) throw new Error('opvarmningen tæller ikke som repetition');
+
+      // Forklaringen kan læses igen uden at man mister sin plads.
+      await p.getByRole('button', { name: 'Læs forklaringen igen' }).click();
+      await p.getByRole('dialog', { name: 'Ligninger i to trin' }).waitFor({ timeout: 5000 });
+      await p.keyboard.press('Escape');
+      await bar.getByText('Trin 3 af 7').waitFor({ timeout: 5000 });
+
+      // En tabt opgave følges af en magen til.
+      await settleWrongOn(p);
+      await p.getByRole('button', { name: 'Prøv en magen til' }).click();
+      await p.locator('main article.card').first().waitFor({ timeout: 5000 });
+
+      // Et emne eleven kalder nemt: testen tilbydes i stedet for forklaringen.
+      await p.goto('http://127.0.0.1:4173/#/laer/broek-forstaa');
+      await p.getByRole('button', { name: 'Tag testen' }).click();
+      await bar.getByText('Trin 7 af 7').waitFor({ timeout: 5000 });
+      await p.getByText(/Tre opgaver i første hug/).waitFor({ timeout: 3000 });
+      await p.screenshot({ path: '/tmp/claude-0/shot-44-test.png' });
+      shots.push('/tmp/claude-0/shot-44-test.png');
+
+      // Et hul: færdigheden bygger på noget eleven ikke har på plads.
+      await p.goto('http://127.0.0.1:4173/#/laer/broek-plusminus');
+      await p.getByText('Den her bygger på noget du ikke er færdig med').waitFor({ timeout: 8000 });
+      await p.getByRole('button', { name: /^Tag .* først$/ }).click();
+      await p.waitForURL(/#\/laer\/broek-forkort$/, { timeout: 5000 });
+    } finally {
+      await ctx.close();
+    }
+  });
+
+  await step('et rigtigt svar der gør en fase færdig, viser svaret og går videre', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 420, height: 900 } });
+    await ctx.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return;
+      localStorage.clear();
+      localStorage.setItem('matematik-ai:profile', JSON.stringify({ name: 'Bo', onboarded: true, diagnosticDone: true, tourDone: true, createdAt: Date.now() }));
+      localStorage.setItem('matematik-ai:skills', JSON.stringify({ 'ligning-ettrin': {
+        skillId: 'ligning-ettrin', pKnown: 0.4, ability: 1.5, attempts: 1, correct: 1, streak: 1, bestStreak: 1, phase: 'guided',
+        phaseProgress: 1, lastSeen: Date.now(), masteredAt: null, interval: 0, ease: 2.5, due: null, reviews: 0, lapses: 0,
+        avgSeconds: 30, hintsUsed: 0, cleanStreak: 1,
+      } }));
+      sessionStorage.setItem('seeded', '1');
+    });
+    const p = await ctx.newPage();
+    p.on('pageerror', (e) => errors.push(`pageerror (fase): ${e.message}`));
+    try {
+      await p.goto('http://127.0.0.1:4173/#/laer/ligning-ettrin', { waitUntil: 'networkidle' });
+      const card = p.locator('main article.card').first();
+      await card.waitFor({ timeout: 8000 });
+      const prompt = (await card.locator('.prose-math').first().evaluate((el) => {
+        const copy = el.cloneNode(true);
+        copy.querySelectorAll('.katex-mathml').forEach((n) => n.remove());
+        return copy.textContent ?? '';
+      })).replace(/[−–]/g, '-').replace(/\s+/g, '');
+      const m = prompt.match(/x([+-]\d+)=(-?\d+)/);
+      if (!m) throw new Error(`kunne ikke læse opgaven: "${prompt}"`);
+      await p.getByLabel('Dit svar').fill(`x = ${Number(m[2]) - Number(m[1])}`);
+      await p.getByRole('button', { name: 'Tjek svar' }).click();
+      await p.getByRole('button', { name: 'Næste opgave' }).waitFor({ timeout: 5000 });
+      await p.getByText(/Videre til trin 4 af 7/).waitFor({ timeout: 3000 });
+      await p.locator('[data-focusbar]').getByText('Trin 4 af 7').waitFor({ timeout: 3000 });
+    } finally {
+      await ctx.close();
+    }
   });
 
   await step('teksten har kontrast nok i begge temaer', async () => {

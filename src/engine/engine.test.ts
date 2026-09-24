@@ -155,28 +155,61 @@ describe('valg af opgavetype', () => {
 describe('faseprogression', () => {
   it('rykker videre når fasens mål er nået', () => {
     const state: SkillState = { ...newSkillState(skill.id), phase: 'guided', phaseProgress: 1 };
-    const out = advancePhase(state, true, 0);
+    const out = advancePhase(state, true, 1);
     expect(out.phase).toBe('independent');
     expect(out.progress).toBe(0);
   });
 
-  it('sender eleven tilbage efter to fejl i træk i samme fase', () => {
+  it('giver et forsøg mere før en forkert opgave tæller', () => {
     const state: SkillState = { ...newSkillState(skill.id), phase: 'variation', phaseProgress: 1 };
+    const out = advancePhase(state, false, 1);
+    expect(out).toMatchObject({ phase: 'variation', progress: 1, misses: 0, regressed: false });
+  });
+
+  it('sender ikke eleven tilbage efter én tabt opgave', () => {
+    const state: SkillState = { ...newSkillState(skill.id), phase: 'variation', phaseProgress: 1 };
+    const out = advancePhase(state, false, 2);
+    expect(out).toMatchObject({ phase: 'variation', progress: 0, misses: 1, regressed: false });
+  });
+
+  it('sender eleven tilbage efter to tabte opgaver i træk i samme fase', () => {
+    const state: SkillState = { ...newSkillState(skill.id), phase: 'variation', phaseProgress: 1, phaseMisses: 1 };
     const out = advancePhase(state, false, 2);
     expect(out.regressed).toBe(true);
     expect(out.phase).toBe('independent');
+    expect(out.misses).toBe(0);
+  });
+
+  it('nulstiller fejltællingen når en opgave lykkes', () => {
+    const state: SkillState = { ...newSkillState(skill.id), phase: 'independent', phaseProgress: 0, phaseMisses: 1 };
+    expect(advancePhase(state, true, 1).misses).toBe(0);
+  });
+
+  it('tæller kun rigtigt i andet forsøg i den guidede fase', () => {
+    const guided: SkillState = { ...newSkillState(skill.id), phase: 'guided', phaseProgress: 0 };
+    const independent: SkillState = { ...newSkillState(skill.id), phase: 'independent', phaseProgress: 0 };
+    expect(advancePhase(guided, true, 2).progress).toBe(1);
+    expect(advancePhase(independent, true, 2).progress).toBe(0);
   });
 
   it('sender ikke eleven tilbage fra en udfordring - den må gerne være svær', () => {
-    const state: SkillState = { ...newSkillState(skill.id), phase: 'challenge', phaseProgress: 0 };
-    const out = advancePhase(state, false, 3);
+    const state: SkillState = { ...newSkillState(skill.id), phase: 'challenge', phaseProgress: 0, phaseMisses: 3 };
+    const out = advancePhase(state, false, 2);
     expect(out.regressed).toBe(false);
     expect(out.phase).toBe('challenge');
   });
 
   it('markerer forløbet som gennemført efter mestringstjekket', () => {
     const state: SkillState = { ...newSkillState(skill.id), phase: 'mastery', phaseProgress: 2 };
-    expect(advancePhase(state, true, 0).completed).toBe(true);
+    expect(advancePhase(state, true, 1).completed).toBe(true);
+  });
+
+  it('springer man forklaringen over, skal mestringstjekket sidde i første hug', () => {
+    const state: SkillState = { ...newSkillState(skill.id), phase: 'mastery', phaseProgress: 1, testingOut: true };
+    expect(advancePhase(state, true, 1)).toMatchObject({ phase: 'mastery', progress: 2, testOutFailed: false });
+    expect(advancePhase(state, false, 1)).toMatchObject({ phase: 'guided', progress: 0, testOutFailed: true });
+    expect(advancePhase(state, true, 2).testOutFailed).toBe(true);
+    expect(advancePhase({ ...state, phaseProgress: 2 }, true, 1).completed).toBe(true);
   });
 });
 

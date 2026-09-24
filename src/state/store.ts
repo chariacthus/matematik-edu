@@ -44,6 +44,8 @@ export interface AttemptResult {
   regressed: boolean;
   /** Blev færdigheden lige mestret? */
   mastered: boolean;
+  /** Eleven sprang forklaringen over, men klarede ikke mestringstjekket. */
+  testOutFailed: boolean;
   /** Nye badges optjent lige nu. */
   unlocked: string[];
 }
@@ -64,10 +66,14 @@ export interface AppState {
 
   /* Handlinger */
   completeOnboarding: (input: { name: string; confidence: number; hard: DomainId[]; easy: DomainId[] }) => void;
-  completeDiagnostic: (scores: Partial<Record<DomainId, number>>, abilityByDomain: Partial<Record<DomainId, number>>) => void;
+  completeDiagnostic: (
+    scores: Partial<Record<DomainId, number>>,
+    abilityByDomain: Partial<Record<DomainId, number>>,
+    untested?: DomainId[],
+  ) => void;
   ensureSkill: (skillId: string) => SkillState;
   recordAttempt: (input: AttemptInput) => AttemptResult;
-  setPhase: (skillId: string, phase: LessonPhase) => void;
+  setPhase: (skillId: string, phase: LessonPhase, testingOut?: boolean) => void;
   reviewSkill: (skillId: string, correct: boolean, hints: number, tries: number, seconds: number, expectedSeconds: number) => void;
   updateSettings: (patch: Partial<Settings>) => void;
   recordLlmUsage: (input: number, output: number) => void;
@@ -179,7 +185,7 @@ export const useStore = create<AppState>((set, get) => {
       });
     },
 
-    completeDiagnostic: (scores, abilityByDomain) => {
+    completeDiagnostic: (scores, abilityByDomain, untested = []) => {
       set((s) => {
         // De tre svageste emner bliver anbefalingen. Emner eleven selv
         // har markeret som svære vægtes lidt tungere, fordi elevens egen
@@ -201,11 +207,19 @@ export const useStore = create<AppState>((set, get) => {
         for (const domain of DOMAINS) {
           const ability = abilityByDomain[domain.id];
           if (ability === undefined) continue;
+          const score = scores[domain.id] ?? 30;
           for (const skill of domain.skills) {
-            if (skills[skill.id]) continue;
+            const existing = skills[skill.id];
+            // Noget eleven allerede er gået i gang med, rører vi ikke.
+            if (existing && (existing.attempts > 0 || existing.phase !== 'explain' || existing.masteredAt !== null)) continue;
             // Færdigheder over elevens niveau starter lavere end dem under.
             const start = Math.max(1, Math.min(5, ability - (skill.tier - 2) * 0.35));
-            skills[skill.id] = { ...newSkillState(skill.id, start), pKnown: Math.min(0.55, (scores[domain.id] ?? 30) / 180) };
+            // Klarede eleven emnet godt, regnes de lette færdigheder som på
+            // plads nok til at låse op for de næste. Ellers skulle en stærk
+            // elev tage hvert eneste trin forfra.
+            // Kun for emner der faktisk blev testet - ikke ud fra selvvurdering alene.
+            const solid = !untested.includes(domain.id) && score >= 65 && skill.tier <= ability - 1;
+            skills[skill.id] = { ...newSkillState(skill.id, start), pKnown: solid ? 0.65 : Math.min(0.55, score / 180) };
           }
         }
 
@@ -237,12 +251,17 @@ export const useStore = create<AppState>((set, get) => {
         phaseProgress: 0,
         regressed: false,
         mastered: false,
+        testOutFailed: false,
         unlocked: [],
       };
 
       set((s) => {
         const before = s.skills[skillId] ?? newSkillState(skillId);
-        let state = applyAttempt(before, problem, input);
+        // Niveautestens svar gemmes i historikken, men rører ikke
+        // færdigheden. Resultatet lægges ind samlet bagefter, og ellers
+        // stod alt man var blevet testet i som "i gang".
+        const diagnostic = input.phase === 'diagnostic';
+        let state = diagnostic ? before : applyAttempt(before, problem, input);
 
         /* Fejlprofil */
         let misconceptions = s.misconceptions;
@@ -256,17 +275,16 @@ export const useStore = create<AppState>((set, get) => {
         const inLesson = input.phase !== 'diagnostic' && input.phase !== 'practice' && input.phase !== 'review';
         let mastered = false;
         if (inLesson) {
-          // Tæl fejl i træk inden for den aktuelle fase.
-          const recent = s.attempts.filter((a) => a.skillId === skillId && a.phase === before.phase);
-          let consecutive = input.correct ? 0 : 1;
-          for (let i = recent.length - 1; i >= 0 && !input.correct; i--) {
-            if ((recent[i] as Attempt).correct) break;
-            consecutive += 1;
-          }
-
-          const outcome = advancePhase(state, input.correct, consecutive);
-          state = { ...state, phase: outcome.phase, phaseProgress: outcome.progress };
+          const outcome = advancePhase(state, input.correct, input.tries);
+          state = {
+            ...state,
+            phase: outcome.phase,
+            phaseProgress: outcome.progress,
+            phaseMisses: outcome.misses,
+            testingOut: state.testingOut && !outcome.testOutFailed && !outcome.completed,
+          };
           result.regressed = outcome.regressed;
+          result.testOutFailed = outcome.testOutFailed;
 
           if (outcome.completed && state.masteredAt === null) {
             state = scheduleFirstReview({ ...state, masteredAt: Date.now() });
@@ -300,7 +318,7 @@ export const useStore = create<AppState>((set, get) => {
         };
 
         const attempts = [...s.attempts, attempt].slice(-MAX_ATTEMPTS);
-        const skills = { ...s.skills, [skillId]: state };
+        const skills = diagnostic ? s.skills : { ...s.skills, [skillId]: state };
         const levelBefore = s.gamification.level;
         const gamification = addXp(s.gamification, xp);
         // Krydsede vi en niveaugrænse med dette forsøg?
@@ -327,6 +345,7 @@ export const useStore = create<AppState>((set, get) => {
           phaseProgress: state.phaseProgress,
           regressed: result.regressed,
           mastered,
+          testOutFailed: result.testOutFailed,
           unlocked: unlocked.map((a) => a.id),
         };
 
@@ -345,10 +364,11 @@ export const useStore = create<AppState>((set, get) => {
       return result;
     },
 
-    setPhase: (skillId, phase) => {
+    setPhase: (skillId, phase, testingOut = false) => {
       set((s) => {
         const state = s.skills[skillId] ?? newSkillState(skillId);
-        const skills = { ...s.skills, [skillId]: { ...state, phase, phaseProgress: 0 } };
+        const touched = state.masteredAt === null ? { lastSeen: Date.now() } : {};
+        const skills = { ...s.skills, [skillId]: { ...state, ...touched, phase, phaseProgress: 0, phaseMisses: 0, testingOut } };
         persist({ ...s, skills });
         return { skills };
       });

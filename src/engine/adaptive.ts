@@ -109,6 +109,13 @@ export function chooseGenerator(
   return { avoidGeneratorId: last?.generatorId };
 }
 
+export interface ProblemOverride {
+  /** Samme opgavetype igen, fx lige efter en opgave der gik galt. */
+  generatorId?: string;
+  maxLevel?: Difficulty;
+  minLevel?: Difficulty;
+}
+
 /** Bygger den næste opgave for en færdighed i en given fase. */
 export function nextProblem(
   skill: Skill,
@@ -116,11 +123,15 @@ export function nextProblem(
   attempts: Attempt[],
   phase: LessonPhase,
   seed?: number,
+  override: ProblemOverride = {},
 ): { problem: Problem; decision: LevelDecision } {
   const decision = chooseLevel(state, attempts, phase);
-  const pick = chooseGenerator(skill, decision.level, phase, attempts);
-  const problem = buildProblem(skill, { level: decision.level, seed, ...pick });
-  return { problem, decision };
+  let level = decision.level;
+  if (override.maxLevel !== undefined) level = Math.min(level, override.maxLevel) as Difficulty;
+  if (override.minLevel !== undefined) level = Math.max(level, override.minLevel) as Difficulty;
+  const pick = override.generatorId ? { generatorId: override.generatorId } : chooseGenerator(skill, level, phase, attempts);
+  const problem = buildProblem(skill, { level, seed, ...pick });
+  return { problem, decision: { ...decision, level } };
 }
 
 /* ------------------------------------------------------------------ */
@@ -173,48 +184,66 @@ export function previousPhase(phase: LessonPhase): LessonPhase | null {
 export interface PhaseOutcome {
   phase: LessonPhase;
   progress: number;
+  /** Opgaver i træk der ikke blev klaret i den nye fase. */
+  misses: number;
   /** Skal eleven et trin tilbage? */
   regressed: boolean;
   /** Er hele forløbet gennemført? */
   completed: boolean;
+  /** Eleven prøvede at springe forklaringen over, men det holdt ikke. */
+  testOutFailed: boolean;
 }
 
 /**
  * Flytter eleven gennem 7-trins-forløbet.
  *
- * Det er her "gå et trin tilbage" bor: to fejl i træk inden for samme
- * fase sender eleven tilbage til den forrige fase, hvor der er mere
- * støtte. Det gælder dog ikke challenge — dér ER det meningen at man
- * kan fejle uden at miste det man har lært.
+ * Der tælles i opgaver, ikke i forsøg: første forkerte svar giver et
+ * forsøg mere, og først når opgaven er tabt, tæller den som en fejl.
+ * To tabte opgaver i træk i samme fase sender eleven et trin tilbage,
+ * hvor der er mere støtte. Det gælder ikke udfordringen - dér må man
+ * gerne fejle.
+ *
+ * Et rigtigt svar i andet forsøg rykker kun i den guidede fase. I de
+ * andre faser skal det sidde i første hug for at tælle.
  */
-export function advancePhase(
-  state: SkillState,
-  correct: boolean,
-  consecutiveErrorsInPhase: number,
-): PhaseOutcome {
+export function advancePhase(state: SkillState, correct: boolean, tries: number): PhaseOutcome {
   const target = PHASE_TARGETS[state.phase];
+  const misses = state.phaseMisses ?? 0;
+  const stay = (progress: number, missCount: number): PhaseOutcome => ({
+    phase: state.phase,
+    progress,
+    misses: missCount,
+    regressed: false,
+    completed: false,
+    testOutFailed: false,
+  });
 
-  if (!correct) {
+  if (state.testingOut) {
+    if (!correct || tries > 1) {
+      return { phase: 'guided', progress: 0, misses: 0, regressed: true, completed: false, testOutFailed: true };
+    }
+  } else if (!correct) {
+    if (tries < 2) return stay(state.phaseProgress, misses);
+    const lost = misses + 1;
     const canRegress = state.phase !== 'challenge' && state.phase !== 'guided';
-    if (consecutiveErrorsInPhase >= 2 && canRegress) {
+    if (lost >= 2 && canRegress) {
       const back = previousPhase(state.phase);
       const backPhase = back && back !== 'explain' && back !== 'example' ? back : 'guided';
-      return { phase: backPhase, progress: 0, regressed: true, completed: false };
+      return { phase: backPhase, progress: 0, misses: 0, regressed: true, completed: false, testOutFailed: false };
     }
-    // Ellers bliver vi i fasen, men mister det optjente.
-    return { phase: state.phase, progress: Math.max(0, state.phaseProgress - 1), regressed: false, completed: false };
+    return stay(Math.max(0, state.phaseProgress - 1), lost);
+  } else if (tries > 1 && state.phase !== 'guided') {
+    return stay(state.phaseProgress, 0);
   }
 
   const progress = state.phaseProgress + 1;
-  if (progress < target) {
-    return { phase: state.phase, progress, regressed: false, completed: false };
-  }
+  if (progress < target) return stay(progress, 0);
 
   const next = nextPhase(state.phase);
   if (!next) {
-    return { phase: 'mastery', progress, regressed: false, completed: true };
+    return { phase: 'mastery', progress, misses: 0, regressed: false, completed: true, testOutFailed: false };
   }
-  return { phase: next, progress: 0, regressed: false, completed: false };
+  return { phase: next, progress: 0, misses: 0, regressed: false, completed: false, testOutFailed: false };
 }
 
 /** Er en fase en hvor eleven løser opgaver? */
