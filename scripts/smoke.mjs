@@ -836,6 +836,33 @@ try {
     }
   });
 
+  await step('forkert fortegn giver et præcist fingerpeg', async () => {
+    await page.goto('http://127.0.0.1:4173/#/traen');
+    await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
+    await page.reload({ waitUntil: 'networkidle' });
+    const card = page.locator('main article.card').first();
+    await card.waitFor({ timeout: 8000 });
+    const prompt = (await card.locator('.prose-math').first().innerText()).replace(/[−–]/g, '-').replace(/\s+/g, '');
+    let x = null;
+    const eq = prompt.match(/(-?\d*)x([+-]\d+)?=(-?\d+)/);
+    const story = prompt.match(/koster(\d+)krifastleje.*?plus(\d+)krpr\.time.*?betaler(\d+)kr/);
+    if (eq) {
+      const a = eq[1] === '' ? 1 : eq[1] === '-' ? -1 : Number(eq[1]);
+      x = (Number(eq[3]) - Number(eq[2] ?? 0)) / a;
+    } else if (story) {
+      x = (Number(story[3]) - Number(story[1])) / Number(story[2]);
+    }
+    if (x === null) throw new Error(`kunne ikke læse opgaven: "${prompt}"`);
+    const wrong = x === 0 ? '1' : String(-x).replace('.', ',');
+    await page.getByLabel('Dit svar').fill(wrong);
+    await page.getByRole('button', { name: 'Tjek svar' }).click();
+    await page.getByText('Du skrev').waitFor({ timeout: 5000 });
+    const fb = await page.locator('main').innerText();
+    if (!fb.includes(`Du skrev ${wrong}.`)) throw new Error(`feedbacken gentager ikke svaret ${wrong}`);
+    if (x !== 0 && !/fortegn/i.test(fb)) throw new Error(`fortegnsfejlen (${wrong} i stedet for ${x}) bliver ikke nævnt`);
+  });
+  await shot('31-fortegn');
+
   await step('husker fremgangen efter genindlæsning', async () => {
     await page.goto('http://127.0.0.1:4173/');
     await page.reload({ waitUntil: 'networkidle' });

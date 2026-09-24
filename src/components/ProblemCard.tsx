@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import type { Misconception, Problem, Skill, SkillState } from '../types';
 import { checkAnswer, emptyResponse, findTrap, isBlank, answerToString, type Response } from '../lib/answer';
+import { describeResponse, findSlip } from '../lib/slips';
 import { MathBlock, MathText } from './MathText';
 import { Tick } from './Tick';
 import { Icon } from './Icon';
@@ -64,7 +65,13 @@ export function ProblemCard({
   const [tries, setTries] = useState(0);
   const [settled, setSettled] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);
-  const [feedback, setFeedback] = useState<{ headline: string; body: string; tip?: string; misconception: Misconception | null } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    headline: string;
+    body: string;
+    yours: string;
+    tip?: string;
+    misconception: Misconception | null;
+  } | null>(null);
   const [confidence, setConfidence] = useState<1 | 2 | 3 | undefined>();
   const [showSolution, setShowSolution] = useState(false);
   const [xpPop, setXpPop] = useState(false);
@@ -112,7 +119,8 @@ export function ProblemCard({
       repeatCount: 0,
       triesSoFar: nextTries,
     });
-    setFeedback({ ...fb, misconception });
+    const slip = trap ? null : findSlip(problem.answer, response);
+    setFeedback({ ...fb, body: slip ? slip.text : fb.body, yours: describeResponse(response), misconception });
 
     // To forsøg er nok: derefter er det mere hjælpsomt at vise vejen end
     // at lade eleven blive ved med at gætte.
@@ -219,6 +227,11 @@ export function ProblemCard({
         {feedback ? (
           <div className="mt-4">
             <Callout tone={feedback.misconception ? 'warn' : 'bad'} title={feedback.headline}>
+              {feedback.yours && inputKind(problem) !== 'choice' && inputKind(problem) !== 'multi' ? (
+                <p className="mb-1.5">
+                  Du skrev <span className="num font-semibold">{feedback.yours}</span>.
+                </p>
+              ) : null}
               <MathText>{feedback.body}</MathText>
               {feedback.tip ? (
                 <p className="mt-2 rounded-lg bg-white/60 px-2.5 py-1.5 text-xs font-semibold dark:bg-ink-950/40">
