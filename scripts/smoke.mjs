@@ -89,6 +89,9 @@ page.on('response', (r) => {
   }
 });
 
+const requested = [];
+page.on('request', (r) => requested.push(r.url()));
+
 const step = async (name, fn) => {
   process.stdout.write(`  ${name} … `);
   try { await fn(); console.log('ok'); }
@@ -424,9 +427,12 @@ try {
   await shot('21-figurer');
 
   await step('viser FP9-prøvetræning', async () => {
+    // Prøven er sin egen bid kode og hentes først når man går derhen.
+    if (requested.some((u) => /\/assets\/Exam-/.test(u))) throw new Error('prøvens kode blev hentet før prøven blev åbnet');
     await page.goto('http://127.0.0.1:4173/#/proeve');
     await page.getByRole('heading', { name: 'Prøvetræning' }).waitFor({ timeout: 8000 });
     await page.getByRole('heading', { name: 'Uden hjælpemidler' }).waitFor({ timeout: 5000 });
+    if (!requested.some((u) => /\/assets\/Exam-/.test(u))) throw new Error('prøven blev ikke hentet som en separat del');
   });
   await shot('11-proeve');
 

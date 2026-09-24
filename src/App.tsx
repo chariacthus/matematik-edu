@@ -1,19 +1,27 @@
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { useRoute, navigate } from './lib/router';
 import { useStore } from './state/store';
 import { Layout } from './components/Layout';
-import { LevelUpBanner, Toast } from './components/ui';
+import { LevelUpBanner, Skeleton, Toast } from './components/ui';
 import { achievementById, levelTitle } from './engine/gamification';
 import { play, setSoundEnabled } from './lib/sound';
-import { OnboardingPage } from './pages/Onboarding';
-import { DiagnosticPage } from './pages/Diagnostic';
 import { DashboardPage } from './pages/Dashboard';
-import { LessonPage } from './pages/Lesson';
-import { DomainPage, LibraryPage } from './pages/Library';
-import { PracticePage, ReviewPage } from './pages/Practice';
-import { ExamPage } from './pages/Exam';
-import { ProfilePage } from './pages/Profile';
-import { SettingsPage } from './pages/Settings';
+
+// Forsiden er med fra start. Resten hentes først når eleven går derhen.
+const lessonChunk = () => import('./pages/Lesson');
+const libraryChunk = () => import('./pages/Library');
+const practiceChunk = () => import('./pages/Practice');
+
+const OnboardingPage = lazy(() => import('./pages/Onboarding').then((m) => ({ default: m.OnboardingPage })));
+const DiagnosticPage = lazy(() => import('./pages/Diagnostic').then((m) => ({ default: m.DiagnosticPage })));
+const LessonPage = lazy(() => lessonChunk().then((m) => ({ default: m.LessonPage })));
+const LibraryPage = lazy(() => libraryChunk().then((m) => ({ default: m.LibraryPage })));
+const DomainPage = lazy(() => libraryChunk().then((m) => ({ default: m.DomainPage })));
+const PracticePage = lazy(() => practiceChunk().then((m) => ({ default: m.PracticePage })));
+const ReviewPage = lazy(() => practiceChunk().then((m) => ({ default: m.ReviewPage })));
+const ExamPage = lazy(() => import('./pages/Exam').then((m) => ({ default: m.ExamPage })));
+const ProfilePage = lazy(() => import('./pages/Profile').then((m) => ({ default: m.ProfilePage })));
+const SettingsPage = lazy(() => import('./pages/Settings').then((m) => ({ default: m.SettingsPage })));
 
 function BadgeToast({ id, onDone }: { id: string | undefined; onDone: () => void }) {
   const badge = id ? achievementById(id) : undefined;
@@ -35,6 +43,17 @@ export default function App() {
   const pendingLevelUp = useStore((s) => s.pendingLevelUp);
   const clearLevelUp = useStore((s) => s.clearLevelUp);
   const sound = useStore((s) => s.settings.sound);
+
+  // De sider eleven oftest går til, hentes når browseren har tid, så
+  // første tryk ikke venter på netværket.
+  useEffect(() => {
+    const later = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1500));
+    later(() => {
+      void lessonChunk();
+      void libraryChunk();
+      void practiceChunk();
+    });
+  }, []);
 
   useEffect(() => setSoundEnabled(sound), [sound]);
   useEffect(() => {
@@ -83,7 +102,7 @@ export default function App() {
 
   return (
     <Layout route={route}>
-      {page}
+      <Suspense fallback={<Skeleton lines={4} />}>{page}</Suspense>
 
       {/* Ét badge ad gangen, nederst og over menuen. Tre bannere på én
           gang dækkede indholdet - og det man lige har præsteret er ikke
