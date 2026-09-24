@@ -226,7 +226,7 @@ try {
 
   await step('åbner biblioteket', async () => {
     await page.goto('http://127.0.0.1:4173/#/bibliotek');
-    await page.getByRole('heading', { name: 'Matematikbibliotek' }).waitFor({ timeout: 8000 });
+    await page.getByRole('heading', { name: 'Emner', exact: true }).waitFor({ timeout: 8000 });
   });
   await shot('05-bibliotek');
 

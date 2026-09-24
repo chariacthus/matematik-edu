@@ -69,7 +69,7 @@ export function LibraryPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Matematikbibliotek"
+        title="Emner"
         subtitle={`Pensum efter Fælles Mål — ${DOMAINS.length} emner, ${DOMAINS.reduce((n, d) => n + d.skills.length, 0)} færdigheder`}
       />
 
@@ -201,7 +201,7 @@ export function DomainPage({ domainId }: { domainId: string }) {
       <PageHeader
         title={domain.name}
         subtitle={domain.blurb}
-        back={{ label: "Kortet", onClick: () => navigate({ name: "library" }) }}
+        back={{ label: "Emner", onClick: () => navigate({ name: "library" }) }}
         right={<ProgressRing value={percent} size={56} />}
       />
 

@@ -1,16 +1,15 @@
 /**
- * Skrifterne pakkes med appen i stedet for at hentes fra Google.
+ * Én skriftfamilie til hele appen.
  *
- * Appen lover at virke uden internet, og en skrift der først dukker op
- * når nettet er der, bryder det løfte. Variable udgaver, så alle
- * vægtene ligger i én fil.
+ * Geist til alt: overskrifter, brødtekst, tal og svarfelter. Geist Mono
+ * kun til de to felter der indeholder kode (API-nøgle og dataeksport).
+ * To familier der ligner hinanden ser ud som en fejl; én familie i
+ * flere vægte ser ud som et valg.
  *
- * Space Grotesk til overskrifter og tal - den har karakter og gør at
- * et regnestykke ligner noget man har lyst til at røre ved. Plus
- * Jakarta Sans til brødtekst, fordi den er rolig at læse i småt.
+ * Skrifterne pakkes med appen, så de også virker uden internet.
  */
-@import '@fontsource-variable/space-grotesk';
-@import '@fontsource-variable/plus-jakarta-sans';
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
 @import 'katex/dist/katex.min.css';
 
 @tailwind base;
@@ -25,7 +24,6 @@
 
   body {
     @apply bg-ink-50 text-ink-900 antialiased dark:bg-ink-950 dark:text-ink-100;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01', 'tnum' 0;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
   }
@@ -39,20 +37,12 @@
    * accentfarver mindre tydelige.
    */
 
-  /**
-   * Overskrifter og tal sættes i Space Grotesk.
-   *
-   * Den har en bredere, mere kantet form end brødteksten, så en titel
-   * og et regnestykke skiller sig ud uden at skulle skrues op i
-   * størrelse. Brødteksten bliver i Plus Jakarta Sans, som er roligere
-   * at læse i mange linjer.
-   */
+  /* Overskrifter strammes lidt ind; det er det der får dem til at se tegnede ud. */
   h1, h2, h3, h4 {
-    @apply font-display;
-    letter-spacing: -0.024em;
+    letter-spacing: -0.022em;
   }
-  /* Tal er halvdelen af indholdet her - de fortjener samme behandling. */
-  .num { @apply font-display; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  /* Tal står i kolonner, så de ikke hopper når de tæller op. */
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 
   /* Tal skal ikke hoppe når de tæller op. */
   .tabular, .tabular-nums { font-variant-numeric: tabular-nums; }
@@ -166,18 +156,18 @@
     --fig-label: #16131f;
     --fig-grid: rgb(15 16 18 / 0.14);
     --fig-soft: rgb(15 16 18 / 0.05);
-    --fig-brand: #6d28d9;
-    --fig-brand-soft: rgb(109 40 217 / 0.12);
-    --fig-brand-text: #5b21b6;
+    --fig-brand: #2c50b3;
+    --fig-brand-soft: rgb(53 99 214 / 0.10);
+    --fig-brand-text: #27438f;
     --fig-accent: #0e7490;
     --fig-accent-soft: rgb(14 116 144 / 0.12);
     --fig-accent-text: #0e7490;
-    --fig-xp: #4d7c0f;
-    --fig-xp-soft: rgb(77 124 15 / 0.14);
+    --fig-xp: #047857;
+    --fig-xp-soft: rgb(4 120 87 / 0.12);
     --fig-bad: #be123c;
     --fig-bad-soft: rgb(190 18 60 / 0.12);
-    --fig-good: #15803d;
-    --fig-good-soft: rgb(21 128 61 / 0.12);
+    --fig-good: #047857;
+    --fig-good-soft: rgb(4 120 87 / 0.12);
     --fig-warn: #b45309;
     --fig-warn-soft: rgb(180 83 9 / 0.14);
   }
@@ -186,18 +176,18 @@
     --fig-label: #f2f0f6;
     --fig-grid: rgb(255 255 255 / 0.13);
     --fig-soft: rgb(255 255 255 / 0.05);
-    --fig-brand: #c4b5fd;
-    --fig-brand-soft: rgb(196 181 253 / 0.14);
-    --fig-brand-text: #ddd6fe;
+    --fig-brand: #94b6fb;
+    --fig-brand-soft: rgb(148 182 251 / 0.12);
+    --fig-brand-text: #c0d4ff;
     --fig-accent: #67e8f9;
     --fig-accent-soft: rgb(103 232 249 / 0.13);
     --fig-accent-text: #a5f3fc;
-    --fig-xp: #bef264;
-    --fig-xp-soft: rgb(190 242 100 / 0.14);
+    --fig-xp: #6ee7b7;
+    --fig-xp-soft: rgb(110 231 183 / 0.12);
     --fig-bad: #fda4af;
     --fig-bad-soft: rgb(253 164 175 / 0.14);
-    --fig-good: #86efac;
-    --fig-good-soft: rgb(134 239 172 / 0.14);
+    --fig-good: #6ee7b7;
+    --fig-good-soft: rgb(110 231 183 / 0.12);
     --fig-warn: #fcd34d;
     --fig-warn-soft: rgb(252 211 77 / 0.15);
   }

@@ -49,9 +49,9 @@ const TOUR: TourStep[] = [
   },
   {
     target: 'nav-library',
-    title: 'Kortet',
+    title: 'Emner',
     body:
-      'Hele pensum efter Fælles Mål — 21 emner og 70 færdigheder. Hvert emne er et kort hvor du kan se ' +
+      'Hele pensum efter Fælles Mål — 21 emner og 70 færdigheder. Hvert emne har et kort, hvor du kan se ' +
       'hvad der er låst op, hvad du er i gang med, og hvad du har mestret.',
   },
   {
@@ -259,7 +259,7 @@ export function DashboardPage() {
         title="Kompetenceområder"
         action={
           <button onClick={() => navigate({ name: 'library' })} className="text-xs font-bold text-brand-600 dark:text-brand-300">
-            Se kortet
+            Se alle emner
           </button>
         }
       >
