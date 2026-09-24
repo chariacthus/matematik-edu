@@ -16,6 +16,14 @@ import { MathText } from './MathText';
 
 export type Verdict = 'idle' | 'correct' | 'wrong';
 
+// Svarmuligheder er enten en formel ("2x + 3") eller almindelig tekst
+// ("Et bogstav S"). Sat som formel mister tekst sine mellemrum.
+function choiceText(c: string): string {
+  if (c.includes('$')) return c;
+  if (/[A-Za-zÆØÅæøå]{2,}/.test(c) && !/[\\^_{}=]/.test(c)) return c;
+  return `$${c}$`;
+}
+
 const KEYS: Partial<Record<InputSpec['kind'], string[]>> = {
   number: ['−', ','],
   pair: ['−', ','],
@@ -161,7 +169,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
               >
                 {String.fromCharCode(65 + i)}
               </span>
-              <MathText className="min-w-0 flex-1">{`$${c}$`.replace(/^\$\$|\$\$$/g, '$')}</MathText>
+              <MathText className="min-w-0 flex-1">{choiceText(c)}</MathText>
             </button>
           );
         })}
