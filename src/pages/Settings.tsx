@@ -87,17 +87,16 @@ export function SettingsPage() {
         </Card>
       </Section>
 
-      {/* AI-lærer */}
-      <section>
-        <SectionTitle>AI-lærer</SectionTitle>
+            <section>
+        <SectionTitle>Hjælp undervejs</SectionTitle>
         <Card className="space-y-4">
           <div className="rounded-xl border border-good-200 bg-good-100 p-3.5 dark:border-good-900 dark:bg-good-900/25">
             <p className="flex items-center gap-2 text-sm font-bold text-good-900 dark:text-good-100">
-              <Icon name="check" size={16} /> Den indbyggede AI-lærer er gratis
+              <Icon name="check" size={16} /> Den indbyggede hjælp er gratis
             </p>
             <p className="mt-1 text-sm leading-relaxed text-good-900/90 dark:text-good-100/90">
-              Den kører i din browser uden internet og uden nøgle, og koster ingenting — hverken nu eller senere. Den
-              bruger opgavernes egne hints og løsningstrin, så den ikke kan finde på matematik der ikke passer.
+              Den kører i din browser, uden internet og uden nøgle. Den bruger opgavens egne hints og løsningstrin, så
+              den kan ikke finde på matematik der er forkert.
             </p>
           </div>
 
@@ -232,7 +231,7 @@ export function SettingsPage() {
       </section>
 
       <p className="pb-4 text-center text-xs text-ink-400 dark:text-ink-500">
-        MatematikAI · adaptiv matematiktutor til 9. klasse
+        MatematikAI · matematik til 9. klasse
       </p>
 
       <Modal open={confirmReset} onClose={() => setConfirmReset(false)} title="Nulstil alt?">

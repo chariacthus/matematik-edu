@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "MatematikAI - adaptiv matematiktutor for 9. klasse",
+  "description": "MatematikAI - matematik til 9. klasse",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

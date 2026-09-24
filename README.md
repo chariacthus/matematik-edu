@@ -61,15 +61,15 @@ en fejlklinik forklarer misforståelsen, før der gives flere opgaver.
 SM-2-inspireret model med en glemselskurve, så de dukker op igen lige
 før de falder ud.
 
-**AI-lærer der ikke giver svaret.** Spørger eleven "hvad er svaret?",
+**Hjælp der ikke giver svaret.** Spørger eleven "hvad er svaret?",
 svarer tutoren med et modspørgsmål der peger på første skridt. Hjælpen
 trappes op for hver gang eleven spørger igen, og først på fjerde trin
 gennemgås hele løsningen — at holde eleven hen længere end det er
 stædighed, ikke undervisning.
 
-## Hvad AI'en koster
+## Hvad hjælpen koster
 
-**Ingenting, som udgangspunkt.** Den indbyggede AI-lærer er regelbaseret
+**Ingenting, som udgangspunkt.** Den indbyggede hjælp er regelbaseret
 og kører i browseren uden internet og uden nøgle. Den bygger på
 opgavernes egne hints, løsningstrin og kendte fejl, så den ikke kan
 opfinde matematik — og den koster ikke noget, hverken nu eller senere.
@@ -157,7 +157,7 @@ et korrekt svar var en misforståelse.
 
 `npm run smoke` kører hele elevrejsen igennem i Chromium: onboarding,
 niveautest, forside, bibliotek, et lektionsforløb med forkert svar og
-feedback, AI-læreren, mørkt tema og at fremgangen overlever en
+feedback, hjælpepanelet, mørkt tema og at fremgangen overlever en
 genindlæsning. Det kræver en Chromium; scriptet leder selv efter en, og
 `CHROMIUM_PATH` kan pege på en bestemt. Browsere hentes ikke ned ved
 `npm install` (projektet bruger `playwright-core`).
@@ -177,7 +177,7 @@ Bevidst begrænsning: udtryk med parenteser, brøkstreger eller rodtegn
 sammenlignes tegn for tegn efter normalisering. Generatoren angiver
 derfor selv de gyldige former via `accept`.
 
-## AI-lærer og Claude
+## Hjælpen og Claude
 
 Den indbyggede tutor er regelbaseret og kører uden netværk. Den bygger
 udelukkende på opgavens egne hints, løsningstrin og kendte fejl, så den

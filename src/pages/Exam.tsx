@@ -100,7 +100,7 @@ export function ExamPage() {
         problem={item.problem}
         skill={item.skill}
         state={skills[item.skill.id]}
-        // Ingen hints og ingen AI-lærer til prøven — det ville ikke ligne
+        // Ingen hints og ingen hjælp til prøven — det ville ikke ligne
         // den rigtige situation.
         allowHints={false}
         allowTutor={false}

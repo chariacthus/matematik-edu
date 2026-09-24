@@ -46,7 +46,7 @@ export function OnboardingPage() {
       </div>
       <div>
         <h1 className="title-page">MatematikAI</h1>
-        <p className="mt-2 text-ink-500 dark:text-ink-400">Din personlige matematiklærer til 9. klasse — bygget efter Fælles Mål og FP9.</p>
+        <p className="mt-2 text-ink-500 dark:text-ink-400">Matematik til 9. klasse, bygget efter Fælles Mål og FP9.</p>
       </div>
       <Card className="text-left">
         <CardTitle>Sådan virker det</CardTitle>
@@ -55,7 +55,7 @@ export function OnboardingPage() {
             ['map', 'En kort niveautest viser hvor du står i 21 emner.'],
             ['target', 'Opgaverne følger dit niveau. Går det let, bliver de sværere.'],
             ['search', 'Samme fejl to gange? Så stopper vi op og forklarer præcis den.'],
-            ['sparkle', 'AI-læreren hjælper dig videre — men giver dig ikke svaret.'],
+            ['hand', 'Sidder du fast, kan du få hjælp. Du får ikke svaret, men et skub videre.'],
           ] as const).map(([icon, text]) => (
             <li key={text} className="flex items-start gap-3">
               <IconTile name={icon} tone="brand" size="sm" />

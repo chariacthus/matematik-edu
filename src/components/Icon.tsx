@@ -1,9 +1,9 @@
 import {
   ArrowLeft, ArrowRight, BookOpen, Brain, Calculator, Calendar, ChartColumn, Check,
   ChevronRight, Clock, Compass, Dices, Download, Eye, FileText, Flag, Flame, Grid3x3,
-  House, Info, Layers, Lightbulb, Lock, Map, Medal, Monitor, Moon, Mountain, Pencil,
+  Hand, House, Info, Layers, Lightbulb, Lock, Map, Medal, Monitor, Moon, Mountain, Pencil,
   Percent, Play, Plus, Rocket, RotateCw, Ruler, Search, Send, Settings, Shapes, Sigma,
-  Sparkles, Sprout, SquareFunction, Star, Sun, Target, Trash2, TriangleAlert, Trophy,
+  Sprout, SquareFunction, Star, Sun, Target, Trash2, TriangleAlert, Trophy,
   User, X, Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -13,7 +13,7 @@ export type IconName =
   | 'flame' | 'bolt' | 'star' | 'trophy' | 'target' | 'medal'
   | 'check' | 'close' | 'chevron' | 'arrow-left' | 'arrow-right' | 'plus'
   | 'lock' | 'play' | 'refresh' | 'clock' | 'calendar'
-  | 'bulb' | 'sparkle' | 'search' | 'info' | 'warning' | 'brain'
+  | 'bulb' | 'hand' | 'search' | 'info' | 'warning' | 'brain'
   | 'book' | 'calculator' | 'shapes' | 'dice' | 'chart' | 'ruler'
   | 'function' | 'percent' | 'sigma' | 'compass' | 'layers' | 'flag'
   | 'eye' | 'send' | 'download' | 'trash' | 'sun' | 'moon' | 'monitor'
@@ -44,7 +44,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   clock: Clock,
   calendar: Calendar,
   bulb: Lightbulb,
-  sparkle: Sparkles,
+  hand: Hand,
   search: Search,
   info: Info,
   warning: TriangleAlert,

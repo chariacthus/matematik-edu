@@ -287,7 +287,7 @@ export function ProblemCard({
 
           {allowTutor ? (
             <button onClick={() => setTutorOpen(true)} className="btn-secondary ml-auto">
-              <Icon name="sparkle" size={16} /> AI-lærer
+              <Icon name="hand" size={16} /> Få hjælp
             </button>
           ) : null}
 

@@ -8,7 +8,7 @@ import { Icon } from './Icon';
 import { useStore } from '../state/store';
 
 /**
- * Chatten med AI-læreren.
+ * Samtalen i hjælpepanelet.
  *
  * Panelet holder styr på hjælpetrinnet — det er den mekanik der gør at
  * tutoren ikke bare udleverer facit. Er der indsat en Claude-nøgle,
@@ -198,7 +198,7 @@ export function TutorPanel({
           onChange={(e) => setInput(e.target.value)}
           placeholder="Skriv hvad du er i tvivl om …"
           className="field flex-1 text-sm"
-          aria-label="Besked til AI-læreren"
+          aria-label="Skriv til hjælpen"
           disabled={busy}
         />
         <button type="submit" className="btn-primary px-3.5" disabled={busy || !input.trim()} aria-label="Send">

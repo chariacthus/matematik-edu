@@ -95,11 +95,21 @@ const step = async (name, fn) => {
   catch (e) { console.log('FEJL'); errors.push(`${name}: ${e.message}`); throw e; }
 };
 
+// Teksten skal lyde som en lærer, ikke som en maskine. Tjekkes på alt der
+// er synligt, hver gang der tages et billede.
+async function assertHumanCopy(where) {
+  const text = await page.evaluate(() => document.body.innerText);
+  const hits = [];
+  if (/\bAI\b/.test(text)) hits.push('ordet "AI"');
+  if (hits.length) errors.push(`${where}: ${hits.join(', ')}`);
+}
+
 const shots = [];
 const shot = async (name) => {
   // Lad indtoninger og forsinkede liste-animationer falde til ro, ellers
   // fanger billedet en halvgennemsigtig side.
   await page.waitForTimeout(700);
+  await assertHumanCopy(name);
   const p = `/tmp/claude-0/shot-${name}.png`;
   await page.screenshot({ path: p });
   shots.push(p);
@@ -308,22 +318,22 @@ try {
   });
   await shot('07-feedback');
 
-  await step('åbner AI-læreren som flydende panel og beder om svaret', async () => {
-    await page.getByRole('button', { name: 'AI-lærer', exact: true }).click();
-    const dock = page.getByRole('dialog', { name: 'AI-lærer' });
+  await step('åbner hjælpen som flydende panel og beder om svaret', async () => {
+    await page.getByRole('button', { name: 'Få hjælp', exact: true }).click();
+    const dock = page.getByRole('dialog', { name: 'Hjælp' });
     await dock.waitFor({ timeout: 5000 });
     // Panelet må ikke dække hele skærmen på desktopbredde, men her er
     // vi på telefon, hvor det er et ark. Vi kontrollerer bare at det
     // ikke er den gamle modal ved at se efter panelets egen overskrift.
     await dock.getByText('Ligninger i to trin').waitFor({ timeout: 5000 });
-    await page.getByLabel('Besked til AI-læreren').fill('hvad er svaret?');
+    await page.getByLabel('Skriv til hjælpen').fill('hvad er svaret?');
     await page.getByRole('button', { name: 'Send' }).click();
     await page.getByText(/lærer ingenting af at få tallet/).waitFor({ timeout: 5000 });
   });
-  await shot('08-ai-laerer');
+  await shot('08-hjaelp');
 
   await step('viser fri træning', async () => {
-    await page.getByRole('button', { name: 'Luk AI-lærer' }).click();
+    await page.getByRole('button', { name: 'Luk hjælpen' }).click();
     await page.goto('http://127.0.0.1:4173/#/traen');
     await page.getByRole('heading', { name: 'Fri træning' }).waitFor({ timeout: 8000 });
     await shot('24-traen');
@@ -479,9 +489,9 @@ try {
     await page.getByRole('switch', { name: 'Mindre bevægelse' }).click();
   });
 
-  await step('viser prisen på AI-læreren i indstillinger', async () => {
+  await step('viser prisen på Claude i indstillinger', async () => {
     await page.goto('http://127.0.0.1:4173/#/indstillinger');
-    await page.getByText(/Den indbyggede AI-lærer er gratis/).waitFor({ timeout: 8000 });
+    await page.getByText(/Den indbyggede hjælp er gratis/).waitFor({ timeout: 8000 });
     const toggle = page.getByLabel('Tilkobl Claude i stedet');
     await toggle.click();
     await page.getByText(/pr\. spørgsmål/).first().waitFor({ timeout: 5000 });
@@ -533,52 +543,52 @@ try {
   });
   await shot('15-forside-moerk');
 
-  await step('AI-panelet i mørkt tema', async () => {
+  await step('hjælpepanelet i mørkt tema', async () => {
     await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
-    await page.getByRole('button', { name: 'AI-lærer', exact: true }).waitFor({ timeout: 8000 });
-    await page.getByRole('button', { name: 'AI-lærer', exact: true }).click();
-    await page.getByRole('dialog', { name: 'AI-lærer' }).waitFor({ timeout: 5000 });
-    await page.getByLabel('Besked til AI-læreren').fill('jeg forstår det ikke');
+    await page.getByRole('button', { name: 'Få hjælp', exact: true }).waitFor({ timeout: 8000 });
+    await page.getByRole('button', { name: 'Få hjælp', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Hjælp' }).waitFor({ timeout: 5000 });
+    await page.getByLabel('Skriv til hjælpen').fill('jeg forstår det ikke');
     await page.getByRole('button', { name: 'Send' }).click();
     await page.waitForTimeout(700);
 
     // Panelet skal fylde det meste af højden på en telefon, og elevens
     // egen besked skal være synlig. Ellers er samtalen ubrugelig.
     const box = await page.evaluate(() => {
-      const el = document.querySelector('[role="dialog"][aria-label="AI-lærer"]');
+      const el = document.querySelector('[role="dialog"][aria-label="Hjælp"]');
       if (!el) return null;
       const r = el.getBoundingClientRect();
       return { top: Math.round(r.top), height: Math.round(r.height), width: Math.round(r.width), vh: window.innerHeight };
     });
-    if (!box) throw new Error('AI-panelet blev ikke fundet');
+    if (!box) throw new Error('hjælpepanelet blev ikke fundet');
     if (box.height < box.vh * 0.5) {
-      throw new Error(`AI-panelet er kun ${box.height}px højt af ${box.vh}px - beskeder får ikke plads`);
+      throw new Error(`hjælpepanelet er kun ${box.height}px højt af ${box.vh}px - beskeder får ikke plads`);
     }
     await page.getByText('jeg forstår det ikke').waitFor({ timeout: 5000 });
   });
   await shot('16-ai-moerk');
 
-  await step('AI-panelet svæver i hjørnet på en stor skærm', async () => {
+  await step('hjælpepanelet svæver i hjørnet på en stor skærm', async () => {
     // Luk panelet fra forrige trin. En hash-navigation genindlæser ikke
     // siden, så det ville ellers stå og dække knappen.
-    await page.getByRole('button', { name: 'Luk AI-lærer' }).click();
-    await page.getByRole('dialog', { name: 'AI-lærer' }).waitFor({ state: 'detached', timeout: 5000 });
+    await page.getByRole('button', { name: 'Luk hjælpen' }).click();
+    await page.getByRole('dialog', { name: 'Hjælp' }).waitFor({ state: 'detached', timeout: 5000 });
     await page.setViewportSize({ width: 1280, height: 860 });
-    await page.getByRole('button', { name: 'AI-lærer', exact: true }).waitFor({ timeout: 8000 });
-    await page.getByRole('button', { name: 'AI-lærer', exact: true }).click();
-    await page.getByRole('dialog', { name: 'AI-lærer' }).waitFor({ timeout: 5000 });
+    await page.getByRole('button', { name: 'Få hjælp', exact: true }).waitFor({ timeout: 8000 });
+    await page.getByRole('button', { name: 'Få hjælp', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Hjælp' }).waitFor({ timeout: 5000 });
     await page.waitForTimeout(500);
 
     // Panelet skal ligge i nederste højre hjørne af vinduet. Ligger det
     // et andet sted, er det blevet fanget inde i opgavekortet igen.
     const box = await page.evaluate(() => {
-      const r = document.querySelector('[role="dialog"][aria-label="AI-lærer"]').getBoundingClientRect();
+      const r = document.querySelector('[role="dialog"][aria-label="Hjælp"]').getBoundingClientRect();
       return { right: Math.round(window.innerWidth - r.right), bottom: Math.round(window.innerHeight - r.bottom), height: Math.round(r.height) };
     });
     if (box.right > 40 || box.bottom > 40) {
-      throw new Error(`AI-panelet sidder ${box.right}px fra højre og ${box.bottom}px fra bunden - det er ikke forankret til vinduet`);
+      throw new Error(`hjælpepanelet sidder ${box.right}px fra højre og ${box.bottom}px fra bunden - det er ikke forankret til vinduet`);
     }
-    if (box.height < 500) throw new Error(`AI-panelet er kun ${box.height}px højt på en stor skærm`);
+    if (box.height < 500) throw new Error(`hjælpepanelet er kun ${box.height}px højt på en stor skærm`);
     // Opgaven skal stadig kunne læses ved siden af - derfor ingen modal.
     await page.getByText(/Løs ligningen/).first().waitFor({ timeout: 5000 });
     // Og den må ikke ligge under panelet. Indholdet rykker til side
@@ -588,12 +598,12 @@ try {
       // Kortet, ikke <main>: main beholder sin bredde og skubber
       // indholdet ind med padding, så dens egen kasse flytter sig ikke.
       const card = document.querySelector('article.card');
-      const panel = document.querySelector('[role="dialog"][aria-label="AI-lærer"]');
+      const panel = document.querySelector('[role="dialog"][aria-label="Hjælp"]');
       if (!card || !panel) return null;
       return Math.round(panel.getBoundingClientRect().left - card.getBoundingClientRect().right);
     });
     if (clear === null) throw new Error('fandt ikke både opgavekort og panel');
-    if (clear < 0) throw new Error(`opgavekortet ligger ${-clear}px ind under AI-panelet`);
+    if (clear < 0) throw new Error(`opgavekortet ligger ${-clear}px ind under hjælpepanelet`);
   });
   await shot('18-ai-desktop');
   await page.setViewportSize({ width: 420, height: 900 });

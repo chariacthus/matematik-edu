@@ -71,8 +71,8 @@ const TOUR: TourStep[] = [
     title: 'Sådan lærer du her',
     body:
       'Hvert emne går gennem syv trin: forklaring, eksempel, guidet træning, selvstændig opgave, variation, ' +
-      'udfordring og mestringstjek. Sidder du fast undervejs, er der hints og en AI-lærer — den giver dig ' +
-      'ikke svaret, men hjælper dig et skridt videre ad gangen.',
+      'udfordring og mestringstjek. Sidder du fast, kan du tage et hint eller trykke på Få hjælp. ' +
+      'Du får ikke svaret, men hjælp til det næste skridt.',
   },
 ];
 
@@ -320,7 +320,7 @@ const KIND: Record<PlanItem['kind'], { icon: IconName; label: string; tone: 'war
   fejlklinik: { icon: 'search', label: 'Ryd op i en fejl', tone: 'warn' },
   repetition: { icon: 'refresh', label: 'Repetition', tone: 'accent' },
   fortsaet: { icon: 'play', label: 'Fortsæt', tone: 'brand' },
-  nyt: { icon: 'sparkle', label: 'Nyt emne', tone: 'xp' },
+  nyt: { icon: 'plus', label: 'Nyt emne', tone: 'xp' },
   diagnose: { icon: 'map', label: 'Niveautest', tone: 'brand' },
 };
 
