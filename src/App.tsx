@@ -1,10 +1,11 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { useRoute, navigate } from './lib/router';
 import { useStore } from './state/store';
 import { Layout } from './components/Layout';
 import { LevelUpBanner, Skeleton, Toast } from './components/ui';
 import { achievementById, levelTitle } from './engine/gamification';
 import { play, setSoundEnabled } from './lib/sound';
+import { registerServiceWorker } from './lib/pwa';
 import { DashboardPage } from './pages/Dashboard';
 
 // Forsiden er med fra start. Resten hentes først når eleven går derhen.
@@ -43,6 +44,9 @@ export default function App() {
   const pendingLevelUp = useStore((s) => s.pendingLevelUp);
   const clearLevelUp = useStore((s) => s.clearLevelUp);
   const sound = useStore((s) => s.settings.sound);
+  const [update, setUpdate] = useState<(() => void) | null>(null);
+
+  useEffect(() => registerServiceWorker((apply) => setUpdate(() => apply)), []);
 
   // De sider eleven oftest går til, hentes når browseren har tid, så
   // første tryk ikke venter på netværket.
@@ -113,6 +117,17 @@ export default function App() {
       ) : null}
 
       <BadgeToast id={pendingBadges[0]} onDone={dismissBadge} />
+
+      {update ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-20 z-40 flex justify-center px-4 lg:bottom-6 lg:pl-60">
+          <div role="status" className="card pointer-events-auto flex animate-panel-in items-center gap-3 rounded-2xl px-4 py-2.5 shadow-lift">
+            <span className="text-sm">Der er en ny version af appen.</span>
+            <button onClick={update} className="btn-primary btn-sm">
+              Genindlæs
+            </button>
+          </div>
+        </div>
+      ) : null}
     </Layout>
   );
 }

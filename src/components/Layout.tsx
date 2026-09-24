@@ -28,6 +28,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
     const apply = () => {
       const dark = settings.theme === 'dark' || (settings.theme === 'system' && media.matches);
       root.classList.toggle('dark', dark);
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0f1114' : '#f7f8fa');
     };
     apply();
     media.addEventListener('change', apply);

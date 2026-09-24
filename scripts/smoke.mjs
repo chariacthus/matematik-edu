@@ -38,6 +38,7 @@ const DIST = new URL('../dist/', import.meta.url).pathname;
 const TYPES = {
   '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
   '.woff': 'font/woff', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.json': 'application/json',
+  '.png': 'image/png', '.webmanifest': 'application/manifest+json',
 };
 
 const server = createServer(async (req, res) => {
@@ -989,6 +990,37 @@ try {
     await page.getByRole('button', { name: 'Fortsæt alligevel' }).click();
     await page.locator('main article.card').first().waitFor({ timeout: 5000 });
     await page.setViewportSize({ width: 420, height: 900 });
+  });
+
+  await step('kan installeres og virker uden net', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 420, height: 900 } });
+    const p = await ctx.newPage();
+    p.on('pageerror', (e) => errors.push(`pageerror (offline): ${e.message}`));
+    try {
+      await p.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
+      const manifest = await p.evaluate(async () => {
+        const link = document.querySelector('link[rel="manifest"]');
+        if (!link) return null;
+        const m = await (await fetch(link.href)).json();
+        const icons = await Promise.all(m.icons.map((i) => fetch(new URL(i.src, link.href)).then((r) => r.ok)));
+        return { name: m.name, display: m.display, icons: icons.filter(Boolean).length, maskable: m.icons.some((i) => i.purpose === 'maskable') };
+      });
+      if (!manifest) throw new Error('siden linker ikke til et manifest');
+      if (manifest.display !== 'standalone' || manifest.icons < 3 || !manifest.maskable) {
+        throw new Error(`manifestet er ikke klar til installation (${JSON.stringify(manifest)})`);
+      }
+      await p.evaluate(() => navigator.serviceWorker.ready);
+      await p.waitForFunction(() => navigator.serviceWorker.controller !== null, null, { timeout: 10000 });
+
+      await ctx.setOffline(true);
+      await p.reload({ waitUntil: 'domcontentloaded' });
+      await p.getByRole('heading', { name: 'MatematikAI' }).waitFor({ timeout: 10000 });
+      await p.screenshot({ path: '/tmp/claude-0/shot-36-offline.png' });
+      shots.push('/tmp/claude-0/shot-36-offline.png');
+    } finally {
+      await ctx.setOffline(false);
+      await ctx.close();
+    }
   });
 
   await step('husker fremgangen efter genindlæsning', async () => {

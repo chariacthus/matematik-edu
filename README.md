@@ -190,6 +190,15 @@ løsningstrin med. Nøglen gemmes kun i browseren og sendes kun til
 Anthropics API. Fejler kaldet, svarer den indbyggede tutor i stedet, så
 eleven aldrig står med en app der ikke svarer.
 
+## Som app og uden net
+
+Appen kan installeres fra browseren på både telefon og computer
+(manifest i `public/manifest.webmanifest`). Ved bygning skriver et lille
+Vite-plugin `sw.js` med alle filer appen består af, så den virker uden
+internet efter første besøg. En ny version tager først over, når eleven
+trykker Genindlæs, så siden ikke skifter mens eleven bruger den.
+Ikonerne tegnes med `node scripts/icons.mjs`.
+
 ## Data og privatliv
 
 Alt ligger i `localStorage` under nøglen `matematik-ai:*`. Der er ingen

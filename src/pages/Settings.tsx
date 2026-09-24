@@ -6,6 +6,7 @@ import { navigate } from '../lib/router';
 import { Card, CardTitle, MetaChip, Modal, PageHeader, Section, SectionTitle, Segmented } from '../components/ui';
 import { MODELS, costOfUsageDkk, costPerQuestionDkk, formatDkk, getModel } from '../tutor/models';
 import { Icon } from '../components/Icon';
+import { useInstall } from '../lib/pwa';
 
 /** Indstillinger, dataeksport og nulstilling. */
 export function SettingsPage() {
@@ -200,6 +201,8 @@ export function SettingsPage() {
         </Card>
       </section>
 
+      <InstallSection />
+
       {/* Data */}
       <section>
         <SectionTitle>Dine data</SectionTitle>
@@ -298,5 +301,29 @@ function Toggle({
         <span className={clsx('h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ease-spring', checked && 'translate-x-5')} />
       </button>
     </div>
+  );
+}
+
+function InstallSection() {
+  const { installed, canInstall, iPhone, install } = useInstall();
+  return (
+    <Section title="Brug som app">
+      <Card className="flex flex-wrap items-center justify-between gap-3">
+        <p className="min-w-0 flex-1 text-sm text-ink-600 dark:text-ink-300">
+          {installed
+            ? 'Appen er installeret og virker også uden internet.'
+            : canInstall
+              ? 'Læg appen på din hjemmeskærm eller computer. Så åbner den som et program og virker uden internet.'
+              : iPhone
+                ? 'Tryk på Del-knappen i Safari og vælg Føj til hjemmeskærm. Så virker appen også uden internet.'
+                : 'Din browser kan lægge appen på skrivebordet eller hjemmeskærmen fra sin menu.'}
+        </p>
+        {canInstall && !installed ? (
+          <button onClick={() => void install()} className="btn-primary btn-sm shrink-0">
+            <Icon name="download" size={14} /> Installer
+          </button>
+        ) : null}
+      </Card>
+    </Section>
   );
 }
