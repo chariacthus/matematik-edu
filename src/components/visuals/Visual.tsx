@@ -8,6 +8,40 @@ import { RectFigure, CircleFigure, AngleFigure } from './Shapes';
 import { SolidFigure } from './Solid';
 import { BarChart, BoxPlot, PieChart, DotPlot, PercentBar, ProbTree } from './Charts';
 
+/** En tabel som i et opgavesæt: tynde streger, ingen farver. */
+function TableFigure({ spec }: { spec: Extract<VisualSpec, { kind: 'table' }> }) {
+  return (
+    <table className="num w-full border-collapse text-left text-sm">
+      <thead>
+        <tr>
+          {spec.head.map((h, i) => (
+            <th key={i} scope="col" className="border-b border-ink-300 px-2.5 py-2 font-semibold text-ink-900 dark:border-white/20 dark:text-white">
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {spec.rows.map((row, i) => (
+          <tr key={i} className="border-b border-ink-200 last:border-0 dark:border-white/[0.08]">
+            {row.map((cell, j) =>
+              j === 0 ? (
+                <th key={j} scope="row" className="px-2.5 py-2 font-medium text-ink-800 dark:text-ink-100">
+                  {cell}
+                </th>
+              ) : (
+                <td key={j} className="px-2.5 py-2 text-ink-700 dark:text-ink-200">
+                  {cell}
+                </td>
+              ),
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 /**
  * Fordeler en visualisering til den rigtige komponent.
  *
@@ -48,6 +82,8 @@ export function Visual({ spec, className }: { spec: VisualSpec; className?: stri
         return <PercentBar spec={spec} />;
       case 'probTree':
         return <ProbTree spec={spec} />;
+      case 'table':
+        return <TableFigure spec={spec} />;
       default:
         return null;
     }

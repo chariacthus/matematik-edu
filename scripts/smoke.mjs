@@ -469,7 +469,39 @@ try {
     await page.reload({ waitUntil: 'networkidle' });
     await page.getByRole('heading', { name: 'Prøvetræning' }).waitFor({ timeout: 8000 });
     await page.getByRole('button', { name: 'Start' }).nth(1).click();
-    await page.getByText(/Opgave 1 af 12/).waitFor({ timeout: 8000 });
+    await page.getByText(/Opgave 1\.1 · 1 af 12/).waitFor({ timeout: 8000 });
+
+    // Som på et rigtigt opgaveark: historie og tabel over delopgaverne.
+    const sheet = page.locator('[data-theme-sheet]:visible');
+    await sheet.waitFor({ timeout: 5000 });
+    if (!(await sheet.locator('table, svg').count())) throw new Error('opgaven med tema har hverken tabel eller figur');
+    if (await page.locator('main article').getByText(/Pythagoras|Procent|Statistik|Brøker/).count()) {
+      throw new Error('delopgaven viser emnets navn og afslører dermed metoden');
+    }
+    await shot('34-tema-telefon');
+    await page.getByRole('button', { name: 'Spring over' }).click();
+    await page.getByText(/Opgave 1\.2 · 2 af 12/).waitFor({ timeout: 5000 });
+    const fold = page.getByRole('button', { name: 'Oplysninger til opgave 1' });
+    await fold.waitFor({ timeout: 5000 });
+    if (await page.locator('[data-theme-sheet]:visible').count()) {
+      throw new Error('historien fylder stadig hele toppen på telefonen efter første delopgave');
+    }
+    await fold.click();
+    await page.locator('main table:visible, main figure svg:visible').first().waitFor({ timeout: 5000 });
+
+    await page.setViewportSize({ width: 1280, height: 860 });
+    await page.waitForTimeout(300);
+    const side = await page.evaluate(() => {
+      const sheetEl = [...document.querySelectorAll('[data-theme-sheet]')].find((el) => el.getBoundingClientRect().width > 0);
+      const card = document.querySelector('main article.card');
+      if (!sheetEl || !card) return null;
+      return { sheetRight: sheetEl.getBoundingClientRect().right, cardLeft: card.getBoundingClientRect().left };
+    });
+    if (!side) throw new Error('fandt ikke både historie og delopgave på computeren');
+    if (side.sheetRight > side.cardLeft) throw new Error('historien står ikke ved siden af delopgaven på en computer');
+    await shot('35-tema-computer');
+    await page.setViewportSize({ width: 420, height: 900 });
+
     await page.getByRole('button', { name: 'Formelsamling' }).click();
     const panel = page.getByRole('dialog', { name: 'Formelsamling' });
     await panel.waitFor({ timeout: 5000 });

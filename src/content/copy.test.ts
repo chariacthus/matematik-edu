@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { ALL_SKILLS, DOMAINS, buildProblem } from './index';
 import { MISCONCEPTIONS } from './misconceptions';
+import { EXAM_THEMES } from './examThemes';
+import { makeRng } from '../lib/math';
 import { feedbackForWrongAnswer, greeting, misconceptionClinic, respond, type Intent, type TutorContext } from '../tutor/tutor';
 import type { Difficulty } from '../types';
 
@@ -43,6 +45,12 @@ const INTENTS: Intent[] = [
 describe('teksten lyder som en lærer', () => {
   it('forklaringer, eksempler og emnetekster', () => {
     expectClean('pensum', strings(DOMAINS));
+  });
+
+  it('prøvens opgavesæt med tema', () => {
+    for (const theme of EXAM_THEMES) {
+      for (const seed of [1, 2, 3]) expectClean(theme.id, [theme.title, ...strings(theme.build(makeRng(seed)))]);
+    }
   });
 
   it('misforståelserne', () => {

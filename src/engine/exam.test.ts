@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { EXAM_PARTS, answerExamItem, createExam, examFinished, gradeIndication, summariseExam } from './exam';
 import { aidsOf, matchesAids } from '../content';
+import { EXAM_THEMES } from '../content/examThemes';
+import { checkAnswer, type Response } from '../lib/answer';
+import { makeRng } from '../lib/math';
+import type { Problem } from '../types';
 
 describe('FP9-prøvesæt', () => {
   it('bygger et sæt med det rigtige antal opgaver', () => {
@@ -34,7 +38,7 @@ describe('FP9-prøvesæt', () => {
   });
 
   it('blander emnerne, så prøven ikke kommer i blokke', () => {
-    const exam = createExam('med', {}, 11);
+    const exam = createExam('uden', {}, 11);
     const domains = exam.items.map((i) => i.skill.domainId);
     // Mindst halvdelen af naboparrene skal være forskellige emner.
     let changes = 0;
@@ -102,5 +106,60 @@ describe('karakterindikation', () => {
     for (const p of [0, 30, 45, 63, 78, 90, 100]) {
       expect(gradeIndication(p).note.length).toBeGreaterThan(10);
     }
+  });
+});
+
+function facit(p: Problem): Response {
+  switch (p.answer.type) {
+    case 'number':
+      return { kind: 'text', value: String(p.answer.value).replace('.', ',') };
+    case 'fraction':
+      return { kind: 'text', value: `${p.answer.value.n}/${p.answer.value.d}` };
+    case 'text':
+    case 'expression':
+      return { kind: 'text', value: p.answer.value };
+    case 'choice':
+      return { kind: 'choice', index: p.answer.correct };
+    case 'multi':
+      return { kind: 'multi', indices: p.answer.correct };
+    case 'pair':
+      return { kind: 'pair', a: String(p.answer.values[0]), b: String(p.answer.values[1]) };
+    case 'point':
+      return { kind: 'point', x: String(p.answer.x), y: String(p.answer.y) };
+  }
+}
+
+describe('opgavesæt med tema', () => {
+  it('hvert tema giver fire delopgaver med gyldige tal og et facit der kan rettes', () => {
+    for (const theme of EXAM_THEMES) {
+      for (let seed = 1; seed <= 50; seed++) {
+        const built = theme.build(makeRng(seed));
+        expect(built.parts, theme.id).toHaveLength(4);
+        expect(built.intro.length).toBeGreaterThan(20);
+        for (const part of built.parts) {
+          const json = JSON.stringify(part.draft);
+          expect(json, `${theme.id}/${seed}`).not.toMatch(/NaN|Infinity|undefined/);
+          expect(part.draft.hints.length).toBeGreaterThan(0);
+          expect(part.draft.solution.length).toBeGreaterThan(0);
+          const p = { ...part.draft, id: 'x', skillId: part.skillId, domainId: 'tal', generatorId: 'x', level: 3, seconds: 60 } as Problem;
+          expect(checkAnswer(p.answer, facit(p)), `${theme.id}/${seed}: ${p.prompt}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('prøven med hjælpemidler består af tre forskellige temaer med delopgaver i rækkefølge', () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const exam = createExam('med', {}, seed);
+      expect(exam.items).toHaveLength(EXAM_PARTS.med.count);
+      const ids = [...new Set(exam.items.map((i) => i.theme?.id))];
+      expect(ids).toHaveLength(3);
+      expect(exam.items.map((i) => i.label)).toEqual(['1.1', '1.2', '1.3', '1.4', '2.1', '2.2', '2.3', '2.4', '3.1', '3.2', '3.3', '3.4']);
+      expect(new Set(exam.items.map((i) => i.problem.id)).size).toBe(12);
+    }
+  });
+
+  it('prøven uden hjælpemidler har ingen temaer', () => {
+    expect(createExam('uden', {}, 4).items.every((i) => !i.theme)).toBe(true);
   });
 });

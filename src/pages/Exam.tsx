@@ -11,12 +11,15 @@ import {
   timeLeft,
   type ExamPart,
   type ExamSession,
+  type ExamTheme as ExamThemeInfo,
 } from '../engine/exam';
+import { MathText } from '../components/MathText';
+import { Visual } from '../components/visuals/Visual';
 import { CATEGORIES } from '../content';
 import { useStore } from '../state/store';
 import { navigate } from '../lib/router';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, ChoiceCard, MetaChip, StatTile, LabelledBar, PageHeader, ProgressBar, ProgressRing, SectionTitle } from '../components/ui';
+import { Callout, Card, ChoiceCard, Disclosure, LabelledBar, MetaChip, PageHeader, ProgressBar, ProgressRing, SectionTitle, StatTile } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { FormelsamlingButton } from '../components/Formelsamling';
 
@@ -24,7 +27,7 @@ import { FormelsamlingButton } from '../components/Formelsamling';
  * FP9-prøvetræning.
  *
  * To prøvedele med hver deres regler, ligesom den rigtige prøve. Der er
- * hverken hints eller AI-lærer undervejs — det ville ikke ligne noget.
+ * hverken hints eller hjælp undervejs, for det ville ikke ligne noget.
  * Til gengæld får eleven en grundig gennemgang bagefter.
  */
 export function ExamPage() {
@@ -60,12 +63,54 @@ export function ExamPage() {
   const item = currentExamItem(session);
   if (!item) return null;
 
+  const theme = item.theme;
   const mm = Math.floor(seconds / 60);
   const ss = Math.floor(seconds % 60);
   const lowTime = seconds < 300;
 
+  const question = (
+    <>
+      <ProblemCard
+        key={item.problem.id}
+        problem={item.problem}
+        skill={item.skill}
+        state={skills[item.skill.id]}
+        // Ingen hints, ingen hjælp og ingen lyd til prøven. Det ville ikke
+        // ligne den rigtige situation.
+        allowHints={false}
+        allowTutor={false}
+        sounds={false}
+        onSubmit={(info: SubmitInfo) => {
+          recordAttempt({ problem: item.problem, ...info, phase: 'practice' });
+          setSession((s) => (s ? answerExamItem(s, info.correct) : s));
+        }}
+        onNext={() => undefined}
+        nextLabel="Næste"
+        label={`Opgave ${item.label ?? session.index + 1}`}
+        headerRight={<MetaChip tone="neutral">{session.config.part === 'uden' ? 'uden hjælpemidler' : 'med hjælpemidler'}</MetaChip>}
+      />
+
+      {/* Til den rigtige prøve med hjælpemidler har man formelsamlingen
+          med. Uden den tester prøven udenadslære frem for det den skal. */}
+      {session.config.part === 'med' ? (
+        <div className="mt-4">
+          <FormelsamlingButton className="btn-secondary w-full sm:w-auto" />
+        </div>
+      ) : null}
+
+      <div className="mt-4 flex justify-between">
+        <button onClick={() => setSession((s) => (s ? answerExamItem(s, false) : s))} className="btn-ghost text-xs">
+          Spring over
+        </button>
+        <button onClick={() => setFinished(true)} className="btn-ghost text-xs">
+          Aflevér prøven
+        </button>
+      </div>
+    </>
+  );
+
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className={clsx('mx-auto', theme ? 'max-w-5xl' : 'max-w-2xl')}>
       {/* Uret og fremgangen bliver stående øverst, også når en lang opgave
           skal rulles - man skal kunne se tiden uden at lede efter den. */}
       <div className="sticky top-14 z-20 -mx-4 mb-4 border-b border-ink-200 bg-ink-50/90 px-4 py-3 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/90 lg:top-0 lg:-mx-8 lg:px-8">
@@ -73,7 +118,8 @@ export function ExamPage() {
           <div className="min-w-0">
             <p className="eyebrow">{session.config.title}</p>
             <p className="num mt-0.5 text-sm font-semibold">
-              Opgave {session.index + 1} af {session.items.length}
+              {item.label ? `Opgave ${item.label} · ` : 'Opgave '}
+              {session.index + 1} af {session.items.length}
             </p>
           </div>
           <div
@@ -95,43 +141,45 @@ export function ExamPage() {
         </div>
       </div>
 
-      <ProblemCard
-        key={item.problem.id}
-        problem={item.problem}
-        skill={item.skill}
-        state={skills[item.skill.id]}
-        // Ingen hints og ingen hjælp til prøven — det ville ikke ligne
-        // den rigtige situation.
-        allowHints={false}
-        allowTutor={false}
-        sounds={false}
-        onSubmit={(info: SubmitInfo) => {
-          recordAttempt({ problem: item.problem, ...info, phase: 'practice' });
-          setSession((s) => (s ? answerExamItem(s, info.correct) : s));
-        }}
-        onNext={() => undefined}
-        nextLabel="Næste"
-        headerRight={<MetaChip tone="neutral">{session.config.part === 'uden' ? 'uden hjælpemidler' : 'med hjælpemidler'}</MetaChip>}
-      />
-
-      {/* Til den rigtige prøve med hjælpemidler har man formelsamlingen
-          med. Uden den tester prøven udenadslære frem for det den skal. */}
-      {session.config.part === 'med' ? (
-        <div className="mt-4">
-          <FormelsamlingButton className="btn-secondary w-full sm:w-auto" />
+      {theme ? (
+        <div className="grid gap-4 lg:grid-cols-2 lg:items-start lg:gap-6">
+          <div className="hidden lg:sticky lg:top-32 lg:block">
+            <ThemeSheet theme={theme} />
+          </div>
+          <div className="lg:hidden">
+            {item.label?.endsWith('.1') ? (
+              <ThemeSheet theme={theme} />
+            ) : (
+              <Card pad="sm">
+                <Disclosure summary={`Oplysninger til opgave ${theme.number}`}>
+                  <ThemeSheet theme={theme} bare />
+                </Disclosure>
+              </Card>
+            )}
+          </div>
+          <div>{question}</div>
         </div>
-      ) : null}
-
-      <div className="mt-4 flex justify-between">
-        <button onClick={() => setSession((s) => (s ? answerExamItem(s, false) : s))} className="btn-ghost text-xs">
-          Spring over
-        </button>
-        <button onClick={() => setFinished(true)} className="btn-ghost text-xs">
-          Aflevér prøven
-        </button>
-      </div>
+      ) : (
+        question
+      )}
     </div>
   );
+}
+
+/** Opgavens historie og tabel, som øverst på et opgaveark. */
+function ThemeSheet({ theme, bare }: { theme: ExamThemeInfo; bare?: boolean }) {
+  const body = (
+    <>
+      <p className="eyebrow">Opgave {theme.number}</p>
+      <h2 className="mt-1 text-lg font-semibold">{theme.title}</h2>
+      <p className="mt-2 text-sm leading-relaxed text-ink-700 dark:text-ink-200">
+        <MathText>{theme.intro}</MathText>
+      </p>
+      {theme.visual ? <Visual spec={theme.visual} className="mt-4" /> : null}
+    </>
+  );
+  if (bare) return <div className="pt-3">{body}</div>;
+  return <Card data-theme-sheet>{body}</Card>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -156,7 +204,7 @@ function ExamPicker({ onStart }: { onStart: (part: ExamPart) => void }) {
               title={c.title}
               description={c.description}
               meta={[
-                { icon: 'layers', label: `${c.count} opgaver` },
+                { icon: 'layers', label: part === 'med' ? `3 opgaver · ${c.count} delopgaver` : `${c.count} opgaver` },
                 { icon: 'clock', label: `${c.minutes} min` },
               ]}
               action={{ label: 'Start', onClick: () => onStart(part) }}

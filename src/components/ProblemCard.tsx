@@ -45,6 +45,7 @@ export function ProblemCard({
   autoAdvance,
   headerRight,
   sounds = true,
+  label,
 }: {
   problem: Problem;
   skill: Skill;
@@ -62,6 +63,8 @@ export function ProblemCard({
   headerRight?: React.ReactNode;
   /** Til prøven: ingen lyd der afslører om svaret var rigtigt. */
   sounds?: boolean;
+  /** Til prøven: "Opgave 2.3" i stedet for emnets navn, som ellers ville afsløre metoden. */
+  label?: string;
 }) {
   const [response, setResponse] = useState<Response>(() => emptyResponse(inputKind(problem)));
   const [verdict, setVerdict] = useState<Verdict>('idle');
@@ -159,8 +162,14 @@ export function ProblemCard({
       {xpPop && xpOnCorrect ? <XpPop amount={xpOnCorrect} onDone={() => setXpPop(false)} /> : null}
       {/* Hoved */}
       <div className="flex flex-wrap items-center gap-2 rounded-t-3xl border-b border-ink-200 px-5 py-3 dark:border-white/[0.07] sm:px-6">
-        <MetaChip tone="neutral">{skill.name}</MetaChip>
-        <LevelDots level={problem.level} />
+        {label ? (
+          <span className="num text-sm font-semibold">{label}</span>
+        ) : (
+          <>
+            <MetaChip tone="neutral">{skill.name}</MetaChip>
+            <LevelDots level={problem.level} />
+          </>
+        )}
         <span className="ml-auto flex items-center gap-2">{headerRight}</span>
       </div>
 

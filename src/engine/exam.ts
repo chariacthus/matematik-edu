@@ -1,5 +1,6 @@
-import type { CategoryId, Difficulty, Problem, Skill, SkillState } from '../types';
-import { ALL_SKILLS, DOMAINS, buildProblem, matchesAids } from '../content';
+import type { CategoryId, Difficulty, Problem, Skill, SkillState, Visual } from '../types';
+import { ALL_SKILLS, DOMAINS, buildProblem, getSkill, matchesAids } from '../content';
+import { EXAM_THEMES } from '../content/examThemes';
 import { abilityToLevel } from './mastery';
 import { clamp, makeRng, randomSeed } from '../lib/math';
 
@@ -45,15 +46,30 @@ export const EXAM_PARTS: Record<ExamPart, ExamConfig> = {
     minutes: 90,
     title: 'Med hjælpemidler',
     description:
-      'Lommeregner, formelsamling og regneark er tilladt. Færre, men større opgaver med problembehandling og modellering.',
+      'Lommeregner, formelsamling og regneark er tilladt. Tre opgaver med hver sin historie og fire delopgaver, som til den rigtige prøve.',
   },
 };
+
+export interface ExamTheme {
+  id: string;
+  /** Opgavens nummer i sættet, fra 1. */
+  number: number;
+  title: string;
+  intro: string;
+  visual?: Visual;
+}
 
 export interface ExamItem {
   problem: Problem;
   skill: Skill;
   category: CategoryId;
+  /** Opgaven delopgaven hører til, når prøven er bygget af temaer. */
+  theme?: ExamTheme;
+  /** "2.3" som på et rigtigt opgaveark. */
+  label?: string;
 }
+
+const THEMES_PER_EXAM = 3;
 
 export interface ExamSession {
   config: ExamConfig;
@@ -89,6 +105,11 @@ function categoryOf(skill: Skill): CategoryId {
 export function createExam(part: ExamPart, states: Record<string, SkillState>, seed = randomSeed()): ExamSession {
   const config = EXAM_PARTS[part];
   const rng = makeRng(seed);
+
+  if (part === 'med') {
+    const items = themedItems(rng, seed);
+    return { config, items, answers: items.map(() => null), index: 0, startedAt: Date.now(), finishedAt: null };
+  }
 
   // Kun færdigheder med mindst én generator der hører til denne prøvedel.
   const eligible = ALL_SKILLS.map((skill) => ({
@@ -139,6 +160,34 @@ export function createExam(part: ExamPart, states: Record<string, SkillState>, s
     startedAt: Date.now(),
     finishedAt: null,
   };
+}
+
+function themedItems(rng: ReturnType<typeof makeRng>, seed: number): ExamItem[] {
+  const items: ExamItem[] = [];
+  rng.sample(EXAM_THEMES, THEMES_PER_EXAM).forEach((def, t) => {
+    const built = def.build(rng);
+    const theme: ExamTheme = { id: def.id, number: t + 1, title: def.title, intro: built.intro, visual: built.visual };
+    built.parts.forEach((part, p) => {
+      const skill = getSkill(part.skillId);
+      if (!skill) throw new Error(`Temaet ${def.id} peger på en ukendt færdighed: ${part.skillId}`);
+      items.push({
+        problem: {
+          ...part.draft,
+          id: `tema-${def.id}-${p + 1}:${seed}`,
+          skillId: skill.id,
+          domainId: skill.domainId,
+          generatorId: `tema-${def.id}-${p + 1}`,
+          level: 3,
+          seconds: part.draft.seconds ?? 90,
+        },
+        skill,
+        category: categoryOf(skill),
+        theme,
+        label: `${t + 1}.${p + 1}`,
+      });
+    });
+  });
+  return items;
 }
 
 export function answerExamItem(session: ExamSession, correct: boolean): ExamSession {

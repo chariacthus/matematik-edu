@@ -370,7 +370,8 @@ export type Visual =
       levels: { label: string; branches: { label: string; p: string }[] }[];
       caption?: string;
     }
-  | { kind: 'percentBar'; whole: number; part: number; wholeLabel?: string; partLabel?: string; caption?: string };
+  | { kind: 'percentBar'; whole: number; part: number; wholeLabel?: string; partLabel?: string; caption?: string }
+  | { kind: 'table'; head: string[]; rows: string[][]; caption?: string };
 
 /* ------------------------------------------------------------------ */
 /* Elevens tilstand                                                    */
