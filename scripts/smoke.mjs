@@ -90,6 +90,60 @@ page.on('response', (r) => {
   }
 });
 
+// Kontrast efter WCAG AA: 4,5 for almindelig tekst, 3 for stor tekst.
+// Baggrunden findes ved at lægge forældrenes farver oven på hinanden.
+// Deaktiverede og bevidst dæmpede ting (låste badges) tæller ikke med.
+async function lowContrast() {
+  return page.evaluate(() => {
+    const parse = (str) => {
+      const m = str.match(/rgba?\(([^)]+)\)/);
+      if (!m) return null;
+      const p = m[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+      return { rgb: p.slice(0, 3), a: p.length > 3 ? p[3] : 1 };
+    };
+    const blend = (fg, bg) => fg.rgb.map((v, i) => v * fg.a + bg[i] * (1 - fg.a));
+    const lum = (rgb) => {
+      const [r, g, b] = rgb.map((v) => {
+        const c = v / 255;
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const out = [];
+    for (const el of document.querySelectorAll('body *')) {
+      const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+      if (!own) continue;
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height) continue;
+      if (el.closest('[aria-hidden="true"], .katex, svg, [disabled], [aria-disabled="true"]')) continue;
+      const chain = [];
+      let dimmed = false;
+      for (let e = el; e; e = e.parentElement) {
+        chain.push(e);
+        if (Number(getComputedStyle(e).opacity) < 1) dimmed = true;
+      }
+      if (dimmed) continue;
+      let bg = [255, 255, 255];
+      for (const e of chain.reverse()) {
+        const c = parse(getComputedStyle(e).backgroundColor);
+        if (c && c.a > 0) bg = blend(c, bg);
+      }
+      const cs = getComputedStyle(el);
+      const fgc = parse(cs.color);
+      if (!fgc) continue;
+      const fg = blend(fgc, bg);
+      const [hi, lo] = [lum(fg), lum(bg)].sort((x, y) => y - x);
+      const ratio = (hi + 0.05) / (lo + 0.05);
+      const size = parseFloat(cs.fontSize);
+      const large = size >= 24 || (size >= 18.66 && Number(cs.fontWeight) >= 700);
+      if (ratio < (large ? 3 : 4.5)) {
+        out.push(`${ratio.toFixed(2)} "${el.textContent.trim().slice(0, 30)}" (${el.className.toString().slice(0, 60)})`);
+      }
+    }
+    return out;
+  });
+}
+
 const requested = [];
 page.on('request', (r) => requested.push(r.url()));
 
@@ -881,7 +935,14 @@ try {
     await page.reload({ waitUntil: 'networkidle' });
     const card = page.locator('main article.card').first();
     await card.waitFor({ timeout: 8000 });
-    const prompt = (await card.locator('.prose-math').first().innerText()).replace(/[−–]/g, '-').replace(/\s+/g, '');
+    // Kun den synlige udgave af formlen; MathML-kopien til skærmlæsere står ved siden af.
+    const prompt = (
+      await card.locator('.prose-math').first().evaluate((el) => {
+        const copy = el.cloneNode(true);
+        copy.querySelectorAll('.katex-mathml').forEach((n) => n.remove());
+        return copy.textContent ?? '';
+      })
+    ).replace(/[−–]/g, '-').replace(/\s+/g, '');
     let x = null;
     const eq = prompt.match(/(-?\d*)x([+-]\d+)?=(-?\d+)/);
     const story = prompt.match(/koster(\d+)krifastleje.*?plus(\d+)krpr\.time.*?betaler(\d+)kr/);
@@ -989,6 +1050,59 @@ try {
     await shot('33-stop-for-nu');
     await page.getByRole('button', { name: 'Fortsæt alligevel' }).click();
     await page.locator('main article.card').first().waitFor({ timeout: 5000 });
+    await page.setViewportSize({ width: 420, height: 900 });
+  });
+
+  await step('teksten har kontrast nok i begge temaer', async () => {
+    await page.setViewportSize({ width: 1280, height: 860 });
+    const found = [];
+    for (const theme of ['Mørkt', 'Lyst']) {
+      await page.goto('http://127.0.0.1:4173/#/indstillinger');
+      await page.getByRole('tab', { name: theme }).click();
+      for (const route of ['#/', '#/bibliotek', '#/bibliotek/ligninger', '#/laer/ligning-totrin', '#/traen', '#/proeve', '#/profil', '#/indstillinger']) {
+        await page.goto(`http://127.0.0.1:4173/${route}`);
+        await page.waitForTimeout(900);
+        for (const f of await lowContrast()) found.push(`${theme} ${route}: ${f}`);
+      }
+    }
+    await page.goto('http://127.0.0.1:4173/#/indstillinger');
+    await page.getByRole('tab', { name: 'Mørkt' }).click();
+    await page.setViewportSize({ width: 420, height: 900 });
+    if (found.length) throw new Error(`${found.length} tekster med for lav kontrast:\n    ${[...new Set(found)].slice(0, 40).join('\n    ')}`);
+  });
+
+  await step('tastaturet: spring til indhold, synligt fokus og fokus tilbage', async () => {
+    await page.setViewportSize({ width: 1280, height: 860 });
+    await page.goto('http://127.0.0.1:4173/#/');
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.getByText('Dagens Missioner').waitFor({ timeout: 8000 });
+
+    await page.keyboard.press('Tab');
+    const skip = await page.evaluate(() => {
+      const el = document.activeElement;
+      return { text: el?.textContent?.trim(), visible: el ? el.getBoundingClientRect().width > 20 : false };
+    });
+    if (skip.text !== 'Gå til indhold' || !skip.visible) throw new Error(`første tab rammer ikke et synligt "Gå til indhold" (${JSON.stringify(skip)})`);
+    await page.keyboard.press('Enter');
+    if ((await page.evaluate(() => document.activeElement?.id)) !== 'indhold') throw new Error('"Gå til indhold" flytter ikke fokus til indholdet');
+    if (!/#\/$/.test(page.url())) throw new Error(`"Gå til indhold" skiftede side (${page.url()})`);
+
+    await page.goto('http://127.0.0.1:4173/#/laer/ligning-totrin');
+    await page.locator('main article.card').first().waitFor({ timeout: 8000 });
+
+    const help = page.getByRole('button', { name: 'Få hjælp', exact: true });
+    await help.focus();
+    const ring = await help.evaluate((el) => ({ style: getComputedStyle(el).outlineStyle, width: getComputedStyle(el).outlineWidth }));
+    if (ring.style === 'none' || ring.width === '0px') throw new Error('knappen viser ikke hvor fokus er');
+    await page.keyboard.press('Enter');
+    await page.getByRole('dialog', { name: 'Hjælp' }).waitFor({ timeout: 5000 });
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog', { name: 'Hjælp' }).waitFor({ state: 'detached', timeout: 5000 });
+    const back = await page.evaluate(() => document.activeElement?.textContent?.trim());
+    if (back !== 'Få hjælp') throw new Error(`fokus kommer ikke tilbage til knappen efter panelet lukker (${back})`);
+
+    const math = await page.locator('main .prose-math .katex-mathml math').count();
+    if (!math) throw new Error('formlerne har ingen MathML til skærmlæsere');
     await page.setViewportSize({ width: 420, height: 900 });
   });
 

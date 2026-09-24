@@ -132,7 +132,7 @@ export function ExamPage() {
             role="timer"
             aria-label={`${mm} minutter og ${ss} sekunder tilbage`}
           >
-            <Icon name="clock" size={16} className={lowTime ? '' : 'text-ink-400'} />
+            <Icon name="clock" size={16} className={lowTime ? '' : 'text-ink-500 dark:text-ink-400'} />
             {mm}:{String(ss).padStart(2, '0')}
           </div>
         </div>
@@ -243,7 +243,7 @@ function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: (
         <ProgressRing value={result.percent} size={80} stroke={8} />
         <div className="min-w-0">
           <p className="text-3xl font-bold leading-none">{grade.grade}</p>
-          <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink-400">karakterindikation</p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink-500 dark:text-ink-400">karakterindikation</p>
           <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">{grade.note}</p>
         </div>
       </Card>
@@ -288,7 +288,7 @@ function ExamResultView({ session, onRetry }: { session: ExamSession; onRetry: (
                 >
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold">{w.name}</span>
                   <MetaChip tone="warn">{w.wrong} forkert</MetaChip>
-                  <Icon name="chevron" size={16} className="text-ink-400" />
+                  <Icon name="chevron" size={16} className="text-ink-500 dark:text-ink-400" />
                 </button>
               </Card>
             ))}

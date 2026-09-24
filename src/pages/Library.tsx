@@ -76,7 +76,7 @@ export function LibraryPage() {
       />
 
       <div className="relative">
-        <Icon name="search" size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
+        <Icon name="search" size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500 dark:text-ink-400" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -98,7 +98,7 @@ export function LibraryPage() {
                 formulering står under - ikke klemt ind ved siden af. */}
             <div className="flex items-baseline justify-between gap-3">
               <h2 className="eyebrow">{cat.name}</h2>
-              <span className="num text-xs text-ink-400">{domains.length} emner</span>
+              <span className="num text-xs text-ink-500 dark:text-ink-400">{domains.length} emner</span>
             </div>
             <p className="mb-4 mt-1 max-w-2xl text-xs leading-relaxed text-ink-500 dark:text-ink-400">
               {cat.faellesMaal}

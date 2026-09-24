@@ -4,6 +4,7 @@ import { MathBlock } from './MathText';
 import { Icon } from './Icon';
 import { Portal } from './Portal';
 import { useIsNarrow } from '../lib/media';
+import { useReturnFocus } from './ui';
 
 export function FormelsamlingButton({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
@@ -21,6 +22,7 @@ export function FormelsamlingButton({ className }: { className?: string }) {
 function FormelsamlingPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const narrow = useIsNarrow();
   const [query, setQuery] = useState('');
+  useReturnFocus(open);
 
   useEffect(() => {
     if (!open) return;
@@ -57,7 +59,7 @@ function FormelsamlingPanel({ open, onClose }: { open: boolean; onClose: () => v
             </p>
             <p className="text-2xs text-ink-500 dark:text-ink-400">Må bruges til prøven med hjælpemidler</p>
           </div>
-          <button onClick={onClose} className="btn-ghost p-1.5" aria-label="Luk formelsamling">
+          <button onClick={onClose} className="btn-ghost -my-2 -mr-2 h-11 w-11 p-0" aria-label="Luk formelsamling">
             <Icon name="close" size={18} />
           </button>
         </header>

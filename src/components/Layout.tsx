@@ -47,6 +47,18 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
 
   return (
     <div className="min-h-full">
+      {/* Ruterne ligger i #-delen af adressen, så et almindeligt ankerlink
+          ville skifte side. Derfor flyttes fokus i stedet. */}
+      <a
+        href="#indhold"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById('indhold')?.focus();
+        }}
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-xl focus:bg-brand-600 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white"
+      >
+        Gå til indhold
+      </a>
       {profile.onboarded ? (
         <aside
           className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-ink-200 bg-white/70 px-3 pb-4 pt-6 backdrop-blur-xl dark:border-white/[0.07] dark:bg-ink-950/70 lg:flex"
@@ -102,7 +114,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
                 </span>
                 {gamification.streakDays > 0 ? (
                   <span
-                    className="num flex items-center gap-1 rounded-lg bg-warn-500/15 px-2 py-1 text-xs font-semibold text-warn-700 dark:text-warn-300"
+                    className="num flex items-center gap-1 rounded-lg bg-warn-500/15 px-2 py-1 text-xs font-semibold text-warn-800 dark:text-warn-300"
                     title={`${gamification.streakDays} dage i træk`}
                   >
                     <Icon name="flame" size={13} />
@@ -139,7 +151,7 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
             <div className="ml-auto flex items-center gap-2">
               {gamification.streakDays > 0 ? (
                 <span
-                  className="num flex items-center gap-1 rounded-lg bg-warn-500/15 px-2 py-1 text-xs font-semibold text-warn-700 dark:text-warn-300"
+                  className="num flex items-center gap-1 rounded-lg bg-warn-500/15 px-2 py-1 text-xs font-semibold text-warn-800 dark:text-warn-300"
                   title={`${gamification.streakDays} dage i træk`}
                 >
                   <Icon name="flame" size={13} />
@@ -172,10 +184,12 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
 
       <div className={clsx(profile.onboarded && 'lg:pl-60')}>
         <main
+          id="indhold"
+          tabIndex={-1}
           // key på ruten: React monterer indholdet på ny ved sideskift, så
           // indtoningen spilles forfra i stedet for kun første gang.
           key={route.name}
-          className="mx-auto w-full max-w-5xl flex-1 animate-swap-in px-4 pb-28 pt-5 lg:px-8 lg:pb-12 lg:pt-10"
+          className="mx-auto w-full max-w-5xl flex-1 animate-swap-in px-4 pb-28 pt-5 focus:outline-none lg:px-8 lg:pb-12 lg:pt-10"
         >
           {children}
         </main>
@@ -211,12 +225,12 @@ export function Layout({ route, children }: { route: Route; children: ReactNode 
                   <span
                     className={clsx(
                       'flex h-7 w-12 items-center justify-center transition-colors',
-                      on ? 'text-brand-400' : 'text-ink-400 dark:text-ink-500',
+                      on ? 'text-brand-400' : 'text-ink-500 dark:text-ink-400',
                     )}
                   >
                     <Icon name={item.icon} size={19} />
                   </span>
-                  <span className={clsx('text-2xs font-medium', on ? 'text-ink-900 dark:text-white' : 'text-ink-400 dark:text-ink-500')}>
+                  <span className={clsx('text-2xs font-medium', on ? 'text-ink-900 dark:text-white' : 'text-ink-500 dark:text-ink-400')}>
                     {item.label}
                   </span>
                 </a>

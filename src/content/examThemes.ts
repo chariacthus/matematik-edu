@@ -1,5 +1,5 @@
 import type { ProblemDraft, Rng, Visual } from '../types';
-import { choices, exprAns, fracAns, name, numAns, s } from './helpers';
+import { NAMES, choices, exprAns, fracAns, name, numAns, s } from './helpers';
 import { median, num, quartile1, roundTo } from '../lib/math';
 
 /**
@@ -424,7 +424,16 @@ const koncert: ExamTheme = {
     const rise = roundTo(((p - old) / old) * 100, 1);
 
     return {
-      intro: `Et band giver koncert i ${city}. Der er ${cap} pladser. En billet koster ${p} kr, og der lægges et gebyr på ${g} % oven i billetprisen.`,
+      intro: `Et band giver koncert i ${city}. Arrangøren har lavet en oversigt over pladser og priser.`,
+      visual: {
+        kind: 'table',
+        head: ['Koncerten', ''],
+        rows: [
+          ['Pladser i alt', `${cap}`],
+          ['Billetpris', `${p} kr`],
+          ['Gebyr', `${g} % oven i billetprisen`],
+        ],
+      },
       parts: [
         {
           skillId: 'procent-af-tal',
@@ -578,12 +587,18 @@ const sportsdag: ExamTheme = {
       if (!times.includes(t)) times.push(t);
     }
     const shown = rng.shuffle(times);
+    const runners = rng.sample(NAMES, 11);
     const sorted = [...times].sort((x, y) => x - y);
     const under = times.filter((t) => t < 180).length;
     const q1 = quartile1(times);
 
     return {
-      intro: `Til sportsdagen løb 11 elever fra 9.A 800 m. Deres tider i sekunder var: ${shown.join(', ')}.`,
+      intro: 'Til sportsdagen løb 11 elever fra 9.A 800 m. Tabellen viser deres tider.',
+      visual: {
+        kind: 'table',
+        head: ['Elev', 'Tid'],
+        rows: runners.map((who, i) => [who, `${shown[i]} sek.`]),
+      },
       parts: [
         {
           skillId: 'stat-deskriptorer',

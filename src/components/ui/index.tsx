@@ -249,7 +249,7 @@ export function StatTile({
   children?: ReactNode;
   className?: string;
 } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
-  const iconTone = { neutral: 'text-ink-400', brand: 'text-brand-400', xp: 'text-xp-400', warn: 'text-orange-400' }[tone];
+  const iconTone = { neutral: 'text-ink-500 dark:text-ink-400', brand: 'text-brand-400', xp: 'text-xp-400', warn: 'text-orange-400' }[tone];
   return (
     <div className={clsx('card flex flex-col rounded-2xl p-4', className)} {...rest}>
       <span className="eyebrow flex items-center gap-1.5">
@@ -258,7 +258,7 @@ export function StatTile({
       </span>
       <span className="num mt-2 flex items-baseline gap-1 text-3xl font-semibold leading-none tracking-tight">
         {typeof value === 'number' ? <CountUp value={value} /> : value}
-        {suffix ? <span className="text-sm font-medium text-ink-400">{suffix}</span> : null}
+        {suffix ? <span className="text-sm font-medium text-ink-500 dark:text-ink-400">{suffix}</span> : null}
       </span>
       {children ? <span className="mt-3 block">{children}</span> : null}
       {hint ? <span className="mt-2 block text-xs leading-snug text-ink-500 dark:text-ink-400">{hint}</span> : null}
@@ -301,7 +301,7 @@ export function ListRow({
       </span>
       {trailing ? <span className="shrink-0">{trailing}</span> : null}
       {onClick && chevron ? (
-        <Icon name="chevron" size={16} className="shrink-0 text-ink-400 transition-transform duration-150 group-hover:translate-x-0.5" />
+        <Icon name="chevron" size={16} className="shrink-0 text-ink-500 dark:text-ink-400 transition-transform duration-150 group-hover:translate-x-0.5" />
       ) : null}
     </>
   );
@@ -621,7 +621,7 @@ export function XpBar({
         </div>
 
         {!compact ? (
-          <p className="mt-1.5 text-2xs font-bold num text-ink-400 dark:text-ink-500">
+          <p className="mt-1.5 text-2xs font-bold num text-ink-500 dark:text-ink-400">
             <CountUp value={into} /> / {needed} XP
           </p>
         ) : null}
@@ -656,7 +656,7 @@ export function LevelBadge({
           box,
           celebrate && 'animate-level-pop',
           dim
-            ? 'bg-ink-100 text-ink-400 dark:bg-white/[0.05] dark:text-ink-500'
+            ? 'bg-ink-100 text-ink-600 dark:bg-white/[0.05] dark:text-ink-300'
             : celebrate
               ? 'bg-xp-500 text-ink-950 shadow-glow-xp'
               : 'bg-brand-600 text-white shadow-inset',
@@ -733,7 +733,7 @@ export function StreakStrip({ days, active }: { days: boolean[]; active: number 
               >
                 <Icon name={on ? 'flame' : 'bolt'} size={14} />
               </span>
-              <span className={clsx('text-2xs font-bold', isToday ? 'text-ink-700 dark:text-ink-200' : 'text-ink-400 dark:text-ink-500')}>
+              <span className={clsx('text-2xs font-bold', isToday ? 'text-ink-700 dark:text-ink-200' : 'text-ink-500 dark:text-ink-400')}>
                 {names[i]}
               </span>
             </span>
@@ -837,7 +837,7 @@ export function Segmented<T extends string>({
             aria-selected={on}
             onClick={() => onChange(t.id)}
             className={clsx(
-              'relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors duration-150',
+              'relative z-10 flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors duration-150 sm:min-h-0',
               on ? 'text-ink-900 dark:text-white' : 'text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-ink-200',
             )}
           >
@@ -864,6 +864,15 @@ export function Segmented<T extends string>({
 /* Dialog og beskeder                                                  */
 /* ------------------------------------------------------------------ */
 
+/** Sender fokus tilbage til det der åbnede et panel, når det lukker igen. */
+export function useReturnFocus(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+    const opener = document.activeElement as HTMLElement | null;
+    return () => opener?.focus?.({ preventScroll: true });
+  }, [active]);
+}
+
 export function Modal({
   open,
   onClose,
@@ -878,6 +887,7 @@ export function Modal({
   wide?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  useReturnFocus(open);
 
   useEffect(() => {
     if (!open) return;
@@ -912,7 +922,7 @@ export function Modal({
           <div className="min-h-0 flex-1 overflow-y-auto p-5">
             <div className="mb-4 flex items-start justify-between gap-4">
               <h3 className="text-lg font-bold">{title}</h3>
-              <button onClick={onClose} className="btn-ghost -mr-2 -mt-1 p-1.5" aria-label="Luk">
+              <button onClick={onClose} className="btn-ghost -my-2 -mr-3 h-11 w-11 p-0" aria-label="Luk">
                 <Icon name="close" size={18} />
               </button>
             </div>
@@ -998,7 +1008,7 @@ export function Disclosure({ summary, children, defaultOpen }: { summary: string
         aria-expanded={open}
       >
         {summary}
-        <Icon name="chevron" size={16} className={clsx('shrink-0 text-ink-400 transition-transform duration-200', open && 'rotate-90')} />
+        <Icon name="chevron" size={16} className={clsx('shrink-0 text-ink-500 dark:text-ink-400 transition-transform duration-200', open && 'rotate-90')} />
       </button>
       {/* Højden foldes ud med grid-rows 0fr -> 1fr, så indholdet glider
           frem i stedet for at springe. */}
@@ -1028,7 +1038,7 @@ export function Skeleton({ lines = 3, className }: { lines?: number; className?:
 
 export function Spinner({ label }: { label?: string }) {
   return (
-    <span className="inline-flex items-center gap-2 text-sm text-ink-500">
+    <span className="inline-flex items-center gap-2 text-sm text-ink-500 dark:text-ink-400">
       <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-ink-300 border-t-brand-500" aria-hidden />
       {label}
     </span>
@@ -1052,7 +1062,7 @@ export function StatRow({ stats }: { stats: { label: string; value: string; tone
           >
             {s.value}
           </p>
-          <p className="mt-1 text-2xs font-bold uppercase tracking-wide text-ink-400 dark:text-ink-500">{s.label}</p>
+          <p className="mt-1 text-2xs font-bold uppercase tracking-wide text-ink-500 dark:text-ink-400">{s.label}</p>
         </div>
       ))}
     </div>

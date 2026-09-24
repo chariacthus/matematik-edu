@@ -171,8 +171,8 @@ function DiagnosticResult({
               ) : (
                 <div>
                   <span className="mb-1 flex items-baseline justify-between gap-3">
-                    <span className="min-w-0 truncate text-sm font-semibold text-ink-400 dark:text-ink-500">{r.name}</span>
-                    <span className="shrink-0 text-xs text-ink-400 dark:text-ink-500">ikke testet</span>
+                    <span className="min-w-0 truncate text-sm font-semibold text-ink-500 dark:text-ink-400">{r.name}</span>
+                    <span className="shrink-0 text-xs text-ink-500 dark:text-ink-400">ikke testet</span>
                   </span>
                   <div className="h-1.5 rounded-full border border-dashed border-ink-300 dark:border-ink-700" />
                 </div>

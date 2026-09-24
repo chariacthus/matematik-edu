@@ -16,7 +16,7 @@ function render(tex: string, display: boolean): string {
       displayMode: display,
       throwOnError: false,
       strict: false,
-      output: 'html',
+      output: 'htmlAndMathml',
       trust: false,
     });
   } catch {

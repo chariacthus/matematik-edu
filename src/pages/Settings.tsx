@@ -144,7 +144,7 @@ export function SettingsPage() {
                             </MetaChip>
                           </span>
                           <span className="mt-1 block text-xs text-ink-500 dark:text-ink-400">{m.blurb}</span>
-                          <span className="mt-1 block text-2xs num text-ink-400 dark:text-ink-500">
+                          <span className="mt-1 block text-2xs num text-ink-500 dark:text-ink-400">
                             ${m.inputPerM}/mio. input · ${m.outputPerM}/mio. output
                           </span>
                         </span>
@@ -181,7 +181,7 @@ export function SettingsPage() {
 
               {settings.llmUsage.calls > 0 ? (
                 <div className="rounded-xl bg-ink-100 p-3 dark:bg-ink-800">
-                  <p className="text-xs font-bold uppercase tracking-wide text-ink-400">Forbrug indtil nu</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-ink-500 dark:text-ink-400">Forbrug indtil nu</p>
                   <p className="mt-1 text-sm">
                     {settings.llmUsage.calls} spørgsmål ·{' '}
                     <span className="font-bold">
@@ -242,7 +242,7 @@ export function SettingsPage() {
         </Card>
       </section>
 
-      <p className="pb-4 text-center text-xs text-ink-400 dark:text-ink-500">
+      <p className="pb-4 text-center text-xs text-ink-500 dark:text-ink-400">
         MatematikAI · matematik til 9. klasse
       </p>
 

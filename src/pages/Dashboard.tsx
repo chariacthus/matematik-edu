@@ -168,7 +168,7 @@ export function DashboardPage() {
                     )}
                     style={{ animationDelay: `${i * 40}ms` }}
                   />
-                  <span className="text-2xs font-medium text-ink-400">{daysLabel[(new Date(Date.now() - (6 - i) * DAY_MS).getDay() + 6) % 7]}</span>
+                  <span className="text-2xs font-medium text-ink-500 dark:text-ink-400">{daysLabel[(new Date(Date.now() - (6 - i) * DAY_MS).getDay() + 6) % 7]}</span>
                 </span>
               ))}
             </span>
@@ -220,7 +220,7 @@ export function DashboardPage() {
                     tone={k.tone}
                     title={item.title}
                     subtitle={item.reason}
-                    trailing={<span className="num text-xs text-ink-400">{item.estimatedMinutes} min</span>}
+                    trailing={<span className="num text-xs text-ink-500 dark:text-ink-400">{item.estimatedMinutes} min</span>}
                     onClick={() => openPlanItem(item)}
                   />
                 );

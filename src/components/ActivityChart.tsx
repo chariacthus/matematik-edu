@@ -70,7 +70,7 @@ export function ActivityChart({ days }: { days: DayActivity[] }) {
             key={d.day}
             className={clsx(
               'min-w-0 flex-1 text-center text-2xs',
-              i === last ? 'font-semibold text-ink-900 dark:text-white' : 'text-ink-400 dark:text-ink-500',
+              i === last ? 'font-semibold text-ink-900 dark:text-white' : 'text-ink-500 dark:text-ink-400',
             )}
           >
             {(WEEKDAYS[new Date(d.ts).getDay()] as string)[0]?.toUpperCase()}

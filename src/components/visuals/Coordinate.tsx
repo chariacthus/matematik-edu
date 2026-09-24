@@ -56,7 +56,7 @@ export function Coordinate({ spec }: { spec: Spec }) {
   const axisY = x0 <= 0 && x1 >= 0 ? sx(0) : pad;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-md text-ink-400" role="img" aria-label="Koordinatsystem">
+    <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-md text-ink-500 dark:text-ink-400" role="img" aria-label="Koordinatsystem">
       {/* Gitter */}
       {xTicks.map((v) => (
         <line key={`gx${v}`} x1={sx(v)} y1={pad} x2={sx(v)} y2={H - pad} stroke={LINE} strokeWidth="1" opacity="0.18" />

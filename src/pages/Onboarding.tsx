@@ -211,7 +211,7 @@ function DomainPicker({
               on ? active : 'text-ink-700 dark:text-ink-200',
             )}
           >
-            <Icon name={on ? 'check' : domainIcon(d.id)} size={15} className={clsx('shrink-0', on ? '' : 'text-ink-400')} />
+            <Icon name={on ? 'check' : domainIcon(d.id)} size={15} className={clsx('shrink-0', on ? '' : 'text-ink-500 dark:text-ink-400')} />
             <span className="min-w-0 leading-snug">{d.name}</span>
           </button>
         );

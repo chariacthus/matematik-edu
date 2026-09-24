@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import type { Problem, Skill, SkillState } from '../types';
 import { TutorPanel } from './TutorPanel';
 import { Icon } from './Icon';
 import { Portal } from './Portal';
+import { useReturnFocus } from './ui';
 import { useIsNarrow } from '../lib/media';
 
 /**
@@ -40,6 +41,12 @@ export function TutorDock({
   onHintUsed: () => void;
 }) {
   const narrow = useIsNarrow();
+  const panel = useRef<HTMLDivElement>(null);
+  useReturnFocus(open);
+
+  useEffect(() => {
+    if (open) panel.current?.focus({ preventScroll: true });
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -77,11 +84,13 @@ export function TutorDock({
       ) : null}
 
       <div
+        ref={panel}
+        tabIndex={-1}
         role="dialog"
         aria-modal={narrow}
         aria-label="Hjælp"
         className={clsx(
-          'glass-strong fixed z-50 flex animate-panel-in flex-col overflow-hidden rounded-3xl shadow-lift',
+          'glass-strong fixed z-50 flex animate-panel-in flex-col overflow-hidden rounded-3xl shadow-lift outline-none',
           narrow
             ? 'safe-bottom inset-x-2 bottom-2 top-24'
             : 'bottom-24 right-6 h-[min(560px,calc(100vh-8rem))] w-[400px] lg:bottom-6',
@@ -94,7 +103,7 @@ export function TutorDock({
             </p>
             <p className="truncate text-2xs text-ink-500 dark:text-ink-400">{skill.name}</p>
           </div>
-          <button onClick={onClose} className="btn-ghost p-1.5" aria-label="Luk hjælpen">
+          <button onClick={onClose} className="btn-ghost -my-2 -mr-2 h-11 w-11 p-0" aria-label="Luk hjælpen">
             <Icon name="close" size={18} />
           </button>
         </header>

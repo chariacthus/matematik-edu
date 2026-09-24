@@ -182,7 +182,7 @@ export function AnswerInput({ spec, choices, value, onChange, onSubmit, verdict,
     const selected = value.kind === 'multi' ? value.indices : [];
     return (
       <div className="grid gap-2.5">
-        <p className="text-xs text-ink-500">Der kan være flere rigtige svar.</p>
+        <p className="text-xs text-ink-500 dark:text-ink-400">Der kan være flere rigtige svar.</p>
         {(choices ?? []).map((c, i) => {
           const isSelected = selected.includes(i);
           return (

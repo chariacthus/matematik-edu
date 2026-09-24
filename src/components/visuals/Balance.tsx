@@ -15,7 +15,7 @@ export function Balance({ spec }: { spec: Spec }) {
   const tilt = Math.max(-7, Math.min(7, diff * 1.4));
 
   return (
-    <svg viewBox="0 0 420 200" className="mx-auto h-auto w-full max-w-md text-ink-400" role="img" aria-label="Vægt der viser en ligning">
+    <svg viewBox="0 0 420 200" className="mx-auto h-auto w-full max-w-md text-ink-500 dark:text-ink-400" role="img" aria-label="Vægt der viser en ligning">
       {/* Vippearm */}
       <g transform={`rotate(${tilt} 210 70)`}>
         <line x1="60" y1="70" x2="360" y2="70" stroke={LINE} strokeWidth="4" strokeLinecap="round" />

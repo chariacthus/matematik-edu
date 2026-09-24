@@ -147,7 +147,7 @@ export function ProfilePage() {
               </div>
             ) : (
               <Card>
-                <p className="text-sm text-ink-500">Træn lidt mere, så dukker de op her.</p>
+                <p className="text-sm text-ink-500 dark:text-ink-400">Træn lidt mere, så dukker de op her.</p>
               </Card>
             )}
           </Section>

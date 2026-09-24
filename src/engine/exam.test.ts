@@ -136,6 +136,7 @@ describe('opgavesæt med tema', () => {
         const built = theme.build(makeRng(seed));
         expect(built.parts, theme.id).toHaveLength(4);
         expect(built.intro.length).toBeGreaterThan(20);
+        expect(built.visual, `${theme.id} har hverken tabel eller figur`).toBeDefined();
         for (const part of built.parts) {
           const json = JSON.stringify(part.draft);
           expect(json, `${theme.id}/${seed}`).not.toMatch(/NaN|Infinity|undefined/);

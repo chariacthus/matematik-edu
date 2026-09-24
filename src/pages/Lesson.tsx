@@ -322,7 +322,7 @@ function ExplainStep({ skill, onDone }: { skill: Skill; onDone: () => void }) {
             return (
               <Card key={i}>
                 <MathBlock tex={block.math} className="text-center" />
-                {block.caption ? <p className="mt-2 text-center text-xs text-ink-500">{block.caption}</p> : null}
+                {block.caption ? <p className="mt-2 text-center text-xs text-ink-500 dark:text-ink-400">{block.caption}</p> : null}
               </Card>
             );
           case 'list':
@@ -349,7 +349,7 @@ function ExplainStep({ skill, onDone }: { skill: Skill; onDone: () => void }) {
             return (
               <Card key={i}>
                 <Visual spec={block.visual} />
-                {block.caption ? <p className="mt-2 text-center text-xs text-ink-500">{block.caption}</p> : null}
+                {block.caption ? <p className="mt-2 text-center text-xs text-ink-500 dark:text-ink-400">{block.caption}</p> : null}
               </Card>
             );
           default:
@@ -414,7 +414,7 @@ function ExampleStep({ skill, onDone, onBack }: { skill: Skill; onDone: () => vo
 
       {skill.worked.length > 1 && allShown ? (
         <Card>
-          <p className="text-sm font-bold text-ink-500">{skill.worked[1]!.title}</p>
+          <p className="text-sm font-bold text-ink-500 dark:text-ink-400">{skill.worked[1]!.title}</p>
           <MathBlock tex={skill.worked[1]!.prompt} className="my-2 text-center" />
           <ol className="mt-2 space-y-2">
             {skill.worked[1]!.steps.map((s, i) => (
