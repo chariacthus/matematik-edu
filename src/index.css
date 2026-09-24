@@ -206,6 +206,17 @@
     isolation: isolate;
   }
   html.dark .paper-head { --grid: rgb(255 255 255 / 0.075); }
+
+  .paper-tile {
+    --grid: rgb(15 17 20 / 0.06);
+    @apply border border-ink-200 bg-ink-50 text-ink-900 dark:border-white/[0.07] dark:bg-white/[0.025] dark:text-ink-100;
+    background-image:
+      linear-gradient(to right, var(--grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+    background-size: 12px 12px;
+    background-position: -1px -1px;
+  }
+  html.dark .paper-tile { --grid: rgb(255 255 255 / 0.045); }
   .paper-head::before {
     content: '';
     position: absolute;

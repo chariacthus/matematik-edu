@@ -1,6 +1,7 @@
 import { type HTMLAttributes, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { Icon, type IconName } from '../Icon';
+import { MathInline } from '../MathText';
 import { Portal } from '../Portal';
 
 /* ------------------------------------------------------------------ */
@@ -37,6 +38,22 @@ export function Card({
     >
       {children}
     </As>
+  );
+}
+
+/** Emnets egen formel på et stykke ternet papir. Pynt for skærmlæsere, derfor skjult. */
+export function FormulaTile({ tex, size = 'md' }: { tex: string; size?: 'md' | 'lg' }) {
+  return (
+    <span
+      aria-hidden
+      data-formula
+      className={clsx(
+        'paper-tile flex items-center overflow-hidden rounded-xl',
+        size === 'lg' ? 'h-20 px-4 text-2xl' : 'h-14 px-3 text-lg',
+      )}
+    >
+      <MathInline tex={tex} className="whitespace-nowrap" />
+    </span>
   );
 }
 
@@ -112,6 +129,7 @@ export function MetaChip({
  */
 export function ChoiceCard({
   icon,
+  preview,
   tone = 'brand',
   eyebrow,
   title,
@@ -126,6 +144,7 @@ export function ChoiceCard({
   ...rest
 }: {
   icon?: IconName;
+  preview?: ReactNode;
   tone?: Tone;
   eyebrow?: ReactNode;
   title: ReactNode;
@@ -151,8 +170,12 @@ export function ChoiceCard({
         </span>
       ) : null}
       <span className="flex items-start justify-between gap-3">
-        {icon ? <IconTile name={icon} tone={tone} size={lg ? 'lg' : 'md'} /> : null}
-        {eyebrow && !selected ? <span className="eyebrow pt-1 text-right">{eyebrow}</span> : null}
+        {preview ? (
+          <span className="block min-w-0 flex-1">{preview}</span>
+        ) : icon ? (
+          <IconTile name={icon} tone={tone} size={lg ? 'lg' : 'md'} />
+        ) : null}
+        {eyebrow && !selected ? <span className="eyebrow shrink-0 pt-1 text-right">{eyebrow}</span> : null}
       </span>
       <Title className={clsx('block font-semibold tracking-tight', lg ? 'mt-4 text-lg' : 'mt-3 text-md')}>{title}</Title>
       {description ? (

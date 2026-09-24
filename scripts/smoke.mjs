@@ -107,6 +107,22 @@ async function assertHumanCopy(where) {
   if (hits.length) errors.push(`${where}: ${hits.join(', ')}`);
 }
 
+// Kortenes formler: sat op af KaTeX og inden for kortets kant.
+async function checkFormulas(where, min = 1) {
+  const res = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-formula]')].map((el) => ({
+      tex: Boolean(el.querySelector('.katex')),
+      over: el.scrollWidth - el.clientWidth,
+      text: el.textContent.slice(0, 30),
+    })),
+  );
+  if (res.length < min) throw new Error(`${where}: kun ${res.length} formler på siden`);
+  const bad = res.filter((r) => !r.tex);
+  if (bad.length) throw new Error(`${where}: ${bad.length} formler blev ikke sat op`);
+  const over = res.filter((r) => r.over > 1);
+  if (over.length) throw new Error(`${where}: formlen "${over[0].text}" går ud over kortet (${over[0].over}px)`);
+}
+
 const shots = [];
 const shot = async (name) => {
   // Lad indtoninger og forsinkede liste-animationer falde til ro, ellers
@@ -223,6 +239,10 @@ try {
     }
   });
 
+  await step('forsiden viser matematik frem for ikoner', async () => {
+    await checkFormulas('forsiden', 5);
+  });
+
   await step('kort har kant og skygge', async () => {
     const card = page.locator('main .card-interactive').first();
     await card.waitFor({ timeout: 5000 });
@@ -252,6 +272,7 @@ try {
   await step('åbner biblioteket', async () => {
     await page.goto('http://127.0.0.1:4173/#/bibliotek');
     await page.getByRole('heading', { name: 'Emner', exact: true }).waitFor({ timeout: 8000 });
+    await checkFormulas('emner', 21);
   });
   await shot('05-bibliotek');
 
@@ -349,6 +370,7 @@ try {
     const rows = await page.locator('main button.card-interactive').count();
     if (rows < 3) throw new Error(`emnet viser kun ${rows} færdigheder`);
     await back.click();
+    await checkFormulas('træn', 21);
     await page.getByRole('button', { name: /^Brøker:/ }).waitFor({ timeout: 5000 });
   });
 
@@ -625,6 +647,7 @@ try {
     }));
     if (shell.side < 200) throw new Error(`sidemenuen vises ikke på en stor skærm (${shell.side}px)`);
     if (shell.bottom > 0) throw new Error('bundmenuen vises stadig på en stor skærm');
+    await checkFormulas('forsiden på computer', 5);
     await shot('27-computer-forside');
 
     // Fanemarkøren glider hen til den fane man trykker på.

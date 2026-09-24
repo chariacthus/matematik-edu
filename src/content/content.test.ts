@@ -4,6 +4,8 @@ import { checkAnswer, findTrap, parseNumber } from '../lib/answer';
 import type { Difficulty, Problem } from '../types';
 import { makeRng } from '../lib/math';
 import { getMisconception } from './misconceptions';
+import { CATEGORY_SIGNATURES, DOMAIN_SIGNATURES, hasOwnSignature, skillSignature } from './signatures';
+import katex from 'katex';
 
 const LEVELS: Difficulty[] = [1, 2, 3, 4, 5];
 const SAMPLES = 24;
@@ -136,4 +138,22 @@ describe('opgavegeneratorer', () => {
       });
     }
   }
+});
+
+describe('formlerne på kortene', () => {
+  it('hver færdighed har sin egen formel', () => {
+    const missing = ALL_SKILLS.filter((s) => !hasOwnSignature(s.id)).map((s) => s.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('alle formler kan sættes op', () => {
+    const all = [
+      ...Object.values(CATEGORY_SIGNATURES),
+      ...Object.values(DOMAIN_SIGNATURES),
+      ...ALL_SKILLS.map(skillSignature),
+    ];
+    for (const tex of all) {
+      expect(() => katex.renderToString(tex, { throwOnError: true, strict: 'error' }), tex).not.toThrow();
+    }
+  });
 });

@@ -6,12 +6,13 @@ import { activeMisconceptions, readBehaviour } from '../engine/diagnosis';
 import { dueSkills } from '../engine/srs';
 import { levelProgress, levelTitle } from '../engine/gamification';
 import { CATEGORIES, getSkill } from '../content';
+import { CATEGORY_SIGNATURES, skillSignature } from '../content/signatures';
 import { navigate } from '../lib/router';
 import { DAY_MS, dayKey, relativeDays } from '../lib/dates';
 import { Icon, type IconName } from '../components/Icon';
 import { Tour, type TourStep } from '../components/Tour';
 import {
-  Callout, Card, ChoiceCard, EmptyState, IconTile, ListRow, MetaChip, Page,
+  Callout, Card, ChoiceCard, EmptyState, FormulaTile, IconTile, ListRow, MetaChip, Page,
   ProgressBar, Section, Segmented, StatTile, XpBar,
 } from '../components/ui';
 import { LESSON_PHASES } from '../types';
@@ -283,12 +284,11 @@ export function DashboardPage() {
             const pct = Math.round(inCat.reduce((n, d) => n + d.percent, 0) / inCat.length);
             const mastered = inCat.reduce((n, d) => n + d.mastered, 0);
             const total = inCat.reduce((n, d) => n + d.total, 0);
-            const icon: IconName = { 'tal-algebra': 'sigma', 'geometri-maaling': 'shapes', 'statistik-sandsynlighed': 'chart', kompetencer: 'brain' }[cat.id] as IconName;
             return (
               <ChoiceCard
                 key={cat.id}
                 size="md"
-                icon={icon}
+                preview={<FormulaTile tex={CATEGORY_SIGNATURES[cat.id]} />}
                 tone={pct >= 70 ? 'xp' : 'brand'}
                 title={cat.name}
                 meta={[{ icon: 'star', label: `${mastered}/${total} mestret` }]}
@@ -330,11 +330,13 @@ const go = (item: PlanItem) =>
 /** Dagens mission: prøvevalgets kort, med det der skal ske som eneste handling. */
 function MissionCard({ item, phase }: { item: PlanItem; phase: number }) {
   const style = KIND[item.kind];
+  const skill = item.kind === 'diagnose' ? undefined : getSkill(item.skillId);
   const meta: { icon: IconName; label: string }[] = [{ icon: 'clock', label: `${item.estimatedMinutes} min` }];
   if (phase >= 0) meta.push({ icon: 'layers', label: `Trin ${phase + 1} af 7` });
   return (
     <ChoiceCard
       icon={style.icon}
+      preview={skill ? <FormulaTile tex={skillSignature(skill)} size="lg" /> : undefined}
       tone={style.tone}
       eyebrow={style.label}
       title={item.title}

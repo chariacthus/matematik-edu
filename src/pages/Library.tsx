@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import clsx from "clsx";
 import type { AreaId, Domain, DomainId, Skill, SkillState } from "../types";
 import { CATEGORIES, DOMAINS, areaName, getDomain, skillsOf } from "../content";
+import { DOMAIN_SIGNATURES } from "../content/signatures";
 import { useStore } from "../state/store";
 import { domainProgress, prerequisitesMet } from "../engine/planner";
 import { skillStatus } from "../engine/mastery";
@@ -12,6 +13,7 @@ import {
   Card,
   ChoiceCard,
   EmptyState,
+  FormulaTile,
   LevelDots,
   MetaChip,
   PageHeader,
@@ -123,7 +125,7 @@ export function LibraryPage() {
                       <ChoiceCard
                         key={d.id}
                         size="md"
-                        icon={domainIcon(d.id)}
+                        preview={<FormulaTile tex={DOMAIN_SIGNATURES[d.id]} />}
                         tone={done ? "xp" : "brand"}
                         title={d.name}
                         meta={[{ icon: "star", label: `${p?.mastered ?? 0}/${p?.total ?? d.skills.length}` }]}

@@ -7,7 +7,8 @@ import { abilityToLevel, newSkillState } from '../engine/mastery';
 import { navigate } from '../lib/router';
 import { randomSeed } from '../lib/math';
 import { ProblemCard, type SubmitInfo } from '../components/ProblemCard';
-import { Callout, Card, ChoiceCard, MetaChip, EmptyState, ListRow, Page, PageHeader, ProgressBar, Section } from '../components/ui';
+import { Callout, Card, ChoiceCard, EmptyState, FormulaTile, ListRow, MetaChip, Page, PageHeader, ProgressBar, Section } from '../components/ui';
+import { DOMAIN_SIGNATURES } from '../content/signatures';
 import { Icon, domainIcon } from '../components/Icon';
 
 /**
@@ -164,7 +165,7 @@ export function PracticePage() {
                 <ChoiceCard
                   key={d.id}
                   size="md"
-                  icon={domainIcon(d.id)}
+                  preview={<FormulaTile tex={DOMAIN_SIGNATURES[d.id]} />}
                   tone="brand"
                   title={d.name}
                   meta={[{ icon: 'pencil', label: `${d.skills.length} færdigheder` }]}
